@@ -1,4 +1,4 @@
-package edu.mui.noti.noti
+package edu.mui.noti.summary
 
 import android.Manifest
 import android.app.AppOpsManager
@@ -17,8 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import edu.mui.noti.noti.service.NotiListenerService
-import edu.mui.noti.noti.ui.theme.NotiappTheme
+import edu.mui.noti.summary.service.NotiListenerService
+import edu.mui.noti.summary.ui.theme.NotiappTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,4 +1,4 @@
-package edu.mui.noti.noti.model
+package edu.mui.noti.summary.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

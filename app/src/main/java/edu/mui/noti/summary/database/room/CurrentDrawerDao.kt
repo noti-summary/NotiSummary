@@ -1,7 +1,7 @@
-package edu.mui.noti.noti.database.room
+package edu.mui.noti.summary.database.room
 
 import androidx.room.*
-import edu.mui.noti.noti.model.CurrentDrawer
+import edu.mui.noti.summary.model.CurrentDrawer
 
 @Dao
 interface CurrentDrawerDao {

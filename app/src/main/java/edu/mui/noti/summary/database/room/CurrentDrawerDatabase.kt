@@ -1,10 +1,10 @@
-package edu.mui.noti.noti.database.room
+package edu.mui.noti.summary.database.room
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import edu.mui.noti.noti.model.CurrentDrawer
+import edu.mui.noti.summary.model.CurrentDrawer
 
 @Database(entities = [CurrentDrawer::class], version = 1)
 abstract class CurrentDrawerDatabase: RoomDatabase() {

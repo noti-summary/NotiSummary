@@ -1,4 +1,4 @@
-package edu.mui.noti.noti.ui.theme
+package edu.mui.noti.summary.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

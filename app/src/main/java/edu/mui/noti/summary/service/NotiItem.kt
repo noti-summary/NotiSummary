@@ -1,4 +1,4 @@
-package edu.mui.noti.noti.service
+package edu.mui.noti.summary.service
 
 import android.app.Notification
 import android.app.Notification.*
@@ -9,8 +9,8 @@ import android.os.Build
 import android.os.Build.VERSION_CODES.TIRAMISU
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import edu.mui.noti.noti.model.CurrentDrawer
-import edu.mui.noti.noti.util.TAG
+import edu.mui.noti.summary.model.CurrentDrawer
+import edu.mui.noti.summary.util.TAG
 import java.util.*
 
 class NotiItem(context: Context,
