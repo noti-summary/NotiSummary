@@ -73,4 +73,7 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:$room_version"
     // To use Kotlin annotation processing tool (kapt)
     kapt "androidx.room:room-compiler:$room_version"
+
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    implementation 'io.github.cdimascio:dotenv-kotlin:6.4.1'
 }

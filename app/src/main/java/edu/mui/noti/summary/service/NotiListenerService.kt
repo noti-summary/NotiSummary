@@ -1,5 +1,6 @@
 package edu.mui.noti.summary.service
 
+import SendCurrentDrawerToServer
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -86,6 +87,7 @@ class NotiListenerService: NotificationListenerService() {
                 Log.d(TAG, "insert drawerNoti")
                 notiItem.logProperty()
             }
+            SendCurrentDrawerToServer(applicationContext)
         } catch (e: Exception) {
             e.printStackTrace()
         }
