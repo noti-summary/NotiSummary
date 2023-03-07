@@ -1,6 +1,5 @@
 package edu.mui.noti.summary.service
 
-import SendCurrentDrawerToServer
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -84,10 +83,8 @@ class NotiListenerService: NotificationListenerService() {
                 if (drawerNoti.sortKey != "null")
                     currentDrawerDao.deleteByPackageSortKey(drawerNoti.packageName, drawerNoti.groupKey, drawerNoti.sortKey)
                 currentDrawerDao.insert(drawerNoti)
-                Log.d(TAG, "insert drawerNoti")
-                notiItem.logProperty()
+                Log.d(TAG, "finish inserting the noti")
             }
-            SendCurrentDrawerToServer(applicationContext)
         } catch (e: Exception) {
             e.printStackTrace()
         }

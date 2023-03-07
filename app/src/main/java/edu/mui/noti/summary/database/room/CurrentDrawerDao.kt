@@ -1,5 +1,6 @@
 package edu.mui.noti.summary.database.room
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import edu.mui.noti.summary.model.CurrentDrawer
 
@@ -10,6 +11,9 @@ interface CurrentDrawerDao {
 
     @Query("SELECT DISTINCT packageName FROM current_drawer_table")
     fun getAllPackages(): List<String>
+
+    @Query("SELECT title FROM current_drawer_table")
+    fun getAllTitles(): List<String>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(currentDrawer: CurrentDrawer)
