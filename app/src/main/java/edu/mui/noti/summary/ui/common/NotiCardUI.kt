@@ -10,7 +10,7 @@ import edu.mui.noti.summary.viewModel.SummaryViewModel
 
 @Composable
 fun NotiCard(sumViewModel: SummaryViewModel) {
-    val result by sumViewModel.result.observeAsState("The Summary of notification is preparing...")
+    val result by sumViewModel.result.observeAsState("請按下方按鈕產生通知摘要")
     Column(modifier = Modifier.padding(16.dp)) {
         Card(modifier = Modifier.fillMaxWidth().height(500.dp)) {
             Box(modifier = Modifier.padding(16.dp)) {
@@ -19,7 +19,7 @@ fun NotiCard(sumViewModel: SummaryViewModel) {
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
-            sumViewModel.updateSummaryText()
+            sumViewModel.getSummaryText()
         }) {
             Text(text = "Send to Server")
         }

@@ -11,6 +11,7 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import edu.mui.noti.summary.model.CurrentDrawer
 import edu.mui.noti.summary.util.TAG
+import java.text.SimpleDateFormat
 import java.util.*
 
 class NotiItem(context: Context,
@@ -112,8 +113,18 @@ class NotiItem(context: Context,
         return title
     }
 
+    fun getAppName(): String? {
+        return appName
+    }
+
     fun getContent(): String {
         return content
+    }
+
+    fun getTimeStr(): String {
+        val simpleDateFormat = SimpleDateFormat("hh:mm")
+        val date = unixTime?.let { Date(it.toLong()) }
+        return simpleDateFormat.format(date)
     }
 
     fun makeDrawerNoti(): CurrentDrawer {
