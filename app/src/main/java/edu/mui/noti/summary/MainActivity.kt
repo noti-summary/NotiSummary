@@ -3,8 +3,7 @@ package edu.mui.noti.summary
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AppOpsManager
-import android.content.ComponentName
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Process
@@ -13,13 +12,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -39,9 +35,10 @@ import edu.mui.noti.summary.service.NotiListenerService
 import edu.mui.noti.summary.ui.common.NotiCard
 import edu.mui.noti.summary.ui.theme.NotiappTheme
 import edu.mui.noti.summary.viewModel.SummaryViewModel
-import edu.mui.noti.summary.util.getActiveNotifications
+import java.util.*
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,19 +46,30 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
 
+        /*
         if (!isUsageEnabled()) {
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
+        */
 
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
         startService(notiListenerIntent)
 
+        val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
+        registerReceiver(allNotiReturnReceiver, allNotiFilter)
 
         setContent {
 //            NotiCard(sumViewModel)
 //            Greeting("world")
-            MainScreenView()
+            MainScreenView() {
+                NotiCard(sumViewModel)
+            }
         }
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver(allNotiReturnReceiver)
+        super.onDestroy()
     }
 
     private val sumViewModel by viewModels<SummaryViewModel>()
@@ -86,6 +94,17 @@ class MainActivity : ComponentActivity() {
     private fun isUsageEnabled(): Boolean {
         return chkPermissionOps(Manifest.permission.PACKAGE_USAGE_STATS)
     }
+
+    private val allNotiReturnReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
+                val allNotiStr = intent.getStringExtra("allNotis")
+                if (allNotiStr != null && allNotiStr != "Not connected") {
+                    sumViewModel.updateSummaryText(allNotiStr)
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -102,8 +121,8 @@ fun DefaultPreview() {
 }
 
 sealed class BottomNavItem(var title:String, var icon:Int, var screen_route:String){
-    object Home : BottomNavItem("Home", R.drawable.ic_launcher_foreground,"home")
-    object MyNetwork: BottomNavItem("My Network",R.drawable.ic_launcher_foreground,"my_network")
+    object Home : BottomNavItem("我的摘要", R.drawable.summary,"home")
+    object MyNetwork: BottomNavItem("設定",R.drawable.settings,"my_network")
 }
 
 @Composable
@@ -115,7 +134,7 @@ fun HomeScreen() {
             .wrapContentSize(Alignment.Center)
     ) {
         Text(
-            text = "Home Screen",
+            text = "摘要",
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -126,32 +145,54 @@ fun HomeScreen() {
 }
 
 @Composable
-fun NetworkScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.teal_700))
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "My Network Screen",
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            fontSize = 20.sp
-        )
+fun SettingsScreen() {
+
+    /*
+    var showTimePicker by remember { mutableStateOf(false) }
+    val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
+    val state = rememberTimePickerState()
+    val snackState = remember { SnackbarHostState() }
+    val snackScope = rememberCoroutineScope()
+
+    Box(propagateMinConstraints = false) {
+        Button(
+            modifier = Modifier.align(Alignment.Center),
+            onClick = { showTimePicker = true }
+        ) { Text("Set Time") }
+        SnackbarHost(hostState = snackState)
     }
+
+    if (showTimePicker) {
+        TimePickerDialog(
+            onCancel = { showTimePicker = false },
+            onConfirm = {
+                val cal = Calendar.getInstance()
+                cal.set(Calendar.HOUR_OF_DAY, state.hour)
+                cal.set(Calendar.MINUTE, state.minute)
+                cal.isLenient = false
+                snackScope.launch {
+                    snackState.showSnackbar("Entered time: ${formatter.format(cal.time)}")
+                }
+                showTimePicker = false
+            },
+        ) {
+            TimeInput(state = state)
+        }
+    }
+    */
 }
 
 @Composable
-fun NavigationGraph(navController: NavHostController) {
+fun NavigationGraph(
+    navController: NavHostController,
+    content: @Composable() () -> Unit
+) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
-            HomeScreen()
+            content()
         }
         composable(BottomNavItem.MyNetwork.screen_route) {
-            NetworkScreen()
+            SettingsScreen()
         }
     }
 }
@@ -169,7 +210,7 @@ fun AppBottomNavigation(navController: NavController) {
         val currentRoute = navBackStackEntry?.destination?.route
         items.forEach { item ->
             NavigationBarItem(
-                icon = { Icon(painterResource(id = item.icon), contentDescription = item.title) },
+                icon = { Icon(painterResource(id = item.icon), contentDescription = item.title, modifier = Modifier.size(30.dp)) },
                 label = { Text(text = item.title,
                     fontSize = 9.sp) },
                 alwaysShowLabel = true,
@@ -195,11 +236,13 @@ fun AppBottomNavigation(navController: NavController) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreenView(){
+fun MainScreenView(content: @Composable() () -> Unit){
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { AppBottomNavigation(navController = navController) }
     ) {
-        NavigationGraph(navController = navController)
+        NavigationGraph(navController = navController) {
+            content()
+        }
     }
 }

@@ -2,21 +2,58 @@ package edu.mui.noti.summary.service
 
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import edu.mui.noti.summary.database.room.CurrentDrawerDatabase
 import edu.mui.noti.summary.util.TAG
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class NotiListenerService: NotificationListenerService() {
+
+    private var connected: Boolean = false
+
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        Log.i(TAG, "Connected!")
+        connected = true
+    }
+
+    override fun onListenerDisconnected() {
+        connected = false
+        super.onListenerDisconnected()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return super.onBind(intent)
+    }
+
+    private val allNotiRequestReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
+                val intent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
+                intent.putExtra("allNotis", if(connected) getAllNotifications() else "Not connected")
+                sendBroadcast(intent)
+            }
+        }
+    }
+
+    fun isConnected(): Boolean {
+        return connected
+    }
+
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "onCreate")
+        val allNotiFilter = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS")
+        LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilter)
     }
 
     override fun onDestroy() {
@@ -27,15 +64,12 @@ class NotiListenerService: NotificationListenerService() {
         applicationContext.getSystemService(Context.ALARM_SERVICE)
         val alarmService: AlarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmService.set(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis() + 10000, restartServicePendingIntent)
+        unregisterReceiver(allNotiRequestReceiver)
         Log.d(TAG, "onDestroy")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_STICKY
-    }
-
-    override fun onBind(intent: Intent?): IBinder? {
-        return super.onBind(intent)
     }
 
     private fun adHocRemove(notiItem: NotiItem): Boolean {
@@ -98,5 +132,25 @@ class NotiListenerService: NotificationListenerService() {
         val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
         val userId = sharedPref.getString("user_id", "000").toString()
         val notiItem = NotiItem(this, sbn, userId)
+    }
+
+    fun getAllNotifications() : String {
+        val sb = StringBuilder()
+        activeNotifications.forEach {
+            if (it.tag == null || it.isOngoing)
+                return@forEach
+
+            val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+            val userId = sharedPref.getString("user_id", "000").toString()
+            val notiItem = NotiItem(this, it, userId)
+
+            val appName = notiItem.getAppName()
+            val time = notiItem.getTimeStr()
+            val title = notiItem.getTitle()
+            val content = notiItem.getContent()
+
+            sb.append("[App] $appName\n[Time] $time\n[Title] $title\n[Content] $content\n\n")
+        }
+        return sb.toString()
     }
 }
