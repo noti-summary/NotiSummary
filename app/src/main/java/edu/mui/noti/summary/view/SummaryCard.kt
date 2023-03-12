@@ -1,4 +1,4 @@
-package edu.mui.noti.summary.ui.common
+package edu.mui.noti.summary.view
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import edu.mui.noti.summary.viewModel.SummaryViewModel
 
 @Composable
-fun NotiCard(sumViewModel: SummaryViewModel) {
+fun SummaryCard(sumViewModel: SummaryViewModel) {
     val result by sumViewModel.result.observeAsState("請按下方按鈕產生通知摘要")
     Column(modifier = Modifier.padding(16.dp)) {
         Card(modifier = Modifier.fillMaxWidth().height(500.dp)) {
