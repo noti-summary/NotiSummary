@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace 'edu.mui.noti.summary'
+    namespace 'org.muilab.noti.summary'
     compileSdk 33
 
     defaultConfig {
-        applicationId "edu.mui.noti.summary"
+        applicationId "org.muilab.noti.summary"
         minSdk 28
         targetSdk 33
         versionCode 1
