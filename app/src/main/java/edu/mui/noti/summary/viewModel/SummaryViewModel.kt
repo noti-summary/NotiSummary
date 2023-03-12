@@ -15,6 +15,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
     private val _result = MutableLiveData<String>()
@@ -44,7 +45,12 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     }
 
     private suspend fun sendToServer(content: String) = withContext(Dispatchers.IO) {
-        val client = OkHttpClient()
+        val client = OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
+
         val postBody = "{\"prompt\": \"$prompt\", \"content\": \"${content.replace("\n", "\\n")}\"}"
         val request = Request.Builder()
             .url(serverIP)

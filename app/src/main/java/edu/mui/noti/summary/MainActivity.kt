@@ -32,8 +32,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import edu.mui.noti.summary.service.NotiListenerService
-import edu.mui.noti.summary.ui.common.NotiCard
+import edu.mui.noti.summary.view.SummaryCard
 import edu.mui.noti.summary.ui.theme.NotiappTheme
+import edu.mui.noti.summary.view.MainScreenView
 import edu.mui.noti.summary.viewModel.SummaryViewModel
 import java.util.*
 
@@ -59,11 +60,9 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
 
         setContent {
-//            NotiCard(sumViewModel)
+//            SummaryCard(sumViewModel)
 //            Greeting("world")
-            MainScreenView() {
-                NotiCard(sumViewModel)
-            }
+            MainScreenView()
         }
     }
 
@@ -120,129 +119,3 @@ fun DefaultPreview() {
     }
 }
 
-sealed class BottomNavItem(var title:String, var icon:Int, var screen_route:String){
-    object Home : BottomNavItem("我的摘要", R.drawable.summary,"home")
-    object MyNetwork: BottomNavItem("設定",R.drawable.settings,"my_network")
-}
-
-@Composable
-fun HomeScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.teal_700))
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "摘要",
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            fontSize = 20.sp
-        )
-    }
-}
-
-@Composable
-fun SettingsScreen() {
-
-    /*
-    var showTimePicker by remember { mutableStateOf(false) }
-    val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
-    val state = rememberTimePickerState()
-    val snackState = remember { SnackbarHostState() }
-    val snackScope = rememberCoroutineScope()
-
-    Box(propagateMinConstraints = false) {
-        Button(
-            modifier = Modifier.align(Alignment.Center),
-            onClick = { showTimePicker = true }
-        ) { Text("Set Time") }
-        SnackbarHost(hostState = snackState)
-    }
-
-    if (showTimePicker) {
-        TimePickerDialog(
-            onCancel = { showTimePicker = false },
-            onConfirm = {
-                val cal = Calendar.getInstance()
-                cal.set(Calendar.HOUR_OF_DAY, state.hour)
-                cal.set(Calendar.MINUTE, state.minute)
-                cal.isLenient = false
-                snackScope.launch {
-                    snackState.showSnackbar("Entered time: ${formatter.format(cal.time)}")
-                }
-                showTimePicker = false
-            },
-        ) {
-            TimeInput(state = state)
-        }
-    }
-    */
-}
-
-@Composable
-fun NavigationGraph(
-    navController: NavHostController,
-    content: @Composable() () -> Unit
-) {
-    NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
-        composable(BottomNavItem.Home.screen_route) {
-            content()
-        }
-        composable(BottomNavItem.MyNetwork.screen_route) {
-            SettingsScreen()
-        }
-    }
-}
-
-@Composable
-fun AppBottomNavigation(navController: NavController) {
-    val items = listOf(
-        BottomNavItem.Home,
-        BottomNavItem.MyNetwork
-    )
-    NavigationBar(
-        contentColor = Color.Black
-    ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
-        items.forEach { item ->
-            NavigationBarItem(
-                icon = { Icon(painterResource(id = item.icon), contentDescription = item.title, modifier = Modifier.size(30.dp)) },
-                label = { Text(text = item.title,
-                    fontSize = 9.sp) },
-                alwaysShowLabel = true,
-                selected = currentRoute == item.screen_route,
-                onClick = {
-                    navController.navigate(item.screen_route) {
-
-                        navController.graph.startDestinationRoute?.let { screen_route ->
-                            popUpTo(screen_route) {
-                                saveState = true
-                            }
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            )
-        }
-    }
-}
-
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainScreenView(content: @Composable() () -> Unit){
-    val navController = rememberNavController()
-    Scaffold(
-        bottomBar = { AppBottomNavigation(navController = navController) }
-    ) {
-        NavigationGraph(navController = navController) {
-            content()
-        }
-    }
-}
