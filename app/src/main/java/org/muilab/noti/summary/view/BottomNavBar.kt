@@ -1,6 +1,7 @@
 package org.muilab.noti.summary.view
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -28,21 +30,21 @@ sealed class BottomNavItem(var title:String, var icon:Int, var screen_route:Stri
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreenView(){
+fun MainScreenView(context: Context, lifecycleOwner: LifecycleOwner){
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { AppBottomNavigation(navController = navController) }
     ) {
-        NavigationGraph(navController = navController)
+        NavigationGraph(navController = navController, context, lifecycleOwner)
     }
 }
 
 
 @Composable
-fun NavigationGraph(navController: NavHostController) {
+fun NavigationGraph(navController: NavHostController, context: Context, lifecycleOwner: LifecycleOwner) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
-            HomeScreen()
+            HomeScreen(context, lifecycleOwner)
         }
         composable(BottomNavItem.Settings.screen_route) {
             SettingsScreen()

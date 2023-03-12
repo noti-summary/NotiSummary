@@ -7,14 +7,29 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleOwner
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.ktx.Firebase
+import org.muilab.noti.summary.database.firestore.FirestoreDocument
+import org.muilab.noti.summary.database.firestore.documentStateOf
+import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
+import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
@@ -42,8 +57,9 @@ class MainActivity : ComponentActivity() {
         setContent {
 //            SummaryCard(sumViewModel)
 //            Greeting("world")
-            MainScreenView()
+            MainScreenView(this, this)
         }
+
     }
 
     override fun onDestroy() {
@@ -98,4 +114,3 @@ fun DefaultPreview() {
         Greeting("Android")
     }
 }
-
