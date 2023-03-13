@@ -1,9 +1,12 @@
 package org.muilab.noti.summary.view
 
+import android.icu.text.CaseMap.Title
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -12,56 +15,39 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.muilab.noti.summary.R
 
 @Composable
 fun SettingsScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.teal_700))
-            .wrapContentSize(Alignment.Center)
-    ) {
+    val settingList = arrayListOf<String>(
+        "A",
+        "B",
+        "C",
+    )
+    Column() {
         Text(
             text = "設定",
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
             textAlign = TextAlign.Center,
-            fontSize = 20.sp
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(16.dp)
         )
-    }
-
-    /*
-    var showTimePicker by remember { mutableStateOf(false) }
-    val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
-    val state = rememberTimePickerState()
-    val snackState = remember { SnackbarHostState() }
-    val snackScope = rememberCoroutineScope()
-    Box(propagateMinConstraints = false) {
-        Button(
-            modifier = Modifier.align(Alignment.Center),
-            onClick = { showTimePicker = true }
-        ) { Text("Set Time") }
-        SnackbarHost(hostState = snackState)
-    }
-    if (showTimePicker) {
-        TimePickerDialog(
-            onCancel = { showTimePicker = false },
-            onConfirm = {
-                val cal = Calendar.getInstance()
-                cal.set(Calendar.HOUR_OF_DAY, state.hour)
-                cal.set(Calendar.MINUTE, state.minute)
-                cal.isLenient = false
-                snackScope.launch {
-                    snackState.showSnackbar("Entered time: ${formatter.format(cal.time)}")
+        LazyColumn(modifier = Modifier.fillMaxHeight()) {
+            items(settingList) {
+                Card(
+                    modifier = Modifier
+                        .padding(3.dp)
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Text(modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth(), text=it)
                 }
-                showTimePicker = false
-            },
-        ) {
-            TimeInput(state = state)
+            }
         }
     }
-    */
 }
