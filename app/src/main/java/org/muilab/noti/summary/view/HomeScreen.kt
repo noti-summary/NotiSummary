@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.firestore.FirestoreDocument
@@ -50,15 +51,18 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner) {
         )
     }
 
-    Credit(context, lifecycleOwner)
+    val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+    val userId = sharedPref.getString("user_id", "000").toString()
 
-    SubtractButton(context)
+    Credit(context, lifecycleOwner, userId)
+    SubtractButton(context, userId)
 
 }
 
 @Composable
-fun Credit(context: Context, lifecycleOwner: LifecycleOwner) {
-    val documentRef = Firebase.firestore.collection("user-free-credit").document("001")
+fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
+
+    val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
     val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
 
     if (result is FirestoreDocument.Snapshot) {
@@ -68,7 +72,7 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner) {
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
             Row(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Daily Credit: ${item.credit} / 100")
+                Text(text = "Daily Credit: ${item.credit} / 50")
             }
         }
     }
@@ -76,7 +80,7 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner) {
 }
 
 @Composable
-fun SubtractButton(context: Context) {
+fun SubtractButton(context: Context, userId: String) {
     Box(
         modifier = Modifier.fillMaxSize().padding(bottom = 100.dp, end=25.dp),
         contentAlignment = Alignment.BottomEnd
@@ -84,13 +88,12 @@ fun SubtractButton(context: Context) {
         FloatingActionButton(
             onClick = {
                 val db = Firebase.firestore
-                val docRef = db.collection("user-free-credit").document("001")
+                val docRef = db.collection("user-free-credit").document(userId)
                 docRef.get()
                     .addOnSuccessListener { document ->
                         if (document != null) {
                             val res = document.toObject<UserCredit>()!!
-                            docRef
-                                .update("credit", res.credit-1)
+                            docRef.update("credit", res.credit-1)
                                 .addOnSuccessListener { Toast.makeText(context, "-1", Toast.LENGTH_LONG).show() }
                         }
                     }
