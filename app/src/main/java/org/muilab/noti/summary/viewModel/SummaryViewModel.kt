@@ -2,6 +2,7 @@ package org.muilab.noti.summary.viewModel
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.*
@@ -20,6 +21,7 @@ import org.json.JSONException
 import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
+    private val sharedPreferences = getApplication<Application>().getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
     private val _result = MutableLiveData<String>()
     val result: LiveData<String> = _result
     @SuppressLint("StaticFieldLeak")
@@ -33,6 +35,22 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     }
     private val serverIP = dotenv["SUMMARY_URL"]
     private val mediaType = "application/json; charset=utf-8".toMediaType()
+
+    init {
+        val resultValue = sharedPreferences.getString("resultValue", "")
+        if (resultValue != "") {
+            _result.value = resultValue
+        }
+    }
+
+    private fun updateLiveDataValue(newValue: String?) {
+        if (newValue != null) {
+            _result.postValue(newValue)
+            val editor = sharedPreferences.edit()
+            editor.putString("resultValue", newValue)
+            editor.apply()
+        }
+    }
 
     fun getSummaryText() {
         val intent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
@@ -63,7 +81,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
-                _result.postValue(summary)
+                updateLiveDataValue(summary)
             } else {
                 response.body?.let { Log.i("Server", it.string()) }
             }
