@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.firestore.FirestoreDocument
 import org.muilab.noti.summary.database.firestore.documentStateOf
+import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.TAG
 
@@ -54,13 +54,13 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner) {
     val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
 
-    Credit(context, lifecycleOwner, userId)
+    Credit(lifecycleOwner, userId)
     SubtractButton(context, userId)
 
 }
 
 @Composable
-fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
+fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 
     val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
     val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
@@ -72,7 +72,7 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
             Row(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Daily Credit: ${item.credit} / 50")
+                Text(text = "Daily Credit: ${item.credit} / $maxCredit")
             }
         }
     }
@@ -93,8 +93,13 @@ fun SubtractButton(context: Context, userId: String) {
                     .addOnSuccessListener { document ->
                         if (document != null) {
                             val res = document.toObject<UserCredit>()!!
-                            docRef.update("credit", res.credit-1)
-                                .addOnSuccessListener { Toast.makeText(context, "-1", Toast.LENGTH_LONG).show() }
+
+                            if(res.credit > 0){
+                                docRef.update("credit", res.credit-1)
+                                    .addOnSuccessListener { Toast.makeText(context, "show summary", Toast.LENGTH_SHORT).show() }
+                            } else{
+                                Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                            }
                         }
                     }
                     .addOnFailureListener { exception ->

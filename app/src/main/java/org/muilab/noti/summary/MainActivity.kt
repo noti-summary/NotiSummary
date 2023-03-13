@@ -34,6 +34,9 @@ import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
+
+const val maxCredit: Int = 50
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,7 +125,7 @@ class MainActivity : ComponentActivity() {
                     .addOnSuccessListener { document ->
                         if (document != null) {
                             if(!document.exists()){
-                                val data = UserCredit(userId, 50)
+                                val data = UserCredit(userId, maxCredit)
                                 docRef.set(data).addOnSuccessListener { Log.d("Installations", data.toString()) }
                             }
                         }
