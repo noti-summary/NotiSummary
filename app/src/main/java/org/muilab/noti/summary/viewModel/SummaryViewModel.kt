@@ -15,6 +15,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okio.IOException
+import org.json.JSONException
 import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
@@ -57,13 +59,18 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             .url(serverIP)
             .post(postBody.toRequestBody(mediaType))
             .build()
-        client.newCall(request).execute().use { response ->
+        try {
+            val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
                 _result.postValue(summary)
             } else {
                 response.body?.let { Log.i("Server", it.string()) }
             }
+        } catch (e: IOException) {
+            _result.postValue("無法連線...請確認網路連線！")
+        } catch (e: JSONException) {
+            _result.postValue(e.toString())
         }
     }
 }
