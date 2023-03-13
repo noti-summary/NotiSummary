@@ -25,13 +25,12 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
-import org.muilab.noti.summary.database.firestore.FirestoreDocument
-import org.muilab.noti.summary.database.firestore.documentStateOf
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.view.MainScreenView
+import org.muilab.noti.summary.view.SummaryCard
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 
