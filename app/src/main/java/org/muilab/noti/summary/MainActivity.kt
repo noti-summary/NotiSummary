@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
 import org.muilab.noti.summary.database.firestore.FirestoreDocument
 import org.muilab.noti.summary.database.firestore.documentStateOf
@@ -53,6 +54,8 @@ class MainActivity : ComponentActivity() {
 
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
+
+        setUserId()
 
         setContent {
 //            SummaryCard(sumViewModel)
@@ -97,6 +100,38 @@ class MainActivity : ComponentActivity() {
                 if (allNotiStr != null && allNotiStr != "Not connected") {
                     sumViewModel.updateSummaryText(allNotiStr)
                 }
+            }
+        }
+    }
+
+    private fun setUserId() {
+        FirebaseInstallations.getInstance().id.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val userId: String = task.result
+
+                val sharedPref = this.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+                with(sharedPref.edit()) {
+                    putString("user_id", userId)
+                    apply()
+                }
+
+                val db = Firebase.firestore
+                val docRef = db.collection("user-free-credit").document(userId)
+
+                docRef.get()
+                    .addOnSuccessListener { document ->
+                        if (document != null) {
+                            if(!document.exists()){
+                                val data = UserCredit(userId, 50)
+                                docRef.set(data).addOnSuccessListener { Log.d("Installations", data.toString()) }
+                            }
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.d("Installations", "get failed with ", exception)
+                    }
+            } else {
+                Log.e("Installations", "Unable to get Installation ID")
             }
         }
     }
