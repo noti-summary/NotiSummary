@@ -53,8 +53,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             .readTimeout(60, TimeUnit.SECONDS)
             .build()
 
-        val postBody = "{\"prompt\": \"$prompt\", \"content\": \"${content.replace("\n", "\\n")}\"}"
-        Log.d(TAG, postBody)
+        val formattedContent = content.replace("\n", "\\n").replace("\"", "\'")
+        val postBody = "{\"prompt\": \"$prompt\", \"content\": \"${formattedContent}\"}"
         val request = Request.Builder()
             .url(serverIP)
             .post(postBody.toRequestBody(mediaType))

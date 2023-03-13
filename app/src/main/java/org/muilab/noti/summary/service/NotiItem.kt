@@ -122,7 +122,7 @@ class NotiItem(context: Context,
     }
 
     fun getTimeStr(): String {
-        val simpleDateFormat = SimpleDateFormat("hh:mm")
+        val simpleDateFormat = SimpleDateFormat("HH:mm")
         val date = unixTime?.let { Date(it.toLong()) }
         return simpleDateFormat.format(date)
     }
