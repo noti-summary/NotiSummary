@@ -58,11 +58,11 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
 
         setUserId()
-
+        
         setContent {
 //            SummaryCard(sumViewModel)
 //            Greeting("world")
-            MainScreenView(this, this)
+            MainScreenView(this, this, sumViewModel)
         }
 
     }

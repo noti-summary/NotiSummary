@@ -149,6 +149,9 @@ class NotiListenerService: NotificationListenerService() {
             val title = notiItem.getTitle()
             val content = notiItem.getContent()
 
+            if (appName == "null" || title == "null" || content == "null")
+                return@forEach
+
             sb.append("[App] $appName\n[Time] $time\n[Title] $title\n[Content] $content\n\n")
         }
         return sb.toString()

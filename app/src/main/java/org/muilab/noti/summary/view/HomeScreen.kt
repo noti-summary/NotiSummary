@@ -31,9 +31,13 @@ import org.muilab.noti.summary.database.firestore.documentStateOf
 import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 @Composable
-fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner) {
+fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel) {
+
+    val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+    val userId = sharedPref.getString("user_id", "000").toString()
 
     Column(
         modifier = Modifier
@@ -41,21 +45,10 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner) {
             .background(colorResource(id = R.color.teal_700))
             .wrapContentSize(Alignment.Center)
     ) {
-        Text(
-            text = "我的摘要",
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            fontSize = 20.sp
-        )
+        Credit(lifecycleOwner, userId)
+        SummaryCard(sumViewModel = sumViewModel)
+        SubtractButton(context, userId, sumViewModel)
     }
-
-    val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
-    val userId = sharedPref.getString("user_id", "000").toString()
-
-    Credit(lifecycleOwner, userId)
-    SubtractButton(context, userId)
 
 }
 
@@ -69,7 +62,9 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
         val item = result.snapshot.toObject<UserCredit>()!!
 
         Card(
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
             Row(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Daily Credit: ${item.credit} / $maxCredit")
@@ -80,9 +75,11 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubtractButton(context: Context, userId: String) {
+fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewModel) {
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 100.dp, end=25.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 100.dp, end = 25.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
@@ -95,6 +92,7 @@ fun SubtractButton(context: Context, userId: String) {
                             val res = document.toObject<UserCredit>()!!
 
                             if(res.credit > 0){
+                                sumViewModel.getSummaryText()
                                 docRef.update("credit", res.credit-1)
                                     .addOnSuccessListener { Toast.makeText(context, "show summary", Toast.LENGTH_SHORT).show() }
                             } else{
@@ -107,7 +105,9 @@ fun SubtractButton(context: Context, userId: String) {
                     }
             },
         ) {
-            Icon(painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_disabled_color_18), "", modifier = Modifier.size(50.dp).padding(3.dp))
+            Icon(painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_disabled_color_18), "", modifier = Modifier
+                .size(50.dp)
+                .padding(3.dp))
         }
     }
 }

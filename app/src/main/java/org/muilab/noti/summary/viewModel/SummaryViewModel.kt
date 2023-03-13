@@ -22,7 +22,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     val result: LiveData<String> = _result
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
-    private val prompt = "你將摘要手機通知，請從以下通知(段落的先後順序不一定和重要性相關)篩選出重要資訊，並以一段文字說明，不要自行臆測與延伸"
+    // private val prompt = "你將摘要手機通知，請從以下通知(段落的先後順序不一定和重要性相關)篩選出重要資訊，並以一段文字說明，不要自行臆測、延伸與解釋"
+    private val prompt = "The following is a list of notifications given in random order. Please pick and summarize important information into a paragraph using Traditional Chinese, with the most urgent information mentioned first."
 
     private val dotenv = dotenv {
         directory = "./assets"
@@ -39,7 +40,6 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     fun updateSummaryText(postContent: String) {
         _result.postValue("通知摘要產生中，請稍候...")
         viewModelScope.launch {
-            Log.d(TAG, postContent)
             sendToServer(postContent)
         }
     }
@@ -52,13 +52,15 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             .build()
 
         val postBody = "{\"prompt\": \"$prompt\", \"content\": \"${content.replace("\n", "\\n")}\"}"
+        Log.d(TAG, postBody)
         val request = Request.Builder()
             .url(serverIP)
             .post(postBody.toRequestBody(mediaType))
             .build()
         client.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
-                _result.postValue(response.body?.string())
+                val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                _result.postValue(summary)
             } else {
                 response.body?.let { Log.i("Server", it.string()) }
             }

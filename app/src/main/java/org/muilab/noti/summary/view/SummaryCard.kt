@@ -20,10 +20,12 @@ fun SummaryCard(sumViewModel: SummaryViewModel) {
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+        /*
         Button(onClick = {
             sumViewModel.getSummaryText()
         }) {
             Text(text = "Send to Server")
         }
+        */
     }
 }
