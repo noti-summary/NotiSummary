@@ -7,24 +7,20 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButtonMaterial3
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.firestore.FirestoreDocument
 import org.muilab.noti.summary.database.firestore.documentStateOf
@@ -47,7 +43,7 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
     ) {
         Credit(lifecycleOwner, userId)
         SummaryCard(sumViewModel = sumViewModel)
-        SubtractButton(context, userId, sumViewModel)
+        SubmitButton(context, userId, sumViewModel)
     }
 
 }
@@ -75,15 +71,24 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewModel) {
+fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel) {
+
+    var submitButtonState by remember { mutableStateOf(SSButtonState.IDLE) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 100.dp, end = 25.dp),
-        contentAlignment = Alignment.BottomEnd
+            .padding(bottom = 100.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        FloatingActionButton(
+
+        SSJetPackComposeProgressButtonMaterial3(
+            type = SSButtonType.CIRCLE,
+            width = 300.dp,
+            height = 50.dp,
             onClick = {
+                submitButtonState = SSButtonState.LOADING
+
                 val db = Firebase.firestore
                 val docRef = db.collection("user-free-credit").document(userId)
                 docRef.get()
@@ -94,7 +99,7 @@ fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewMo
                             if(res.credit > 0){
                                 sumViewModel.getSummaryText()
                                 docRef.update("credit", res.credit-1)
-                                    .addOnSuccessListener { Toast.makeText(context, "show summary", Toast.LENGTH_SHORT).show() }
+                                submitButtonState = SSButtonState.SUCCESS
                             } else{
                                 Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
                             }
@@ -104,10 +109,9 @@ fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewMo
                         Log.d(TAG, "get failed with ", exception)
                     }
             },
-        ) {
-            Icon(painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_disabled_color_18), "", modifier = Modifier
-                .size(50.dp)
-                .padding(3.dp))
-        }
+            assetColor = Color.Black,
+            text = "產生摘要",
+            buttonState = submitButtonState
+        )
     }
 }
