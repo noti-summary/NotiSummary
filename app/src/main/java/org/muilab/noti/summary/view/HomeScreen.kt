@@ -45,7 +45,7 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
     ) {
         Credit(lifecycleOwner, userId)
         SummaryCard(sumViewModel, setSubmitButtonState)
-        SubmitButton(context, userId, sumViewModel, submitButtonState, setSubmitButtonState)
+        SubmitButton(context, userId, sumViewModel, submitButtonState)
     }
 
 }
@@ -65,7 +65,7 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
                 .padding(16.dp)
         ) {
             Row(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Daily Credit: ${item.credit} / $maxCredit")
+                Text(text = "每日額度：${item.credit} / $maxCredit")
             }
         }
     }
@@ -73,7 +73,7 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
+fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel, submitButtonState: SSButtonState) {
 
     Box(
         modifier = Modifier
@@ -86,16 +86,16 @@ fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewMode
             width = 300.dp,
             height = 50.dp,
             onClick = {
-                if (submitButtonState != SSButtonState.LOADING){
+                if (submitButtonState != SSButtonState.LOADING) {
                     val db = Firebase.firestore
                     val docRef = db.collection("user-free-credit").document(userId)
                     docRef.get()
                         .addOnSuccessListener { document ->
                             if (document != null) {
                                 val res = document.toObject<UserCredit>()!!
-                                if(res.credit > 0){
+                                if(res.credit > 0) {
                                     sumViewModel.getSummaryText()
-                                } else{
+                                } else {
                                     Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
                                 }
                             }

@@ -10,7 +10,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import org.muilab.noti.summary.util.TAG
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
