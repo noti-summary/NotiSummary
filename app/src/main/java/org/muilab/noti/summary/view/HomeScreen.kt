@@ -35,6 +35,8 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
     val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
 
+    val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,8 +44,8 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
             .wrapContentSize(Alignment.Center)
     ) {
         Credit(lifecycleOwner, userId)
-        SummaryCard(sumViewModel = sumViewModel)
-        SubmitButton(context, userId, sumViewModel)
+        SummaryCard(sumViewModel, setSubmitButtonState)
+        SubmitButton(context, userId, sumViewModel, submitButtonState, setSubmitButtonState)
     }
 
 }
@@ -71,9 +73,7 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel) {
-
-    var submitButtonState by remember { mutableStateOf(SSButtonState.IDLE) }
+fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
 
     Box(
         modifier = Modifier
@@ -81,33 +81,29 @@ fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewMode
             .padding(bottom = 100.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
-
         SSJetPackComposeProgressButtonMaterial3(
             type = SSButtonType.CIRCLE,
             width = 300.dp,
             height = 50.dp,
             onClick = {
-                submitButtonState = SSButtonState.LOADING
-
-                val db = Firebase.firestore
-                val docRef = db.collection("user-free-credit").document(userId)
-                docRef.get()
-                    .addOnSuccessListener { document ->
-                        if (document != null) {
-                            val res = document.toObject<UserCredit>()!!
-
-                            if(res.credit > 0){
-                                sumViewModel.getSummaryText()
-                                docRef.update("credit", res.credit-1)
-                                submitButtonState = SSButtonState.SUCCESS
-                            } else{
-                                Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                if (submitButtonState != SSButtonState.LOADING){
+                    val db = Firebase.firestore
+                    val docRef = db.collection("user-free-credit").document(userId)
+                    docRef.get()
+                        .addOnSuccessListener { document ->
+                            if (document != null) {
+                                val res = document.toObject<UserCredit>()!!
+                                if(res.credit > 0){
+                                    sumViewModel.getSummaryText()
+                                } else{
+                                    Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                                }
                             }
                         }
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.d(TAG, "get failed with ", exception)
-                    }
+                        .addOnFailureListener { exception ->
+                            Log.d(TAG, "get failed with ", exception)
+                        }
+                }
             },
             assetColor = Color.Black,
             text = "產生摘要",
