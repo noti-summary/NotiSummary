@@ -44,7 +44,7 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
             .wrapContentSize(Alignment.Center)
     ) {
         Credit(lifecycleOwner, userId)
-        SummaryCard(sumViewModel, setSubmitButtonState)
+        SummaryCard(sumViewModel, submitButtonState, setSubmitButtonState)
         SubmitButton(context, userId, sumViewModel, submitButtonState)
     }
 

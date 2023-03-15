@@ -13,7 +13,7 @@ import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 @Composable
-fun SummaryCard(sumViewModel: SummaryViewModel, setSubmitButtonState: (SSButtonState) -> Unit) {
+fun SummaryCard(sumViewModel: SummaryViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
     val result by sumViewModel.result.observeAsState("請按下方按鈕產生通知摘要")
 
     val configuration = LocalConfiguration.current
@@ -31,7 +31,7 @@ fun SummaryCard(sumViewModel: SummaryViewModel, setSubmitButtonState: (SSButtonS
                     setSubmitButtonState(SSButtonState.LOADING)
                 } else if (result == "無法連線...請確認網路連線！") {
                     setSubmitButtonState(SSButtonState.FAILIURE)
-                } else {
+                } else if (submitButtonState == SSButtonState.LOADING){
                     setSubmitButtonState(SSButtonState.SUCCESS)
                 }
 
