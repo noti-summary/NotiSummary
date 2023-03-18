@@ -19,36 +19,51 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
-
 
 sealed class BottomNavItem(var title:String, var icon:Int, var screen_route:String){
     object Home : BottomNavItem("我的摘要", R.drawable.summary,"home")
     object Settings: BottomNavItem("設定",R.drawable.settings,"settings")
 }
 
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreenView(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel){
+fun MainScreenView(
+    context: Context,
+    lifecycleOwner: LifecycleOwner,
+    sumViewModel: SummaryViewModel,
+    promptViewModel: PromptViewModel
+) {
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { AppBottomNavigation(navController = navController) }
     ) {
-        NavigationGraph(navController = navController, context, lifecycleOwner, sumViewModel)
+        NavigationGraph(
+            navController = navController,
+            context,
+            lifecycleOwner,
+            sumViewModel,
+            promptViewModel
+        )
     }
 }
 
-
 @Composable
-fun NavigationGraph(navController: NavHostController, context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel) {
+fun NavigationGraph(
+    navController: NavHostController,
+    context: Context,
+    lifecycleOwner: LifecycleOwner,
+    sumViewModel: SummaryViewModel,
+    promptViewModel: PromptViewModel
+) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
             HomeScreen(context, lifecycleOwner, sumViewModel)
         }
         composable(BottomNavItem.Settings.screen_route) {
-            SettingsScreen()
+            SettingsScreen(promptViewModel)
         }
     }
 }
