@@ -22,4 +22,8 @@ class PromptViewModel(promptDatabase: PromptDatabase): ViewModel() {
         }
         _promptSentence.value = newPromptText
     }
+
+    fun choosePrompt(updatePrompt: String) {
+        _promptSentence.value = updatePrompt
+    }
 }
