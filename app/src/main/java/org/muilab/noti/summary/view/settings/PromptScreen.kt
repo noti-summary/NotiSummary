@@ -45,12 +45,18 @@ fun PromptEditor(promptViewModel: PromptViewModel) {
 @Composable
 fun PromptHistory(promptViewModel: PromptViewModel) {
     val selectedOption = promptViewModel.promptSentence.observeAsState()
-
     val allPromptSentence = promptViewModel.allPromptSentence.observeAsState(listOf(""))
+    val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
+
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         items(
-            items = allPromptSentence.value
+            items = listOf(defaultPrompt) + allPromptSentence.value
         ) {
+            if (it == defaultPrompt) {
+                Text("預設摘要提示句：")
+            } else {
+                Text("自訂摘要提示句：")
+            }
             Card(
                 modifier = Modifier
                     .padding(3.dp)
