@@ -60,7 +60,7 @@ fun NavigationGraph(
 ) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
-            HomeScreen(context, lifecycleOwner, sumViewModel)
+            HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
         }
         composable(BottomNavItem.Settings.screen_route) {
             SettingsScreen(promptViewModel)

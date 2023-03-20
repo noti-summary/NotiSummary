@@ -1,5 +1,6 @@
 package org.muilab.noti.summary.viewModel
 
+import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -7,10 +8,11 @@ import kotlinx.coroutines.plus
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.model.Prompt
 
-class PromptViewModel(promptDatabase: PromptDatabase): ViewModel() {
+class PromptViewModel(promptDatabase: PromptDatabase) : ViewModel() {
     private val promptDao = promptDatabase.promptDao()
 
-    private val _promptSentence = MutableLiveData("")
+    private val _promptSentence =
+        MutableLiveData("Summarize the notifications in a Traditional Chinese statement.")
     val promptSentence: LiveData<String> = _promptSentence
     val allPromptSentence: LiveData<List<String>> = promptDao.getAllPrompt().asLiveData()
 
@@ -25,5 +27,11 @@ class PromptViewModel(promptDatabase: PromptDatabase): ViewModel() {
 
     fun choosePrompt(updatePrompt: String) {
         _promptSentence.value = updatePrompt
+        if (promptSentence.value != null)
+            Log.d("choosePrompt", promptSentence.value!!)
+    }
+
+    fun getCurPrompt(): String {
+        return promptSentence.value ?: "Summarize the notifications in a Traditional Chinese statement."
     }
 }

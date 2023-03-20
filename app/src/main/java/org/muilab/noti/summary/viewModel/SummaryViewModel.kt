@@ -7,7 +7,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import org.muilab.noti.summary.util.TAG
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,7 +26,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
     // private val prompt = "你將摘要手機通知，請從以下通知(段落的先後順序不一定和重要性相關)篩選出重要資訊，並以一段文字說明，不要自行臆測、延伸與解釋"
-    private val prompt = "The following is a list of notifications given in random order. Please pick and summarize important information into a paragraph using Traditional Chinese, with the most urgent information mentioned first."
+    private var prompt = "Summarize the notifications in a Traditional Chinese statement."
 
     private val dotenv = dotenv {
         directory = "./assets"
@@ -52,7 +51,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         }
     }
 
-    fun getSummaryText() {
+    fun getSummaryText(curPrompt: String) {
+        prompt = curPrompt
         val intent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
@@ -72,6 +72,9 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             .build()
 
         val formattedContent = content.replace("\n", "\\n").replace("\"", "\'")
+
+        Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
+
         val postBody = "{\"prompt\": \"$prompt\", \"content\": \"${formattedContent}\"}"
         val request = Request.Builder()
             .url(serverIP)

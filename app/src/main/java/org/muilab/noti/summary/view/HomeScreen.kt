@@ -31,10 +31,11 @@ import org.muilab.noti.summary.database.firestore.documentStateOf
 import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 @Composable
-fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel) {
+fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel) {
 
     val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
@@ -47,7 +48,7 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
     ) {
         Credit(lifecycleOwner, userId)
         SummaryCard(sumViewModel = sumViewModel)
-        SubtractButton(context, userId, sumViewModel)
+        SubtractButton(context, userId, sumViewModel, promptViewModel)
     }
 
 }
@@ -75,7 +76,8 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewModel) {
+fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel) {
+    val prompt = promptViewModel.getCurPrompt()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -92,7 +94,7 @@ fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewMo
                             val res = document.toObject<UserCredit>()!!
 
                             if(res.credit > 0){
-                                sumViewModel.getSummaryText()
+                                sumViewModel.getSummaryText(prompt)
                                 docRef.update("credit", res.credit-1)
                                     .addOnSuccessListener { Toast.makeText(context, "show summary", Toast.LENGTH_SHORT).show() }
                             } else{
