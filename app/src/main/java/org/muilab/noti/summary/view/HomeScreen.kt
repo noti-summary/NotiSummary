@@ -31,7 +31,12 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 @Composable
-fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel) {
+fun HomeScreen(
+    context: Context,
+    lifecycleOwner: LifecycleOwner,
+    sumViewModel: SummaryViewModel,
+    promptViewModel: PromptViewModel
+) {
 
     val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
@@ -74,7 +79,15 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel, submitButtonState: SSButtonState) {
+fun SubmitButton(
+    context: Context,
+    userId: String,
+    sumViewModel: SummaryViewModel,
+    promptViewModel: PromptViewModel,
+    submitButtonState: SSButtonState
+) {
+
+    val prompt = promptViewModel.getCurPrompt()
 
     Box(
         modifier = Modifier

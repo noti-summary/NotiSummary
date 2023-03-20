@@ -19,10 +19,11 @@ class PromptViewModel(promptDatabase: PromptDatabase) : ViewModel() {
     private val scope = viewModelScope + Dispatchers.IO
 
     fun addPrompt(newPromptText: String) {
+        val updatePrompt = newPromptText.trim()
         scope.launch {
-            promptDao.insertPromptIfNotExists(Prompt(0, newPromptText))
+            promptDao.insertPromptIfNotExists(Prompt(0, updatePrompt))
         }
-        _promptSentence.value = newPromptText
+        _promptSentence.value = updatePrompt
     }
 
     fun choosePrompt(updatePrompt: String) {
