@@ -7,24 +7,20 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButtonMaterial3
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.firestore.FirestoreDocument
 import org.muilab.noti.summary.database.firestore.documentStateOf
@@ -39,6 +35,8 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
     val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
 
+    val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,8 +44,8 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
             .wrapContentSize(Alignment.Center)
     ) {
         Credit(lifecycleOwner, userId)
-        SummaryCard(sumViewModel = sumViewModel)
-        SubtractButton(context, userId, sumViewModel)
+        SummaryCard(sumViewModel, submitButtonState, setSubmitButtonState)
+        SubmitButton(context, userId, sumViewModel, submitButtonState)
     }
 
 }
@@ -67,7 +65,7 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
                 .padding(16.dp)
         ) {
             Row(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Daily Credit: ${item.credit} / $maxCredit")
+                Text(text = "每日額度：${item.credit} / $maxCredit")
             }
         }
     }
@@ -75,39 +73,41 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubtractButton(context: Context, userId: String, sumViewModel: SummaryViewModel) {
+fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel, submitButtonState: SSButtonState) {
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 100.dp, end = 25.dp),
-        contentAlignment = Alignment.BottomEnd
+            .padding(bottom = 100.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        FloatingActionButton(
+        SSJetPackComposeProgressButtonMaterial3(
+            type = SSButtonType.CIRCLE,
+            width = 300.dp,
+            height = 50.dp,
             onClick = {
-                val db = Firebase.firestore
-                val docRef = db.collection("user-free-credit").document(userId)
-                docRef.get()
-                    .addOnSuccessListener { document ->
-                        if (document != null) {
-                            val res = document.toObject<UserCredit>()!!
-
-                            if(res.credit > 0){
-                                sumViewModel.getSummaryText()
-                                docRef.update("credit", res.credit-1)
-                                    .addOnSuccessListener { Toast.makeText(context, "show summary", Toast.LENGTH_SHORT).show() }
-                            } else{
-                                Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                if (submitButtonState != SSButtonState.LOADING) {
+                    val db = Firebase.firestore
+                    val docRef = db.collection("user-free-credit").document(userId)
+                    docRef.get()
+                        .addOnSuccessListener { document ->
+                            if (document != null) {
+                                val res = document.toObject<UserCredit>()!!
+                                if(res.credit > 0) {
+                                    sumViewModel.getSummaryText()
+                                } else {
+                                    Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                                }
                             }
                         }
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.d(TAG, "get failed with ", exception)
-                    }
+                        .addOnFailureListener { exception ->
+                            Log.d(TAG, "get failed with ", exception)
+                        }
+                }
             },
-        ) {
-            Icon(painter = painterResource(id = com.google.android.gms.base.R.drawable.googleg_disabled_color_18), "", modifier = Modifier
-                .size(50.dp)
-                .padding(3.dp))
-        }
+            assetColor = Color.Black,
+            text = "產生摘要",
+            buttonState = submitButtonState
+        )
     }
 }

@@ -7,7 +7,9 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import org.muilab.noti.summary.util.TAG
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.ktx.Firebase
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +20,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import org.json.JSONException
+import org.muilab.noti.summary.model.UserCredit
 import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
@@ -49,6 +52,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             val editor = sharedPreferences.edit()
             editor.putString("resultValue", newValue)
             editor.apply()
+
+            subtractCredit(1)
         }
     }
 
@@ -89,6 +94,20 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             _result.postValue("無法連線...請確認網路連線！")
         } catch (e: JSONException) {
             _result.postValue(e.toString())
+        }
+    }
+
+    private fun subtractCredit(number: Int) {
+        val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+        val userId = sharedPref.getString("user_id", "000").toString()
+
+        val db = Firebase.firestore
+        val docRef = db.collection("user-free-credit").document(userId)
+        docRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                val res = document.toObject<UserCredit>()!!
+                docRef.update("credit", res.credit-number)
+            }
         }
     }
 }
