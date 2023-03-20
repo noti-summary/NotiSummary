@@ -20,7 +20,7 @@ class PromptViewModel(promptDatabase: PromptDatabase) : ViewModel() {
 
     fun addPrompt(newPromptText: String) {
         scope.launch {
-            promptDao.insertPrompt(Prompt(0, newPromptText))
+            promptDao.insertPromptIfNotExists(Prompt(0, newPromptText))
         }
         _promptSentence.value = newPromptText
     }

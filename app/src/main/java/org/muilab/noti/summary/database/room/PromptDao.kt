@@ -10,8 +10,19 @@ interface PromptDao {
     @Query("SELECT promptText FROM prompt_history")
     fun getAllPrompt(): Flow<List<String>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Query("SELECT * FROM prompt_history WHERE promptText = :promptText")
+    fun getPromptByPromptText(promptText: String): Prompt?
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertPrompt(prompt: Prompt)
+
+    @Transaction
+    fun insertPromptIfNotExists(prompt: Prompt) {
+        val existingPrompt = getPromptByPromptText(promptText = prompt.promptText)
+        if (existingPrompt == null) {
+            insertPrompt(prompt)
+        }
+    }
 
     @Query("DELETE FROM prompt_history")
     fun deleteAllPrompt()
