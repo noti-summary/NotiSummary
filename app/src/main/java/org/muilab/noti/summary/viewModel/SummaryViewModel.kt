@@ -10,6 +10,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,8 +30,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     val result: LiveData<String> = _result
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
-    // private val prompt = "你將摘要手機通知，請從以下通知(段落的先後順序不一定和重要性相關)篩選出重要資訊，並以一段文字說明，不要自行臆測、延伸與解釋"
-    private val prompt = "The following is a list of notifications given in random order. Please pick and summarize important information into a paragraph using Traditional Chinese, with the most urgent information mentioned first."
+    private val prompt = "Summarize the notifications in a Traditional Chinese statement."
 
     private val dotenv = dotenv {
         directory = "./assets"
@@ -71,13 +71,15 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
     private suspend fun sendToServer(content: String) = withContext(Dispatchers.IO) {
         val client = OkHttpClient.Builder()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(180, TimeUnit.SECONDS)
+            .writeTimeout(180, TimeUnit.SECONDS)
+            .readTimeout(180, TimeUnit.SECONDS)
             .build()
 
-        val formattedContent = content.replace("\n", "\\n").replace("\"", "\'")
-        val postBody = "{\"prompt\": \"$prompt\", \"content\": \"${formattedContent}\"}"
+        data class GPTRequest(val prompt: String, val content: String)
+
+        val gptRequest = GPTRequest(prompt, content)
+        val postBody = Gson().toJson(gptRequest)
         val request = Request.Builder()
             .url(serverIP)
             .post(postBody.toRequestBody(mediaType))
