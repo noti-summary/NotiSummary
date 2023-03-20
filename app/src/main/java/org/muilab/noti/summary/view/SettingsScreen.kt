@@ -20,10 +20,12 @@ import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.view.settings.Empty
 import org.muilab.noti.summary.view.settings.MainSettingScreen
+import org.muilab.noti.summary.view.settings.PromptScreen
+import org.muilab.noti.summary.viewModel.PromptViewModel
 
 enum class SettingScreenItem(var title: String) {
     Start("Main Setting Page"),
-    Setting1("設定1"),
+    SettingPrompt("提示句設定"),
     Setting2("設定2"),
 }
 
@@ -31,13 +33,15 @@ enum class SettingScreenItem(var title: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    promptViewModel: PromptViewModel,
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = SettingScreenItem.valueOf(
-        backStackEntry?.destination?.route ?: SettingScreenItem.Start.name
-    )
+    val currentScreen =
+        SettingScreenItem.valueOf(
+            backStackEntry?.destination?.route ?: SettingScreenItem.Start.name
+        )
 
     Scaffold(
         topBar = {
@@ -48,7 +52,11 @@ fun SettingsScreen(
             )
         }
     ) { innerPadding ->
-        NavigateSetting(navController = navController, modifier = modifier.padding(innerPadding))
+        NavigateSetting(
+            navController = navController,
+            modifier = modifier.padding(innerPadding),
+            promptViewModel
+        )
     }
 }
 
@@ -89,14 +97,15 @@ fun SettingTopBar(
 @Composable
 fun NavigateSetting(
     navController: NavHostController,
-    modifier: Modifier
+    modifier: Modifier,
+    promptViewModel: PromptViewModel
 ) {
     NavHost(navController, startDestination = SettingScreenItem.Start.name, modifier = modifier) {
         composable(SettingScreenItem.Start.name) {
             MainSettingScreen(navController)
         }
-        composable(SettingScreenItem.Setting1.name) {
-            Empty()
+        composable(SettingScreenItem.SettingPrompt.name) {
+            PromptScreen(promptViewModel)
         }
         composable(SettingScreenItem.Setting2.name) {
             Empty()

@@ -30,6 +30,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     val result: LiveData<String> = _result
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
+
     private val prompt = "Summarize the notifications in a Traditional Chinese statement."
 
     private val dotenv = dotenv {
@@ -57,7 +58,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         }
     }
 
-    fun getSummaryText() {
+    fun getSummaryText(curPrompt: String) {
+        prompt = curPrompt
         val intent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
@@ -76,10 +78,12 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             .readTimeout(180, TimeUnit.SECONDS)
             .build()
 
+        Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
         data class GPTRequest(val prompt: String, val content: String)
 
         val gptRequest = GPTRequest(prompt, content)
         val postBody = Gson().toJson(gptRequest)
+
         val request = Request.Builder()
             .url(serverIP)
             .post(postBody.toRequestBody(mediaType))
