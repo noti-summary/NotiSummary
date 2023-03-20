@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
     private val sumViewModel by viewModels<SummaryViewModel>()
 
     private val promptDatabase by lazy { PromptDatabase.getInstance(this) }
-    private val promptViewModel by lazy { PromptViewModel(promptDatabase = promptDatabase) }
+    private val promptViewModel by lazy { PromptViewModel(application, promptDatabase = promptDatabase) }
 
     private fun isNotiListenerEnabled(): Boolean {
         val cn = ComponentName(this, NotiListenerService::class.java)
