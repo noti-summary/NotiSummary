@@ -50,6 +50,7 @@ fun HomeScreen(
             .wrapContentSize(Alignment.Center)
     ) {
         Credit(lifecycleOwner, userId)
+        promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
         SummaryCard(sumViewModel, submitButtonState, setSubmitButtonState)
         SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
     }
@@ -76,6 +77,13 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
         }
     }
 
+}
+
+@Composable
+fun CurrentPrompt(curPrompt: String) {
+    Card(modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp)) {
+        Text("當前摘要提示句：$curPrompt")
+    }
 }
 
 @Composable

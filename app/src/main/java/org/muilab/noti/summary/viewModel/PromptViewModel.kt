@@ -29,7 +29,7 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
             sharedPreferences.getString(
                 "curPrompt", "Summarize the notifications in a Traditional Chinese statement.")
         _promptSentence.value = resultValue!!
-  }
+    }
 
     fun addPrompt(newPromptText: String) {
         val updatePrompt = newPromptText.trim()
