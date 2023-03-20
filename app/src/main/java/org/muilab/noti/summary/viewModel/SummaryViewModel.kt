@@ -7,6 +7,10 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,6 +21,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import org.json.JSONException
+import org.muilab.noti.summary.model.UserCredit
 import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
@@ -25,8 +30,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     val result: LiveData<String> = _result
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
-    // private val prompt = "你將摘要手機通知，請從以下通知(段落的先後順序不一定和重要性相關)篩選出重要資訊，並以一段文字說明，不要自行臆測、延伸與解釋"
-    private var prompt = "Summarize the notifications in a Traditional Chinese statement."
+
+    private val prompt = "Summarize the notifications in a Traditional Chinese statement."
 
     private val dotenv = dotenv {
         directory = "./assets"
@@ -48,6 +53,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             val editor = sharedPreferences.edit()
             editor.putString("resultValue", newValue)
             editor.apply()
+
+            subtractCredit(1)
         }
     }
 
@@ -66,16 +73,17 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
     private suspend fun sendToServer(content: String) = withContext(Dispatchers.IO) {
         val client = OkHttpClient.Builder()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(180, TimeUnit.SECONDS)
+            .writeTimeout(180, TimeUnit.SECONDS)
+            .readTimeout(180, TimeUnit.SECONDS)
             .build()
 
-        val formattedContent = content.replace("\n", "\\n").replace("\"", "\'")
-
         Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
+        data class GPTRequest(val prompt: String, val content: String)
 
-        val postBody = "{\"prompt\": \"$prompt\", \"content\": \"${formattedContent}\"}"
+        val gptRequest = GPTRequest(prompt, content)
+        val postBody = Gson().toJson(gptRequest)
+
         val request = Request.Builder()
             .url(serverIP)
             .post(postBody.toRequestBody(mediaType))
@@ -92,6 +100,20 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             _result.postValue("無法連線...請確認網路連線！")
         } catch (e: JSONException) {
             _result.postValue(e.toString())
+        }
+    }
+
+    private fun subtractCredit(number: Int) {
+        val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+        val userId = sharedPref.getString("user_id", "000").toString()
+
+        val db = Firebase.firestore
+        val docRef = db.collection("user-free-credit").document(userId)
+        docRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                val res = document.toObject<UserCredit>()!!
+                docRef.update("credit", res.credit-number)
+            }
         }
     }
 }
