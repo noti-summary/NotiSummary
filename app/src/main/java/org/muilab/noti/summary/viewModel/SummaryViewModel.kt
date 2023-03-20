@@ -22,6 +22,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import org.json.JSONException
 import org.muilab.noti.summary.model.UserCredit
+import org.muilab.noti.summary.view.SummaryResponse
 import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
@@ -65,7 +66,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     }
 
     fun updateSummaryText(postContent: String) {
-        _result.postValue("通知摘要產生中，請稍候...")
+        _result.postValue(SummaryResponse.GENERATING.message)
         viewModelScope.launch {
             sendToServer(postContent)
         }
@@ -97,9 +98,9 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 response.body?.let { Log.i("Server", it.string()) }
             }
         } catch (e: IOException) {
-            _result.postValue("無法連線...請確認網路連線！")
+            _result.postValue(SummaryResponse.NETWORK_ERROR.message)
         } catch (e: JSONException) {
-            _result.postValue(e.toString())
+            _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
     }
 
