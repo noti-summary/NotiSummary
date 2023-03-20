@@ -7,8 +7,10 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Build.VERSION_CODES.TIRAMISU
+import android.os.Parcelable
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.versionedparcelable.VersionedParcelize
 import org.muilab.noti.summary.model.CurrentDrawer
 import org.muilab.noti.summary.util.TAG
 import java.text.SimpleDateFormat
@@ -113,8 +115,8 @@ class NotiItem(context: Context,
         return title
     }
 
-    fun getAppName(): String? {
-        return appName
+    fun getAppName(): String {
+        return appName.toString()
     }
 
     fun getContent(): String {

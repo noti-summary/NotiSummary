@@ -39,7 +39,7 @@ class NotiListenerService: NotificationListenerService() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
                 val intent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
-                intent.putExtra("allNotis", if(connected) getAllNotifications() else "Not connected")
+                intent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
                 sendBroadcast(intent)
             }
         }
@@ -134,16 +134,12 @@ class NotiListenerService: NotificationListenerService() {
         val notiItem = NotiItem(this, sbn, userId)
     }
 
-    fun getAllNotifications() : String {
-        val sb = StringBuilder()
+    fun getNotiUnits(): ArrayList<NotiUnit> {
+        val notiUnits = ArrayList<NotiUnit>()
         activeNotifications.forEach {
-            if (it.tag == null || it.isOngoing)
-                return@forEach
-
             val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
             val userId = sharedPref.getString("user_id", "000").toString()
             val notiItem = NotiItem(this, it, userId)
-
             val appName = notiItem.getAppName()
             val time = notiItem.getTimeStr()
             val title = notiItem.getTitle()
@@ -151,9 +147,9 @@ class NotiListenerService: NotificationListenerService() {
 
             if (appName == "null" || title == "null" || content == "null")
                 return@forEach
-
-            sb.append("[App] $appName\n[Time] $time\n[Title] $title\n[Content] $content\n\n")
+                
+            notiUnits.add(NotiUnit(appName, time, title, content))
         }
-        return sb.toString()
+        return notiUnits
     }
 }
