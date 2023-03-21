@@ -25,6 +25,8 @@ import org.json.JSONException
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.view.SummaryResponse
+import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
@@ -37,7 +39,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     val result: LiveData<String> = _result
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
-    private val prompt = "Summarize the notifications in a Traditional Chinese statement."
+
+    private var prompt = "Summarize the notifications in a Traditional Chinese statement."
 
     private val dotenv = dotenv {
         directory = "./assets"
@@ -80,13 +83,14 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         return sb.toString()
     }
 
-    fun getSummaryText() {
+    fun getSummaryText(curPrompt: String) {
+        prompt = curPrompt
         val intent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
     fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>) {
-        _result.postValue("通知摘要產生中，請稍候...")
+        _result.postValue(SummaryResponse.GENERATING.message)
         val postContent = getPostContent(activeNotifications)
         _notifications.postValue(activeNotifications.toList())
         viewModelScope.launch {
@@ -99,12 +103,15 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             .connectTimeout(180, TimeUnit.SECONDS)
             .writeTimeout(180, TimeUnit.SECONDS)
             .readTimeout(180, TimeUnit.SECONDS)
+            .callTimeout(180, TimeUnit.SECONDS)
             .build()
 
+        Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
         data class GPTRequest(val prompt: String, val content: String)
 
         val gptRequest = GPTRequest(prompt, content)
         val postBody = Gson().toJson(gptRequest)
+
         val request = Request.Builder()
             .url(serverIP)
             .post(postBody.toRequestBody(mediaType))
@@ -115,12 +122,15 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
                 updateLiveDataValue(summary)
             } else {
+                _result.postValue(SummaryResponse.SERVER_ERROR.message)
                 response.body?.let { Log.i("Server", it.string()) }
             }
+        } catch (e: InterruptedIOException) {
+            _result.postValue(SummaryResponse.TIME_OUT_ERROR.message)
         } catch (e: IOException) {
-            _result.postValue("無法連線...請確認網路連線！")
+            _result.postValue(SummaryResponse.NETWORK_ERROR.message)
         } catch (e: JSONException) {
-            _result.postValue(e.toString())
+            _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
     }
 

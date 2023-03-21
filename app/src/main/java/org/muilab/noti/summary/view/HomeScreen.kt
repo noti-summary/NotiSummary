@@ -38,10 +38,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 @Composable
-fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel) {
+fun HomeScreen(
+    context: Context,
+    lifecycleOwner: LifecycleOwner,
+    sumViewModel: SummaryViewModel,
+    promptViewModel: PromptViewModel
+) {
 
     val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
@@ -56,8 +62,9 @@ fun HomeScreen(context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: S
     ) {
         Credit(lifecycleOwner, userId)
         NotiDrawer(context, sumViewModel)
+        promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
         SummaryCard(sumViewModel, submitButtonState, setSubmitButtonState)
-        SubmitButton(context, userId, sumViewModel, submitButtonState)
+        SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
     }
 
 }
@@ -85,7 +92,22 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 }
 
 @Composable
-fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewModel, submitButtonState: SSButtonState) {
+fun CurrentPrompt(curPrompt: String) {
+    Card(modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp)) {
+        Text("當前摘要提示句：$curPrompt")
+    }
+}
+
+@Composable
+fun SubmitButton(
+    context: Context,
+    userId: String,
+    sumViewModel: SummaryViewModel,
+    promptViewModel: PromptViewModel,
+    submitButtonState: SSButtonState
+) {
+
+    val prompt = promptViewModel.getCurPrompt()
 
     Box(
         modifier = Modifier
@@ -106,7 +128,7 @@ fun SubmitButton(context: Context, userId: String, sumViewModel: SummaryViewMode
                             if (document != null) {
                                 val res = document.toObject<UserCredit>()!!
                                 if(res.credit > 0) {
-                                    sumViewModel.getSummaryText()
+                                    sumViewModel.getSummaryText(prompt)
                                 } else {
                                     Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
                                 }

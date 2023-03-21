@@ -12,9 +12,17 @@ import androidx.compose.ui.unit.dp
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
+enum class SummaryResponse(val message: String) {
+    HINT("請按下方按鈕產生通知摘要"),
+    GENERATING("通知摘要產生中，請稍候..."),
+    NETWORK_ERROR("無法連線，請確認您的網路設定"),
+    SERVER_ERROR("伺服器發生錯誤，請稍後再試"),
+    TIME_OUT_ERROR("伺服器忙碌中，請稍後再試")
+}
+
 @Composable
 fun SummaryCard(sumViewModel: SummaryViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
-    val result by sumViewModel.result.observeAsState("請按下方按鈕產生通知摘要")
+    val result by sumViewModel.result.observeAsState(SummaryResponse.HINT.message)
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
@@ -27,9 +35,9 @@ fun SummaryCard(sumViewModel: SummaryViewModel, submitButtonState: SSButtonState
 
                 Text(text = result)
 
-                if (result == "通知摘要產生中，請稍候...") {
+                if (result == SummaryResponse.GENERATING.message) {
                     setSubmitButtonState(SSButtonState.LOADING)
-                } else if (result == "無法連線...請確認網路連線！") {
+                } else if (result == SummaryResponse.NETWORK_ERROR.message || result == SummaryResponse.SERVER_ERROR.message || result == SummaryResponse.TIME_OUT_ERROR.message) {
                     setSubmitButtonState(SSButtonState.FAILIURE)
                 } else if (submitButtonState == SSButtonState.LOADING){
                     setSubmitButtonState(SSButtonState.SUCCESS)
