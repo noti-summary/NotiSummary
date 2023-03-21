@@ -26,8 +26,11 @@ import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.view.SummaryResponse
-import java.io.InterruptedIOException
+import java.io.*
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
     private val sharedPreferences = getApplication<Application>().getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
@@ -66,6 +69,33 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             subtractCredit(1)
         } else {
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
+        }
+    }
+
+    fun toCsv(activeNotifications: ArrayList<NotiUnit>) {
+        try {
+            val simpleDateFormat = SimpleDateFormat("MMddHHmm")
+            val date = Date()
+            val logDir = context.getExternalFilesDir(null)
+            val file = File(logDir, "notilist_${simpleDateFormat.format(date)}.csv")
+            val fos = FileOutputStream(file)
+            val osw = OutputStreamWriter(fos, "UTF-8")
+            val writer = PrintWriter(osw)
+
+            writer.println("App, Time, Title, Content")
+
+            activeNotifications.forEach {
+                val appName = it.appName
+                val time = it.time
+                val title = it.title
+                val content = it.content
+                writer.println("\"$appName\", \"$time\", \"$title\", \"$content\"")
+            }
+
+            writer.close()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -123,6 +153,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         if (activeNotifications.size > 0){
             _result.postValue(SummaryResponse.GENERATING.message)
             val postContent = getPostContent(activeNotifications)
+            toCsv(activeNotifications)
             _notifications.postValue(activeNotifications.toList())
             viewModelScope.launch {
                 sendToServer(postContent)
