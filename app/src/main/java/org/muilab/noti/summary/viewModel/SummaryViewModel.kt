@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -23,7 +22,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import org.json.JSONException
 import org.muilab.noti.summary.model.UserCredit
-import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.view.SummaryResponse
 import java.io.InterruptedIOException
@@ -50,15 +48,13 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     private val mediaType = "application/json; charset=utf-8".toMediaType()
 
     init {
-        val resultValue = sharedPreferences.getString("resultValue", "")
-        if (resultValue != "") {
-            _result.value = resultValue
-        }
+        val resultValue = sharedPreferences.getString("resultValue", SummaryResponse.HINT.message)
+        _result.value = resultValue!!
     }
 
     private fun updateLiveDataValue(newValue: String?) {
         if (newValue != null && levenshteinDistance(newValue, result.value.toString()) > 20) {
-            _result.postValue(newValue)
+            _result.postValue(newValue!!)
             val editor = sharedPreferences.edit()
             editor.putString("resultValue", newValue)
             editor.apply()
@@ -69,11 +65,10 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         }
     }
 
-    fun getPostContent(activeNotifications: ArrayList<NotiUnit>) : String {
+    private fun getPostContent(activeNotifications: ArrayList<NotiUnit>): String {
         val sb = StringBuilder()
-        val notiList = activeNotifications
-        notiList.shuffle()
-        notiList.forEach {
+        activeNotifications.shuffle()
+        activeNotifications.forEach {
 
             val appName = it.appName
             val time = it.time
@@ -86,7 +81,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         return sb.toString()
     }
 
-    fun levenshteinDistance(str1: String, str2: String): Int {
+    private fun levenshteinDistance(str1: String, str2: String): Int {
         val m = str1.length
         val n = str2.length
 

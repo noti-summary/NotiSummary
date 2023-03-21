@@ -2,11 +2,9 @@ package org.muilab.noti.summary.view
 
 
 import android.content.Context
-import android.service.notification.StatusBarNotification
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
@@ -31,12 +29,9 @@ import org.muilab.noti.summary.database.firestore.FirestoreDocument
 import org.muilab.noti.summary.database.firestore.documentStateOf
 import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
-import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
-import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
