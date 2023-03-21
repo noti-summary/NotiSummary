@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
+import android.service.notification.StatusBarNotification
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -28,6 +29,7 @@ import com.google.firebase.ktx.Firebase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiListenerService
+import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.view.MainScreenView
@@ -102,9 +104,9 @@ class MainActivity : ComponentActivity() {
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
-                val allNotiStr = intent.getStringExtra("allNotis")
-                if (allNotiStr != null && allNotiStr != "Not connected") {
-                    sumViewModel.updateSummaryText(allNotiStr)
+                val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
+                if (activeNotifications != null && activeNotifications.size > 0) {
+                    sumViewModel.updateSummaryText(activeNotifications)
                 }
             }
         }

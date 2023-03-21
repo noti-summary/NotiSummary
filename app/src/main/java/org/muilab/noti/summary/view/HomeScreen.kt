@@ -2,13 +2,18 @@ package org.muilab.noti.summary.view
 
 
 import android.content.Context
+import android.service.notification.StatusBarNotification
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +31,12 @@ import org.muilab.noti.summary.database.firestore.FirestoreDocument
 import org.muilab.noti.summary.database.firestore.documentStateOf
 import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
@@ -50,6 +61,7 @@ fun HomeScreen(
             .wrapContentSize(Alignment.Center)
     ) {
         Credit(lifecycleOwner, userId)
+        NotiDrawer(context, sumViewModel)
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
         SummaryCard(sumViewModel, submitButtonState, setSubmitButtonState)
         SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
@@ -131,5 +143,49 @@ fun SubmitButton(
             text = "產生摘要",
             buttonState = submitButtonState
         )
+    }
+}
+
+@Composable
+fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
+    val notifications by sumViewModel.notifications.observeAsState()
+
+    val sharedPref = appContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+    val userId = sharedPref.getString("user_id", "000").toString()
+
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp
+    val HEIGHT_RATIO = 0.3f
+    val cardHeight = (screenHeight * HEIGHT_RATIO).toInt()
+
+    LazyColumn(modifier = Modifier.fillMaxWidth().height(cardHeight.dp).background(Color(0, 23, 53))) {
+        notifications?.forEach {
+            item {
+
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 2.dp)
+                        .fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth().padding(horizontal = 10.dp),
+                            text = "${it.appName} / ${it.time}"
+                        )
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth().padding(horizontal = 10.dp),
+                            text = it.title,
+                            style = TextStyle(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth().padding(horizontal = 10.dp),
+                            text = it.content
+                        )
+                    }
+                }
+        }
     }
 }
