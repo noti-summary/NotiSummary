@@ -90,11 +90,16 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     }
 
     fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>) {
-        _result.postValue(SummaryResponse.GENERATING.message)
-        val postContent = getPostContent(activeNotifications)
-        _notifications.postValue(activeNotifications.toList())
-        viewModelScope.launch {
-            sendToServer(postContent)
+        if (activeNotifications.size > 0){
+            _result.postValue(SummaryResponse.GENERATING.message)
+            val postContent = getPostContent(activeNotifications)
+            _notifications.postValue(activeNotifications.toList())
+            viewModelScope.launch {
+                sendToServer(postContent)
+            }
+        }
+        else {
+            _result.postValue(SummaryResponse.NO_NOTIFICATION.message)
         }
     }
 

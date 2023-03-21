@@ -105,7 +105,7 @@ class MainActivity : ComponentActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
-                if (activeNotifications != null && activeNotifications.size > 0) {
+                if (activeNotifications != null) {
                     sumViewModel.updateSummaryText(activeNotifications)
                 }
             }
