@@ -23,6 +23,7 @@ import okio.IOException
 import org.json.JSONException
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.view.SummaryResponse
+import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
@@ -77,6 +78,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             .connectTimeout(180, TimeUnit.SECONDS)
             .writeTimeout(180, TimeUnit.SECONDS)
             .readTimeout(180, TimeUnit.SECONDS)
+            .callTimeout(180, TimeUnit.SECONDS)
             .build()
 
         Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
@@ -95,8 +97,11 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
                 updateLiveDataValue(summary)
             } else {
+                _result.postValue(SummaryResponse.SERVER_ERROR.message)
                 response.body?.let { Log.i("Server", it.string()) }
             }
+        } catch (e: InterruptedIOException) {
+            _result.postValue(SummaryResponse.TIME_OUT_ERROR.message)
         } catch (e: IOException) {
             _result.postValue(SummaryResponse.NETWORK_ERROR.message)
         } catch (e: JSONException) {
