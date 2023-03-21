@@ -18,7 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.view.settings.Empty
+import org.muilab.noti.summary.view.settings.APIKeyScreen
 import org.muilab.noti.summary.view.settings.MainSettingScreen
 import org.muilab.noti.summary.view.settings.PromptScreen
 import org.muilab.noti.summary.viewModel.PromptViewModel
@@ -26,7 +26,7 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 enum class SettingScreenItem(var title: String) {
     Start("Main Setting Page"),
     SettingPrompt("提示句設定"),
-    Setting2("設定2"),
+    SettingAPI("OpenAI API 金鑰設定"),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -107,8 +107,8 @@ fun NavigateSetting(
         composable(SettingScreenItem.SettingPrompt.name) {
             PromptScreen(promptViewModel)
         }
-        composable(SettingScreenItem.Setting2.name) {
-            Empty()
+        composable(SettingScreenItem.SettingAPI.name) {
+            APIKeyScreen()
         }
     }
 }
