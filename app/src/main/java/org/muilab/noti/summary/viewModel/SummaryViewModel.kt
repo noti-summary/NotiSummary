@@ -101,7 +101,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 response.body?.let { Log.i("Server", it.string()) }
             }
         } catch (e: InterruptedIOException) {
-            _result.postValue(SummaryResponse.TIME_OUT_ERROR.message)
+            _result.postValue(SummaryResponse.TIMEOUT_ERROR.message)
         } catch (e: IOException) {
             _result.postValue(SummaryResponse.NETWORK_ERROR.message)
         } catch (e: JSONException) {
