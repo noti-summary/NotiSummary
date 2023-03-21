@@ -72,12 +72,12 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         }
     }
 
-    fun toCsv(activeNotifications: ArrayList<NotiUnit>) {
+    fun saveCsv(activeNotifications: ArrayList<NotiUnit>) {
         try {
             val simpleDateFormat = SimpleDateFormat("MMddHHmm")
             val date = Date()
             val logDir = context.getExternalFilesDir(null)
-            val file = File(logDir, "notilist_${simpleDateFormat.format(date)}.csv")
+            val file = File(logDir, "${simpleDateFormat.format(date)}_drawer.csv")
             val fos = FileOutputStream(file)
             val osw = OutputStreamWriter(fos, "UTF-8")
             val writer = PrintWriter(osw)
@@ -97,6 +97,22 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun saveJson(postBody: String) {
+        val simpleDateFormat = SimpleDateFormat("MMddHHmm")
+        val date = Date()
+        val logDir = context.getExternalFilesDir(null)
+        val file = File(logDir, "${simpleDateFormat.format(date)}_postBody.json")
+        file.writeText(postBody)
+    }
+
+    fun saveSummary(postBody: String) {
+        val simpleDateFormat = SimpleDateFormat("MMddHHmm")
+        val date = Date()
+        val logDir = context.getExternalFilesDir(null)
+        val file = File(logDir, "${simpleDateFormat.format(date)}_summary.txt")
+        file.writeText(postBody)
     }
 
     fun getPostContent(activeNotifications: ArrayList<NotiUnit>) : String {
@@ -153,7 +169,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         if (activeNotifications.size > 0){
             _result.postValue(SummaryResponse.GENERATING.message)
             val postContent = getPostContent(activeNotifications)
-            toCsv(activeNotifications)
+            saveCsv(activeNotifications)
             _notifications.postValue(activeNotifications.toList())
             viewModelScope.launch {
                 sendToServer(postContent)
@@ -176,6 +192,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
         val gptRequest = GPTRequest(prompt, content)
         val postBody = Gson().toJson(gptRequest)
+        saveJson(postBody)
 
         val request = Request.Builder()
             .url(serverIP)
@@ -186,6 +203,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             if (response.isSuccessful) {
                 val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
                 updateLiveDataValue(summary)
+                summary?.let { saveSummary(it) }
             } else {
                 _result.postValue(SummaryResponse.SERVER_ERROR.message)
                 response.body?.let { Log.i("Server", it.string()) }
