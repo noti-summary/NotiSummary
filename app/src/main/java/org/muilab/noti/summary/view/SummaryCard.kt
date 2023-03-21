@@ -26,7 +26,7 @@ fun SummaryCard(sumViewModel: SummaryViewModel, submitButtonState: SSButtonState
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
-    val HEIGHT_RATIO = 0.6f
+    val HEIGHT_RATIO = 0.3f
     val cardHeight = (screenHeight * HEIGHT_RATIO).toInt()
 
     Column(modifier = Modifier.padding(16.dp)) {
