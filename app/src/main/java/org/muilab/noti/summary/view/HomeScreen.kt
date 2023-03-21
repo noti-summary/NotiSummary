@@ -150,9 +150,6 @@ fun SubmitButton(
 fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
     val notifications by sumViewModel.notifications.observeAsState()
 
-    val sharedPref = appContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
-    val userId = sharedPref.getString("user_id", "000").toString()
-
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp
     val HEIGHT_RATIO = 0.3f

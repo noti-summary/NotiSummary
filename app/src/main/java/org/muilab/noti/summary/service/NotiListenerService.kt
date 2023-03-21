@@ -136,14 +136,20 @@ class NotiListenerService: NotificationListenerService() {
 
     fun getNotiUnits(): ArrayList<NotiUnit> {
         val notiUnits = ArrayList<NotiUnit>()
+
+        fun replaceChars(str: String): String {
+            return str.replace("\n", " ")
+                .replace(",", " ")
+        }
+
         activeNotifications.forEach {
             val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
             val userId = sharedPref.getString("user_id", "000").toString()
             val notiItem = NotiItem(this, it, userId)
-            val appName = notiItem.getAppName()
-            val time = notiItem.getTimeStr()
-            val title = notiItem.getTitle()
-            val content = notiItem.getContent()
+            val appName = replaceChars(notiItem.getAppName())
+            val time = replaceChars(notiItem.getTimeStr())
+            val title = replaceChars(notiItem.getTitle())
+            val content = replaceChars(notiItem.getContent())
 
             if (appName == "null" || title == "null" || content == "null")
                 return@forEach

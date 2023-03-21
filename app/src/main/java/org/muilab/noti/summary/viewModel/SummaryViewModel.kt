@@ -57,13 +57,15 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     }
 
     private fun updateLiveDataValue(newValue: String?) {
-        if (newValue != null) {
+        if (newValue != null && levenshteinDistance(newValue, result.value.toString()) > 20) {
             _result.postValue(newValue)
             val editor = sharedPreferences.edit()
             editor.putString("resultValue", newValue)
             editor.apply()
 
             subtractCredit(1)
+        } else {
+            _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
     }
 
@@ -78,9 +80,37 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             val title = it.title
             val content = it.content
 
-            sb.append("[App] $appName\n[Time] $time\n[Title] $title\n[Content] $content\n\n")
+            sb.append("App: $appName, Time: $time, Title: $title, Content: $content\n")
+            // sb.append("[App] $appName\n[Time] $time\n[Title] $title\n[Content] $content\n\n")
         }
         return sb.toString()
+    }
+
+    fun levenshteinDistance(str1: String, str2: String): Int {
+        val m = str1.length
+        val n = str2.length
+
+        val distanceMatrix = Array(m + 1) { IntArray(n + 1) }
+
+        for (i in 0..m)
+            distanceMatrix[i][0] = i
+
+        for (j in 0..n)
+            distanceMatrix[0][j] = j
+
+        for (i in 1..m) {
+            for (j in 1..n) {
+                val cost = if (str1[i - 1] == str2[j - 1]) 0 else 1
+
+                distanceMatrix[i][j] = minOf(
+                    distanceMatrix[i - 1][j] + 1,
+                    distanceMatrix[i][j - 1] + 1,
+                    distanceMatrix[i - 1][j - 1] + cost
+                )
+            }
+        }
+
+        return distanceMatrix[m][n]
     }
 
     fun getSummaryText(curPrompt: String) {
@@ -97,8 +127,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             viewModelScope.launch {
                 sendToServer(postContent)
             }
-        }
-        else {
+        } else {
             _result.postValue(SummaryResponse.NO_NOTIFICATION.message)
         }
     }
