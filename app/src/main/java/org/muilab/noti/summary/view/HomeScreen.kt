@@ -69,18 +69,20 @@ fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
 
     val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
     val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
+    var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
 
     if (result is FirestoreDocument.Snapshot) {
-        val item = result.snapshot.toObject<UserCredit>()!!
+        if (result.snapshot.exists()) {
+            val res = result.snapshot.toObject<UserCredit>()!!
+            displayText = "每日額度：${res.credit} / $maxCredit"
+        } else {
+            displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
+        }
+    }
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(modifier = Modifier.padding(16.dp)) {
-                Text(text = "每日額度：${item.credit} / $maxCredit")
-            }
+    Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Row(modifier = Modifier.padding(16.dp)) {
+            Text(text = displayText)
         }
     }
 
@@ -105,9 +107,7 @@ fun SubmitButton(
     val prompt = promptViewModel.getCurPrompt()
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 100.dp),
+        modifier = Modifier.fillMaxSize().padding(bottom = 100.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         SSJetPackComposeProgressButtonMaterial3(
@@ -121,11 +121,13 @@ fun SubmitButton(
                     docRef.get()
                         .addOnSuccessListener { document ->
                             if (document != null) {
-                                val res = document.toObject<UserCredit>()!!
-                                if(res.credit > 0) {
-                                    sumViewModel.getSummaryText(prompt)
-                                } else {
-                                    Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                                if(document.exists()){
+                                    val res = document.toObject<UserCredit>()!!
+                                    if(res.credit > 0) {
+                                        sumViewModel.getSummaryText(prompt)
+                                    } else {
+                                        Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                                    }
                                 }
                             }
                         }
