@@ -44,7 +44,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         directory = "./assets"
         filename = "env"
     }
-    private val serverIP = dotenv["SUMMARY_URL"]
+    private val serverURL = dotenv["SUMMARY_URL"]
     private val mediaType = "application/json; charset=utf-8".toMediaType()
 
     init {
@@ -137,14 +137,29 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
         Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
         data class GPTRequest(val prompt: String, val content: String)
+        data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val gptRequest = GPTRequest(prompt, content)
+        val userKey = sharedPreferences.getString("userKey", "default").toString()
+
+        val requestURL = if(userKey == "default"){
+            serverURL
+        } else {
+            "$serverURL/key"
+        }
+
+        val gptRequest = if(userKey == "default"){
+            GPTRequest(prompt, content)
+        } else {
+            GPTRequestWithKey(prompt, content, userKey)
+        }
+
         val postBody = Gson().toJson(gptRequest)
 
         val request = Request.Builder()
-            .url(serverIP)
+            .url(requestURL)
             .post(postBody.toRequestBody(mediaType))
             .build()
+
         try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
