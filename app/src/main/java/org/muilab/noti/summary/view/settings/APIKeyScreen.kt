@@ -48,7 +48,9 @@ fun TextBoxForSetAPI(context: Context) {
             value = apiKey,
             onValueChange = { apiKey = it },
             label = { Text("API 金鑰") },
-            placeholder = { Text("輸入您的 API 金鑰") })
+            placeholder = { Text("輸入您的 API 金鑰") },
+            modifier = Modifier.fillMaxWidth(0.7F),
+        )
 
         Button(
             onClick = {

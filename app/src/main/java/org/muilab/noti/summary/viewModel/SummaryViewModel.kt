@@ -167,8 +167,15 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
                 updateLiveDataValue(summary)
             } else {
-                _result.postValue(SummaryResponse.SERVER_ERROR.message)
-                response.body?.let { Log.i("Server", it.string()) }
+                response.body?.let {
+                    val responseBody = it.string()
+                    Log.i("ServerResponse", responseBody)
+                    if (responseBody.contains("You didn't provide an API key")) {
+                        _result.postValue(SummaryResponse.APIKEY_ERROR.message)
+                    }
+                } ?:let {
+                    _result.postValue(SummaryResponse.SERVER_ERROR.message)
+                }
             }
         } catch (e: InterruptedIOException) {
             _result.postValue(SummaryResponse.TIMEOUT_ERROR.message)
