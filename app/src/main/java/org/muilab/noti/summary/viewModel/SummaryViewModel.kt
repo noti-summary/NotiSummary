@@ -172,16 +172,21 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                     Log.i("ServerResponse", responseBody)
                     if (responseBody.contains("You didn't provide an API key")) {
                         _result.postValue(SummaryResponse.APIKEY_ERROR.message)
+                    } else {
+                        _result.postValue(SummaryResponse.SERVER_ERROR.message)
                     }
                 } ?:let {
                     _result.postValue(SummaryResponse.SERVER_ERROR.message)
                 }
             }
         } catch (e: InterruptedIOException) {
+            Log.i("InterruptedIOException", e.toString())
             _result.postValue(SummaryResponse.TIMEOUT_ERROR.message)
         } catch (e: IOException) {
+            Log.i("IOException", e.toString())
             _result.postValue(SummaryResponse.NETWORK_ERROR.message)
         } catch (e: JSONException) {
+            Log.i("JSONException", e.toString())
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
     }

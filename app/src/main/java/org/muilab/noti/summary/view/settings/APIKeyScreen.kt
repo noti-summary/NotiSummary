@@ -18,7 +18,7 @@ fun APIKeyScreen(context: Context) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextBoxForSetAPI(context: Context) {
-    val sharedPref = context.getSharedPreferences("userAPIKey", Context.MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
     var apiKey: String by remember { mutableStateOf("") }
     var displayApiKey by remember {
         val apiKeyInSharedPref =  sharedPref.getString("userAPIKey", "")
