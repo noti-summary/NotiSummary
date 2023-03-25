@@ -8,26 +8,38 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import org.muilab.noti.summary.util.getActiveNotifications
 
 @Composable
-fun APIKeyScreen() {
-    Column(modifier = Modifier.fillMaxHeight()) { TextBoxForSetAPI() }
+fun APIKeyScreen(context: Context) {
+    Column(modifier = Modifier.fillMaxHeight()) { TextBoxForSetAPI(context) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TextBoxForSetAPI() {
-    // TODO: Store the API key in SharedPreference or others
-    var apiKey by remember { mutableStateOf("") }
-    var displayApiKey by remember { mutableStateOf("sk-********") }
+fun TextBoxForSetAPI(context: Context) {
+    val sharedPref = context.getSharedPreferences("userAPIKey", Context.MODE_PRIVATE)
+    var apiKey: String by remember { mutableStateOf("") }
+    var displayApiKey by remember {
+        val apiKeyInSharedPref =  sharedPref.getString("userAPIKey", "")
+        if (apiKeyInSharedPref == "")
+            mutableStateOf("sk-********")
+        else
+            mutableStateOf("sk-****" + apiKeyInSharedPref!!.takeLast(4))
+    }
 
-    fun modifyDisplayApiKey(newApiKey: String) {
+    fun updateApiKey(newApiKey: String) {
         if (!newApiKey.startsWith("sk-")) {
             // TODO: Show users the API key is in the wrong format
             return
         }
+
+        with(sharedPref.edit()) {
+            putString("userAPIKey", newApiKey)
+            apply()
+        }
+
         val lastPartOfApiKey = newApiKey.takeLast(4)
-        Log.d("modifyDisplayApiKey", lastPartOfApiKey)
         displayApiKey = displayApiKey.dropLast(4) + lastPartOfApiKey
     }
 
@@ -40,8 +52,7 @@ fun TextBoxForSetAPI() {
 
         Button(
             onClick = {
-                // TODO: Store the API key in SharedPreference or others
-                modifyDisplayApiKey(apiKey)
+                updateApiKey(apiKey)
                 apiKey = ""
             }) {
               Text("更新")

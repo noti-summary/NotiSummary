@@ -139,18 +139,19 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         data class GPTRequest(val prompt: String, val content: String)
         data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val userKey = sharedPreferences.getString("userKey", "default").toString()
+        val userAPIKey = sharedPreferences.getString("userAPIKey", "")!!
 
-        val requestURL = if(userKey == "default"){
+        val requestURL = if(userAPIKey == "default") {
             serverURL
         } else {
             "$serverURL/key"
         }
 
-        val gptRequest = if(userKey == "default"){
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val gptRequest = if(userAPIKey == "default") {
             GPTRequest(prompt, content)
         } else {
-            GPTRequestWithKey(prompt, content, userKey)
+            GPTRequestWithKey(prompt, content, userAPIKey)
         }
 
         val postBody = Gson().toJson(gptRequest)

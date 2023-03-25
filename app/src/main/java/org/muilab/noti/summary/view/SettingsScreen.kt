@@ -1,6 +1,7 @@
 package org.muilab.noti.summary.view
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -33,6 +34,7 @@ enum class SettingScreenItem(var title: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    context: Context,
     promptViewModel: PromptViewModel,
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier
@@ -53,6 +55,7 @@ fun SettingsScreen(
         }
     ) { innerPadding ->
         NavigateSetting(
+            context,
             navController = navController,
             modifier = modifier.padding(innerPadding),
             promptViewModel
@@ -96,6 +99,7 @@ fun SettingTopBar(
 
 @Composable
 fun NavigateSetting(
+    context: Context,
     navController: NavHostController,
     modifier: Modifier,
     promptViewModel: PromptViewModel
@@ -108,7 +112,7 @@ fun NavigateSetting(
             PromptScreen(promptViewModel)
         }
         composable(SettingScreenItem.SettingAPI.name) {
-            APIKeyScreen()
+            APIKeyScreen(context)
         }
     }
 }
