@@ -19,7 +19,7 @@ enum class SummaryResponse(val message: String) {
     NETWORK_ERROR("無法連線，請確認您的網路設定"),
     SERVER_ERROR("伺服器發生錯誤，請稍後再試"),
     TIMEOUT_ERROR("伺服器忙碌中，請稍後再試"),
-    APIKEY_ERROR("請確認 API 金鑰是否有誤"),
+    APIKEY_ERROR("請確認您的 API 金鑰是否有誤"),
 }
 
 @Composable
@@ -39,7 +39,12 @@ fun SummaryCard(sumViewModel: SummaryViewModel, submitButtonState: SSButtonState
 
                 if (result == SummaryResponse.GENERATING.message) {
                     setSubmitButtonState(SSButtonState.LOADING)
-                } else if (result == SummaryResponse.NO_NOTIFICATION.message || result == SummaryResponse.NETWORK_ERROR.message || result == SummaryResponse.SERVER_ERROR.message || result == SummaryResponse.TIMEOUT_ERROR.message) {
+                } else if (result == SummaryResponse.NO_NOTIFICATION.message ||
+                           result == SummaryResponse.NETWORK_ERROR.message ||
+                           result == SummaryResponse.SERVER_ERROR.message ||
+                           result == SummaryResponse.TIMEOUT_ERROR.message ||
+                           result == SummaryResponse.APIKEY_ERROR.message
+                ) {
                     setSubmitButtonState(SSButtonState.FAILIURE)
                 } else if (submitButtonState == SSButtonState.LOADING){
                     setSubmitButtonState(SSButtonState.SUCCESS)

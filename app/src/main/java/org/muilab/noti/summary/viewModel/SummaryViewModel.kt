@@ -59,7 +59,11 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             editor.putString("resultValue", newValue)
             editor.apply()
 
-            subtractCredit(1)
+            val userAPIKey = sharedPreferences.getString("userAPIKey", "default")!!
+            if (userAPIKey == "default") {
+                subtractCredit(1)
+            }
+
         } else {
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
@@ -139,7 +143,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         data class GPTRequest(val prompt: String, val content: String)
         data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val userAPIKey = sharedPreferences.getString("userAPIKey", "")!!
+        val userAPIKey = sharedPreferences.getString("userAPIKey", "default")!!
 
         val requestURL = if(userAPIKey == "default") {
             serverURL
@@ -170,7 +174,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
                 response.body?.let {
                     val responseBody = it.string()
                     Log.i("ServerResponse", responseBody)
-                    if (responseBody.contains("You didn't provide an API key")) {
+                    if (responseBody.contains("You didn't provide an API key") || responseBody.contains("Incorrect API key provided")) {
                         _result.postValue(SummaryResponse.APIKEY_ERROR.message)
                     } else {
                         _result.postValue(SummaryResponse.SERVER_ERROR.message)
