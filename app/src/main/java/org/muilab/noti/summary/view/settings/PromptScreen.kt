@@ -24,10 +24,10 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 
 @Composable
 fun PromptScreen(promptViewModel: PromptViewModel) {
-
-    PromptHistory(promptViewModel = promptViewModel)
-    AddButton(promptViewModel = promptViewModel)
-
+    MaterialTheme {
+        PromptHistory(promptViewModel = promptViewModel)
+        AddButton(promptViewModel = promptViewModel)
+    }
 }
 
 
@@ -114,9 +114,11 @@ fun AddButton(promptViewModel: PromptViewModel) {
                 TextButton(
                     modifier = Modifier.padding(all = 3.dp),
                     onClick = {
-                        promptViewModel.addPrompt(inputPrompt)
-                        inputPrompt = ""
-                        showDialog = false
+                        if (inputPrompt != "") {
+                            promptViewModel.addPrompt(inputPrompt)
+                            inputPrompt = ""
+                            showDialog = false
+                        }
                     }
                 )
                 { Text(text = "確認", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
