@@ -52,9 +52,8 @@ fun HomeScreen(
     val summaryCardState = remember { mutableStateOf(true) }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
-        64.dp
-        + with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
-        + 48.dp + 50.dp + 100.dp
+        with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
+        + 32.dp + 50.dp + 100.dp
     )
     val maxMainHeight = screenHeight - minorHeight
     val titleHeight = with(LocalDensity.current) {
@@ -86,17 +85,10 @@ fun HomeScreen(
             // .background(colorResource(id = R.color.teal_700))
             .wrapContentSize(Alignment.TopCenter)
     ) {
-        Credit(lifecycleOwner, userId)
-        /*
-        NotiDrawer(context, sumViewModel)
-        promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
-        SummaryCard(sumViewModel, submitButtonState, setSubmitButtonState)
-        SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
-        */
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 16.dp)
+                .padding(16.dp, 16.dp, 16.dp, 8.dp)
                 .height(drawerCardHeight)
         ) {
             Column(
@@ -185,37 +177,11 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                 }
 
-                SummaryCard(sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
+                SummaryCard(userId, lifecycleOwner, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
         SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
     }
-}
-
-@Composable
-fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
-
-    val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
-    val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
-    var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
-
-    if (result is FirestoreDocument.Snapshot) {
-        if (result.snapshot.exists()) {
-            val res = result.snapshot.toObject<UserCredit>()!!
-            displayText = "每日額度：${res.credit} / $maxCredit"
-        } else {
-            displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
-        }
-    }
-
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp, 16.dp, 16.dp, 8.dp)) {
-        Row(modifier = Modifier.padding(16.dp)) {
-            Text(text = displayText)
-        }
-    }
-
 }
 
 @Composable
