@@ -1,5 +1,6 @@
 package org.muilab.noti.summary.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -8,9 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
+import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
+import kotlin.text.Typography
 
 enum class SummaryResponse(val message: String) {
     HINT("請按下方按鈕產生通知摘要"),
@@ -22,30 +27,39 @@ enum class SummaryResponse(val message: String) {
 }
 
 @Composable
-fun SummaryCard(sumViewModel: SummaryViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
+fun SummaryCard(sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
     val result by sumViewModel.result.observeAsState(SummaryResponse.HINT.message)
 
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp
-    val HEIGHT_RATIO = 0.3f
-    val cardHeight = (screenHeight * HEIGHT_RATIO).toInt()
+    Card(modifier = Modifier.fillMaxSize()) {
+        promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
+        Box(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
+            Text(text = result)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Card(modifier = Modifier.fillMaxWidth().height(cardHeight.dp)) {
-            Box(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
-
-                Text(text = result)
-
-                if (result == SummaryResponse.GENERATING.message) {
-                    setSubmitButtonState(SSButtonState.LOADING)
-                } else if (result == SummaryResponse.NO_NOTIFICATION.message || result == SummaryResponse.NETWORK_ERROR.message || result == SummaryResponse.SERVER_ERROR.message || result == SummaryResponse.TIMEOUT_ERROR.message) {
-                    setSubmitButtonState(SSButtonState.FAILIURE)
-                } else if (submitButtonState == SSButtonState.LOADING){
-                    setSubmitButtonState(SSButtonState.SUCCESS)
-                }
-
+            if (result == SummaryResponse.GENERATING.message) {
+                setSubmitButtonState(SSButtonState.LOADING)
+            } else if (result == SummaryResponse.NO_NOTIFICATION.message || result == SummaryResponse.NETWORK_ERROR.message || result == SummaryResponse.SERVER_ERROR.message || result == SummaryResponse.TIMEOUT_ERROR.message) {
+                setSubmitButtonState(SSButtonState.FAILIURE)
+            } else if (submitButtonState == SSButtonState.LOADING){
+                setSubmitButtonState(SSButtonState.SUCCESS)
             }
+
         }
-        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun CurrentPrompt(curPrompt: String) {
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp, 0.dp)) {
+        Box (modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
+            Text(
+                text = "當前摘要提示句：$curPrompt",
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(horizontal = 10.dp)
+            )
+        }
     }
 }
