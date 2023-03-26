@@ -74,20 +74,22 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                         text = item,
                     )
 
-                    IconButton(
-                        onClick = {
-                            // Perform edit action
+                    if (item != defaultPrompt) {
+                        IconButton(
+                            onClick = {
+                                // Perform edit action
+                            }
+                        ) {
+                            Icon(Icons.Rounded.Edit, contentDescription = "edit prompt")
                         }
-                    ) {
-                        Icon(Icons.Rounded.Edit, contentDescription = "edit prompt")
-                    }
 
-                    IconButton(
-                        onClick = {
-                            // Perform delete action
+                        IconButton(
+                            onClick = {
+                                // Perform delete action
+                            }
+                        ) {
+                            Icon(Icons.Rounded.Delete, contentDescription = "delete prompt")
                         }
-                    ) {
-                        Icon(Icons.Rounded.Delete, contentDescription = "delete prompt")
                     }
                 }
             }
@@ -104,7 +106,7 @@ fun AddButton(promptViewModel: PromptViewModel) {
     var inputPrompt by remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 100.dp, end = 25.dp),
+        modifier = Modifier.fillMaxSize().padding(bottom = 25.dp, end = 25.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(

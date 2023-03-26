@@ -39,14 +39,17 @@ fun MainScreenView(
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { AppBottomNavigation(navController = navController) }
-    ) {
-        NavigationGraph(
-            navController = navController,
-            context,
-            lifecycleOwner,
-            sumViewModel,
-            promptViewModel
-        )
+    ) { innerPadding ->
+        // Apply the padding globally to the whole navController
+        Box(modifier = Modifier.padding(innerPadding)) {
+            NavigationGraph(
+                navController = navController,
+                context,
+                lifecycleOwner,
+                sumViewModel,
+                promptViewModel
+            )
+        }
     }
 }
 
