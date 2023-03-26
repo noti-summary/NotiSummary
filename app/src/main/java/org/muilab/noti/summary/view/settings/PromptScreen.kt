@@ -127,6 +127,7 @@ fun AddButton(promptViewModel: PromptViewModel) {
             text = {
                 OutlinedTextField(
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
+                    singleLine = true,
                     value = inputPrompt,
                     onValueChange = { inputPrompt = it },
                     label = { Text("提示句") },
@@ -149,6 +150,7 @@ fun AddButton(promptViewModel: PromptViewModel) {
                 TextButton(
                     modifier = Modifier.padding(all = 3.dp),
                     onClick = {
+                        inputPrompt = ""
                         showDialog = false
                     }
                 )
