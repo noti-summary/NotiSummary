@@ -40,61 +40,53 @@ fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
 
     Box {
 
-        if (notifications != null && notifications!!.isEmpty()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-                    .onSizeChanged { drawerHeight.value = max(it.height.toFloat(), 1F) },
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                notifications?.forEach {
-                    item {
-                        Card(
-                            modifier = Modifier
-                                .padding(vertical = 2.dp)
-                                .fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                        ) {
-                            Column(modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 10.dp)
-                                        .background(MaterialTheme.colorScheme.secondary),
-                                    text = "${it.appName} / ${it.time}",
-                                    style = TextStyle(color = MaterialTheme.colorScheme.onSecondary)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+                .onSizeChanged { drawerHeight.value = max(it.height.toFloat(), 1F) },
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            notifications?.forEach {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .padding(vertical = 2.dp)
+                            .fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Column(modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                                    .background(MaterialTheme.colorScheme.secondary),
+                                text = "${it.appName} / ${it.time}",
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSecondary)
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                                    .background(Color.Transparent),
+                                text = it.title,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondary
                                 )
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 10.dp)
-                                        .background(Color.Transparent),
-                                    text = it.title,
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSecondary
-                                    )
-                                )
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 10.dp)
-                                        .background(Color.Transparent),
-                                    text = it.content,
-                                    style = TextStyle(color = MaterialTheme.colorScheme.onSecondary)
-                                )
-                            }
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                                    .background(Color.Transparent),
+                                text = it.content,
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSecondary)
+                            )
                         }
                     }
                 }
             }
-        } else {
-            Text(
-                text = "請點擊下方按鈕產生通知摘要",
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.align(Alignment.Center)
-            )
         }
 
         Canvas(modifier = Modifier
