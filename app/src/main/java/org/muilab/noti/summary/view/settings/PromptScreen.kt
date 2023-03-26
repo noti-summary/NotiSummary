@@ -1,46 +1,35 @@
 package org.muilab.noti.summary.view.settings
 
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
 @Composable
 fun PromptScreen(promptViewModel: PromptViewModel) {
-    Column(modifier = Modifier.fillMaxHeight()) {
-        PromptEditor(promptViewModel = promptViewModel)
-        PromptHistory(promptViewModel = promptViewModel)
-    }
+
+    PromptHistory(promptViewModel = promptViewModel)
+    AddButton(promptViewModel = promptViewModel)
+
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PromptEditor(promptViewModel: PromptViewModel) {
-    var text by remember { mutableStateOf("") }
-    Text("輸入摘要提示句", style = MaterialTheme.typography.bodyLarge)
-    Row(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
-            colors = TextFieldDefaults.textFieldColors()
-        )
-        Button(
-            onClick = {
-                // update PromptViewModel
-                promptViewModel.addPrompt(text)
-                text = ""
-            }) {
-            Text("更新")
-        }
-    }
-}
 
 @Composable
 fun PromptHistory(promptViewModel: PromptViewModel) {
@@ -49,13 +38,11 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
     val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
-        items(
-            items = listOf(defaultPrompt) + allPromptSentence.value
-        ) {
-            if (it == defaultPrompt) {
-                Text("預設摘要提示句：")
-            } else {
-                Text("自訂摘要提示句：")
+        itemsIndexed(listOf(defaultPrompt) + allPromptSentence.value) { index, item ->
+            if (index == 0) {
+                Text("預設摘要提示句", modifier = Modifier.padding(all = 8.dp))
+            } else if (index == 1) {
+                Text("自訂摘要提示句", modifier = Modifier.padding(all = 8.dp))
             }
             Card(
                 modifier = Modifier
@@ -63,11 +50,11 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .clickable {
-                        promptViewModel.choosePrompt(it)
+                        promptViewModel.choosePrompt(item)
                     },
                 colors = CardDefaults.cardColors(
                     containerColor =
-                    if (it == selectedOption.value) {
+                    if (item == selectedOption.value) {
                         Color.DarkGray
                     } else {
                         Color.Gray
@@ -79,8 +66,122 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                     modifier = Modifier
                         .padding(20.dp)
                         .fillMaxWidth(),
-                    text = it,
+                    text = item,
                 )
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddButton(promptViewModel: PromptViewModel) {
+
+    var showDialog by remember { mutableStateOf(false) }
+    var inputPrompt by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier.fillMaxSize().padding(bottom = 100.dp, end = 25.dp),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        FloatingActionButton(
+            onClick = { showDialog = true },
+        ) {
+            Icon(Icons.Filled.Add, "add new prompt")
+        }
+    }
+
+    if (showDialog) {
+        NoPaddingAlertDialog(
+            onDismissRequest = { },
+            title = {
+                Image(
+                    modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
+                    painter = painterResource(id = R.drawable.prompt),
+                    contentDescription = "prompt_icon",
+                )
+            },
+            text = {
+                OutlinedTextField(
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
+                    value = inputPrompt,
+                    onValueChange = { inputPrompt = it },
+                    label = { Text("提示句") },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.padding(all = 3.dp),
+                    onClick = {
+                        promptViewModel.addPrompt(inputPrompt)
+                        inputPrompt = ""
+                        showDialog = false
+                    }
+                )
+                { Text(text = "確認", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+            },
+            dismissButton = {
+                TextButton(
+                    modifier = Modifier.padding(all = 3.dp),
+                    onClick = {
+                        showDialog = false
+                    }
+                )
+                { Text(text = "取消", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+            }
+        )
+    }
+
+}
+
+
+@Composable
+fun NoPaddingAlertDialog(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    title: @Composable (() -> Unit)? = null,
+    text: @Composable (() -> Unit)? = null,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable (() -> Unit)? = null,
+    shape: Shape = MaterialTheme.shapes.medium,
+    properties: DialogProperties = DialogProperties()
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = properties
+    ) {
+        Surface(
+            modifier = modifier,
+            shape = shape,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                title?.let {
+                    CompositionLocalProvider() {
+                        val textStyle = MaterialTheme.typography.titleLarge
+                        ProvideTextStyle(textStyle, it)
+                    }
+                }
+                text?.let {
+                    CompositionLocalProvider() {
+                        val textStyle = MaterialTheme.typography.labelSmall
+                        ProvideTextStyle(textStyle, it)
+                    }
+                }
+                Box(
+                    Modifier.fillMaxWidth().padding(all = 6.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        dismissButton?.invoke()
+                        confirmButton()
+                    }
+                }
             }
         }
     }
