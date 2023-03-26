@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -62,12 +64,32 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                 ),
                 shape = MaterialTheme.shapes.medium,
             ) {
-                Text(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth(),
-                    text = item,
-                )
+                Row(
+                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = item,
+                    )
+
+                    IconButton(
+                        onClick = {
+                            // Perform edit action
+                        }
+                    ) {
+                        Icon(Icons.Rounded.Edit, contentDescription = "edit prompt")
+                    }
+
+                    IconButton(
+                        onClick = {
+                            // Perform delete action
+                        }
+                    ) {
+                        Icon(Icons.Rounded.Delete, contentDescription = "delete prompt")
+                    }
+                }
             }
         }
     }
