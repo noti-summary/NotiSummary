@@ -177,7 +177,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                 }
 
-                SummaryCard(userId, lifecycleOwner, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
+                SummaryCard(userId, context, lifecycleOwner, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
         SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)

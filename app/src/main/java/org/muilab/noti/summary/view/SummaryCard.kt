@@ -1,5 +1,6 @@
 package org.muilab.noti.summary.view
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -36,12 +37,12 @@ enum class SummaryResponse(val message: String) {
 }
 
 @Composable
-fun SummaryCard(userId:String, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
+fun SummaryCard(userId:String, context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
     val result by sumViewModel.result.observeAsState(SummaryResponse.HINT.message)
 
     Card(modifier = Modifier.fillMaxSize()) {
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
-        Credit(lifecycleOwner, userId)
+        Credit(context, lifecycleOwner, userId)
         Box(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
             Text(text = result)
 
@@ -58,11 +59,27 @@ fun SummaryCard(userId:String, lifecycleOwner: LifecycleOwner, sumViewModel: Sum
 }
 
 @Composable
-fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
+fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
 
     val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
     val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
-    var displayText by remember { mutableStateOf("今日可再進行 - 次摘要") }
+    var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
+
+    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    val userAPIKey = sharedPref.getString("userAPIKey", "default")!!
+
+    if (userAPIKey == "default") {
+        if (result is FirestoreDocument.Snapshot) {
+            if (result.snapshot.exists()) {
+                val res = result.snapshot.toObject<UserCredit>()!!
+                displayText = "每日額度：${res.credit} / $maxCredit"
+            } else {
+                displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
+            }
+        }
+    } else {
+        displayText = "正在使用您的 API 金鑰：sk-****" + userAPIKey!!.takeLast(4)
+    }
 
     if (result is FirestoreDocument.Snapshot) {
         if (result.snapshot.exists()) {
