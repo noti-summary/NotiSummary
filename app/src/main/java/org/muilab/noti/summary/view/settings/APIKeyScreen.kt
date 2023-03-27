@@ -12,14 +12,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.getActiveNotifications
+import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 
 @Composable
 fun APIKeyScreen(context: Context) {
@@ -134,57 +132,6 @@ fun APIKeyEditor(
             { Text(text = "取消", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
         }
     )
-}
-
-@Composable
-fun NoPaddingAlertDialog(
-    modifier: Modifier = Modifier,
-    onDismissRequest: () -> Unit = {},
-    title: @Composable (() -> Unit)? = null,
-    text: @Composable (() -> Unit)? = null,
-    confirmButton: @Composable () -> Unit,
-    dismissButton: @Composable (() -> Unit)? = null,
-    shape: Shape = MaterialTheme.shapes.medium,
-    properties: DialogProperties = DialogProperties()
-) {
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = properties
-    ) {
-        Surface(
-            modifier = modifier,
-            shape = shape,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                title?.let {
-                    CompositionLocalProvider() {
-                        val textStyle = MaterialTheme.typography.titleLarge
-                        ProvideTextStyle(textStyle, it)
-                    }
-                }
-                text?.let {
-                    CompositionLocalProvider() {
-                        val textStyle = MaterialTheme.typography.labelSmall
-                        ProvideTextStyle(textStyle, it)
-                    }
-                }
-                Box(
-                    Modifier.fillMaxWidth().padding(all = 6.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        dismissButton?.invoke()
-                        confirmButton()
-                    }
-                }
-            }
-        }
-    }
 }
 
 
