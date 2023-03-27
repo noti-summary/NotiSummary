@@ -11,6 +11,8 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.zqc.opencc.android.lib.ChineseConverter
+import com.zqc.opencc.android.lib.ConversionType
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -148,12 +150,14 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                val responseText = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 updateLiveDataValue(summary)
             } else {
                 _result.postValue(SummaryResponse.SERVER_ERROR.message)
                 response.body?.let { Log.i("Server", it.string()) }
             }
+            response.close()
         } catch (e: InterruptedIOException) {
             _result.postValue(SummaryResponse.TIMEOUT_ERROR.message)
         } catch (e: IOException) {
