@@ -54,7 +54,7 @@ fun AddKeyButton(sharedPref: SharedPreferences, displayApiKey: MutableState<Stri
     val inputKey = remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 120.dp, end = 120.dp),
+        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
