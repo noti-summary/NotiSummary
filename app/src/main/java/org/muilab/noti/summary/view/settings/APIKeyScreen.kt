@@ -69,7 +69,11 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = "sk-**********" + item.takeLast(4),
+                        text = if (item != defaultAPIKey) {
+                            "sk-**********" + item.takeLast(4)
+                        } else {
+                            defaultAPIKey
+                        },
                     )
 
                     if (item != defaultAPIKey) {

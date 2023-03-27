@@ -146,17 +146,16 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         data class GPTRequest(val prompt: String, val content: String)
         data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        // TODO: use APIKeyModel instead
-        val userAPIKey = apiPref.getString("userAPIKey", "default")!!
+        val userAPIKey = apiPref.getString("userAPIKey", "預設 API Key")!!
 
-        val requestURL = if(userAPIKey == "default") {
+        val requestURL = if(userAPIKey == "預設 API Key") {
             serverURL
         } else {
             "$serverURL/key"
         }
 
         @Suppress("IMPLICIT_CAST_TO_ANY")
-        val gptRequest = if(userAPIKey == "default") {
+        val gptRequest = if(userAPIKey == "預設 API Key") {
             GPTRequest(prompt, content)
         } else {
             Log.d("sendToServer", "userAPIKey: $userAPIKey")
