@@ -1,5 +1,6 @@
 package org.muilab.noti.summary.view.settings
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,16 +32,15 @@ fun PromptScreen(promptViewModel: PromptViewModel) {
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PromptHistory(promptViewModel: PromptViewModel) {
     val selectedOption = promptViewModel.promptSentence.observeAsState()
     val allPromptSentence = promptViewModel.allPromptSentence.observeAsState(listOf(""))
     val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
 
-    var showDialog by remember { mutableStateOf(false) }
-    var currentEditPrompt by remember { mutableStateOf("") }
+    val showDialog = remember { mutableStateOf(false) }
+    val currentEditPrompt = remember { mutableStateOf("") }
+    var currentEditPromptOriginalValue by remember { mutableStateOf("") }
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultPrompt) + allPromptSentence.value) { index, item ->
@@ -80,8 +80,9 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                     if (item != defaultPrompt) {
                         IconButton(
                             onClick = { // edit the prompt
-                                currentEditPrompt = item
-                                showDialog = true
+                                currentEditPrompt.value = item
+                                currentEditPromptOriginalValue = item
+                                showDialog.value = true
                             }
                         ) {
                             Icon(Icons.Rounded.Edit, contentDescription = "edit prompt")
@@ -100,121 +101,106 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
         }
     }
 
-    if (showDialog) {
-        var defaultPromptInTextBox by remember { mutableStateOf(currentEditPrompt) }
-        NoPaddingAlertDialog(
-            onDismissRequest = { },
-            title = {
-                Image(
-                    modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
-                    painter = painterResource(id = R.drawable.prompt),
-                    contentDescription = "prompt_icon",
-                )
-            },
-            text = {
-                OutlinedTextField(
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
-                    singleLine = true,
-                    value = defaultPromptInTextBox,
-                    onValueChange = { defaultPromptInTextBox = it },
-                    label = { Text("提示句") },
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    modifier = Modifier.padding(all = 3.dp),
-                    onClick = {
-                        if (defaultPromptInTextBox != "") {
-                            promptViewModel.updatePrompt(currentEditPrompt, defaultPromptInTextBox)
-                            defaultPromptInTextBox = ""
-                            showDialog = false
-                        }
-                    }
-                )
-                { Text(text = "確認", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
-            },
-            dismissButton = {
-                TextButton(
-                    modifier = Modifier.padding(all = 3.dp),
-                    onClick = { showDialog = false }
-                )
-                { Text(text = "取消", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
-            }
-        )
+    val confirmAction =  {
+        if (currentEditPrompt.value != "") {
+            promptViewModel.updatePrompt(
+                currentEditPromptOriginalValue,
+                currentEditPrompt.value
+            )
+            currentEditPrompt.value = ""
+            showDialog.value = false
+        }
+    }
+
+    if (showDialog.value) {
+        PromptEditor(showDialog, currentEditPrompt, confirmAction)
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddButton(promptViewModel: PromptViewModel) {
 
-    var showDialog by remember { mutableStateOf(false) }
-    var inputPrompt by remember { mutableStateOf("") }
+    val showDialog = remember { mutableStateOf(false) }
+    val inputPrompt = remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier.fillMaxSize().padding(bottom = 25.dp, end = 25.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
-            onClick = { showDialog = true },
+            onClick = { showDialog.value = true },
         ) {
             Icon(Icons.Filled.Add, "add new prompt")
         }
     }
 
-    if (showDialog) {
-        NoPaddingAlertDialog(
-            onDismissRequest = { },
-            title = {
-                Image(
-                    modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
-                    painter = painterResource(id = R.drawable.prompt),
-                    contentDescription = "prompt_icon",
-                )
-            },
-            text = {
-                OutlinedTextField(
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
-                    singleLine = true,
-                    value = inputPrompt,
-                    onValueChange = { inputPrompt = it },
-                    label = { Text("提示句") },
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    modifier = Modifier.padding(all = 3.dp),
-                    onClick = {
-                        if (inputPrompt != "") {
-                            promptViewModel.addPrompt(inputPrompt)
-                            inputPrompt = ""
-                            showDialog = false
-                        }
-                    }
-                )
-                { Text(text = "確認", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
-            },
-            dismissButton = {
-                TextButton(
-                    modifier = Modifier.padding(all = 3.dp),
-                    onClick = {
-                        inputPrompt = ""
-                        showDialog = false
-                    }
-                )
-                { Text(text = "取消", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
-            }
-        )
+    val confirmAction = {
+        if (inputPrompt.value != "") {
+            Log.d("currentEditPrompt", inputPrompt.value)
+            promptViewModel.addPrompt(inputPrompt.value)
+            inputPrompt.value = ""
+            showDialog.value = false
+        }
     }
 
+    val dismissAction = { inputPrompt.value = "" }
+
+    if (showDialog.value) {
+        PromptEditor(showDialog, inputPrompt, confirmAction, dismissAction)
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PromptEditor(
+    showDialog: MutableState<Boolean>,
+    defaultPromptInTextBox: MutableState<String>,
+    confirmAction: () -> Unit,
+    dismissAction: () -> Unit = {},
+) {
+    NoPaddingAlertDialog(
+        title = {
+            Image(
+                modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
+                painter = painterResource(id = R.drawable.prompt),
+                contentDescription = "prompt_icon",
+            )
+        },
+        text = {
+            OutlinedTextField(
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
+                singleLine = true,
+                value = defaultPromptInTextBox.value,
+                onValueChange = { defaultPromptInTextBox.value = it },
+                label = { Text("提示句") },
+            )
+        },
+        confirmButton = {
+            TextButton(
+                modifier = Modifier.padding(all = 3.dp),
+                onClick = {
+                    confirmAction()
+                }
+            )
+            { Text(text = "確認", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+        },
+        dismissButton = {
+            TextButton(
+                modifier = Modifier.padding(all = 3.dp),
+                onClick = {
+                    dismissAction()
+                    showDialog.value = false
+                }
+            )
+            { Text(text = "取消", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+        }
+    )
+}
 
 @Composable
 fun NoPaddingAlertDialog(
-    onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit = {},
     title: @Composable (() -> Unit)? = null,
     text: @Composable (() -> Unit)? = null,
     confirmButton: @Composable () -> Unit,
