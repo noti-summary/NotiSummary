@@ -55,9 +55,9 @@ class MainActivity : ComponentActivity() {
         setUserId()
         
         setContent {
-//            SummaryCard(sumViewModel)
-//            Greeting("world")
-            MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
+            NotiappTheme {
+                MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
+            }
         }
     }
 
