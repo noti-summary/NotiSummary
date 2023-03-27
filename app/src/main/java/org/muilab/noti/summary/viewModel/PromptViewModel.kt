@@ -18,6 +18,7 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
 
     private val promptDao = promptDatabase.promptDao()
 
+    private val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
     private val _promptSentence = MutableLiveData<String>()
     val promptSentence: LiveData<String> = _promptSentence
     val allPromptSentence: LiveData<List<String>> = promptDao.getAllPrompt().asLiveData()
@@ -25,9 +26,7 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
     private val scope = viewModelScope + Dispatchers.IO
 
     init {
-        val resultValue =
-            sharedPreferences.getString(
-                "curPrompt", "Summarize the notifications in a Traditional Chinese statement.")
+        val resultValue = sharedPreferences.getString("curPrompt", defaultPrompt)
         _promptSentence.value = resultValue!!
     }
 
@@ -36,13 +35,12 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
         scope.launch {
             promptDao.insertPromptIfNotExists(Prompt(0, updatePrompt))
         }
-        _promptSentence.value = updatePrompt
-        sharedPreferences.edit().putString("curPrompt", newPromptText).apply()
+        choosePrompt(updatePrompt)
     }
 
     fun choosePrompt(updatePrompt: String) {
         if (_promptSentence.value != updatePrompt) {
-            _promptSentence.value = updatePrompt
+            _promptSentence.postValue(updatePrompt)
             sharedPreferences.edit().putString("curPrompt", updatePrompt).apply()
             Log.d("choosePrompt", promptSentence.value!!)
         }
@@ -55,6 +53,7 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
     fun updatePrompt(oldPrompt: String, newPrompt: String) {
         scope.launch{
             promptDao.updatePromptText(oldPrompt, newPrompt)
+            choosePrompt(newPrompt)
         }
     }
 
@@ -62,5 +61,6 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
         scope.launch {
             promptDao.deleteByPromptText(prompt)
         }
+        choosePrompt(defaultPrompt)
     }
 }
