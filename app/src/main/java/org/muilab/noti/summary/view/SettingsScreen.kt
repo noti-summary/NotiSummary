@@ -109,7 +109,7 @@ fun NavigateSetting(
             MainSettingScreen(navController)
         }
         composable(SettingScreenItem.SettingPrompt.name) {
-            PromptScreen(promptViewModel)
+            PromptScreen(promptViewModel, context)
         }
         composable(SettingScreenItem.SettingAPI.name) {
             APIKeyScreen(context)
