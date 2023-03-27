@@ -6,7 +6,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
@@ -16,12 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
@@ -79,9 +75,7 @@ fun HomeScreen(
     )
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.TopCenter)
+        modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.TopCenter)
     ) {
         Card(
             modifier = Modifier
@@ -97,32 +91,25 @@ fun HomeScreen(
                     }
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 ) {
                     Text(
                         text = "我的通知",
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     if (!drawerCardState.value)
                         Icon(
                             painter = painterResource(id = R.drawable.expand_arrow),
                             contentDescription = "",
-                            modifier = Modifier
-                                .size(titleHeight)
-                                .padding(4.dp)
+                            modifier = Modifier.size(titleHeight).padding(4.dp)
                         )
                     else
                         Icon(
                             painter = painterResource(id = R.drawable.collapse_arrow),
                             contentDescription = "",
-                            modifier = Modifier
-                                .size(titleHeight)
-                                .padding(4.dp)
+                            modifier = Modifier.size(titleHeight).padding(4.dp)
                         )
                     Spacer(modifier = Modifier.width(16.dp))
                 }
@@ -133,23 +120,20 @@ fun HomeScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
                 .height(summaryCardHeight)
+                .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
         ) {
             Column(
-                Modifier
-                    .fillMaxSize()
+                Modifier.fillMaxSize()
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "我的摘要",
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier
-                            .padding(start = 16.dp)
+                        modifier = Modifier.padding(start = 16.dp)
                     )
                     Spacer(modifier = Modifier.padding(16.dp))
                     Credit(context, lifecycleOwner, userId)
@@ -182,15 +166,13 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
             }
         }
     } else {
-        displayText = "正在使用您的 API 金鑰：\nsk-****" + userAPIKey!!.takeLast(4)
+        displayText = "正在使用您的 API 金鑰：\nsk-****" + userAPIKey.takeLast(4)
     }
 
-    Box {
-        Text(
-            text = displayText,
-            style = MaterialTheme.typography.labelMedium
-        )
-    }
+    Text(
+        text = displayText,
+        style = MaterialTheme.typography.labelMedium,
+    )
 
 }
 

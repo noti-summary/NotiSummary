@@ -56,7 +56,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     }
 
     private fun updateLiveDataValue(newValue: String?) {
-        if (newValue != null && levenshteinDistance(newValue, result.value.toString()) > 20) {
+        if (newValue != null) {
             _result.postValue(newValue!!)
             val editor = sharedPreferences.edit()
             editor.putString("resultValue", newValue)

@@ -2,7 +2,6 @@ package org.muilab.noti.summary.viewModel
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

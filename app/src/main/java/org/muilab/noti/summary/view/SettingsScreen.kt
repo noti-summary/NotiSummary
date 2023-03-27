@@ -1,7 +1,6 @@
 package org.muilab.noti.summary.view
 
 import android.annotation.SuppressLint
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
