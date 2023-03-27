@@ -12,7 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
@@ -38,13 +40,20 @@ enum class SummaryResponse(val message: String) {
 }
 
 @Composable
-fun SummaryCard(userId:String, context: Context, lifecycleOwner: LifecycleOwner, sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
+fun SummaryCard(sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
     val result by sumViewModel.result.observeAsState(SummaryResponse.HINT.message)
 
     Card(modifier = Modifier.fillMaxSize()) {
+        // Credit(context, lifecycleOwner, userId)
+        // Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.onSecondaryContainer)
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
-        Credit(context, lifecycleOwner, userId)
-        Box(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
+        Divider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(horizontal = 16.dp))
+        Box(modifier = Modifier
+            .padding(16.dp, 4.dp)
+            .verticalScroll(rememberScrollState())) {
             Text(text = result)
 
             if (result == SummaryResponse.GENERATING.message) {
@@ -65,57 +74,16 @@ fun SummaryCard(userId:String, context: Context, lifecycleOwner: LifecycleOwner,
 }
 
 @Composable
-fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
-
-    val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
-    val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
-    var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
-
-    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
-    val userAPIKey = sharedPref.getString("userAPIKey", "default")!!
-
-    if (userAPIKey == "default") {
-        if (result is FirestoreDocument.Snapshot) {
-            if (result.snapshot.exists()) {
-                val res = result.snapshot.toObject<UserCredit>()!!
-                displayText = "每日額度：${res.credit} / $maxCredit"
-            } else {
-                displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
-            }
-        }
-    } else {
-        displayText = "正在使用您的 API 金鑰：sk-****" + userAPIKey!!.takeLast(4)
-    }
-
-    Card(modifier = Modifier
-        .fillMaxWidth().padding(16.dp, 4.dp)) {
-        Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            Text(
-                text = displayText,
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.ExtraBold
-                ),
-                modifier = Modifier.padding(horizontal = 10.dp)
-            )
-        }
-    }
-
-}
-
-@Composable
 fun CurrentPrompt(curPrompt: String) {
-    Card(modifier = Modifier
+    Box(modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp, 0.dp)) {
-        Box (modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
-            Text(
-                text = "當前摘要提示句：$curPrompt",
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.onSecondary,
-                    fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(horizontal = 10.dp)
-            )
-        }
+        .padding(16.dp, 4.dp)) {
+        Text(
+            text = curPrompt,
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontWeight = FontWeight.ExtraBold,
+            ),
+        )
     }
 }
