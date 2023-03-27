@@ -24,6 +24,12 @@ interface PromptDao {
         }
     }
 
+    @Query("UPDATE prompt_history SET promptText = :newPrompt WHERE promptText = :oldPrompt")
+    fun updatePromptText(oldPrompt: String, newPrompt: String)
+
+    @Query("DELETE FROM prompt_history WHERE promptText = :prompt")
+    fun deleteByPromptText(prompt: String)
+
     @Query("DELETE FROM prompt_history")
     fun deleteAllPrompt()
 }

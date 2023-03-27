@@ -107,7 +107,7 @@ fun SubmitButton(
     val prompt = promptViewModel.getCurPrompt()
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 100.dp),
+        modifier = Modifier.fillMaxSize().padding(bottom = 30.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         SSJetPackComposeProgressButtonMaterial3(
