@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -12,6 +11,8 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.zqc.opencc.android.lib.ChineseConverter
+import com.zqc.opencc.android.lib.ConversionType
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +24,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import org.json.JSONException
 import org.muilab.noti.summary.model.UserCredit
-import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.view.SummaryResponse
 import java.io.*
@@ -34,6 +34,7 @@ import kotlin.collections.ArrayList
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
     private val sharedPreferences = getApplication<Application>().getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    private val apiPref = getApplication<Application>().getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
 
     private val _notifications = MutableLiveData<List<NotiUnit>>()
     val notifications: LiveData<List<NotiUnit>> = _notifications
@@ -49,24 +50,26 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         directory = "./assets"
         filename = "env"
     }
-    private val serverIP = dotenv["SUMMARY_URL"]
+    private val serverURL = dotenv["SUMMARY_URL"]
     private val mediaType = "application/json; charset=utf-8".toMediaType()
 
     init {
-        val resultValue = sharedPreferences.getString("resultValue", "")
-        if (resultValue != "") {
-            _result.value = resultValue
-        }
+        val resultValue = sharedPreferences.getString("resultValue", SummaryResponse.HINT.message)
+        _result.value = resultValue!!
     }
 
     private fun updateLiveDataValue(newValue: String?) {
-        if (newValue != null && levenshteinDistance(newValue, result.value.toString()) > 20) {
-            _result.postValue(newValue)
+        if (newValue != null) {
+            _result.postValue(newValue!!)
             val editor = sharedPreferences.edit()
             editor.putString("resultValue", newValue)
             editor.apply()
 
-            subtractCredit(1)
+            val userAPIKey = sharedPreferences.getString("userAPIKey", "default")!!
+            if (userAPIKey == "default") {
+                subtractCredit(1)
+            }
+
         } else {
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
@@ -117,9 +120,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
     fun getPostContent(activeNotifications: ArrayList<NotiUnit>) : String {
         val sb = StringBuilder()
-        val notiList = activeNotifications
-        notiList.shuffle()
-        notiList.forEach {
+        activeNotifications.shuffle()
+        activeNotifications.forEach {
 
             val appName = it.appName
             val time = it.time
@@ -132,7 +134,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         return sb.toString()
     }
 
-    fun levenshteinDistance(str1: String, str2: String): Int {
+    private fun levenshteinDistance(str1: String, str2: String): Int {
         val m = str1.length
         val n = str2.length
 
@@ -189,30 +191,61 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
         Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
         data class GPTRequest(val prompt: String, val content: String)
+        data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val gptRequest = GPTRequest(prompt, content)
+        val userAPIKey = apiPref.getString("userAPIKey", "預設 API Key")!!
+
+        val requestURL = if(userAPIKey == "預設 API Key") {
+            serverURL
+        } else {
+            "$serverURL/key"
+        }
+
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val gptRequest = if(userAPIKey == "預設 API Key") {
+            GPTRequest(prompt, content)
+        } else {
+            Log.d("sendToServer", "userAPIKey: $userAPIKey")
+            GPTRequestWithKey(prompt, content, userAPIKey)
+        }
+
         val postBody = Gson().toJson(gptRequest)
         saveJson(postBody)
 
         val request = Request.Builder()
-            .url(serverIP)
+            .url(requestURL)
             .post(postBody.toRequestBody(mediaType))
             .build()
+
         try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                val responseText = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 updateLiveDataValue(summary)
                 summary?.let { saveSummary(it) }
             } else {
-                _result.postValue(SummaryResponse.SERVER_ERROR.message)
-                response.body?.let { Log.i("Server", it.string()) }
+                response.body?.let {
+                    val responseBody = it.string()
+                    Log.i("ServerResponse", responseBody)
+                    if (responseBody.contains("You didn't provide an API key") || responseBody.contains("Incorrect API key provided")) {
+                        _result.postValue(SummaryResponse.APIKEY_ERROR.message)
+                    } else {
+                        _result.postValue(SummaryResponse.SERVER_ERROR.message)
+                    }
+                } ?:let {
+                    _result.postValue(SummaryResponse.SERVER_ERROR.message)
+                }
             }
+            response.close()
         } catch (e: InterruptedIOException) {
+            Log.i("InterruptedIOException", e.toString())
             _result.postValue(SummaryResponse.TIMEOUT_ERROR.message)
         } catch (e: IOException) {
+            Log.i("IOException", e.toString())
             _result.postValue(SummaryResponse.NETWORK_ERROR.message)
         } catch (e: JSONException) {
+            Log.i("JSONException", e.toString())
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
     }

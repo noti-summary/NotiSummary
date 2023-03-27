@@ -3,14 +3,16 @@ package org.muilab.noti.summary.view
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -18,13 +20,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import org.muilab.noti.summary.R
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
-sealed class BottomNavItem(var title:String, var icon:Int, var screen_route:String){
-    object Home : BottomNavItem("我的摘要", R.drawable.summary,"home")
-    object Settings: BottomNavItem("設定",R.drawable.settings,"settings")
+sealed class BottomNavItem(var title: String, var icon: ImageVector, var screen_route: String) {
+    object Home : BottomNavItem("首頁", Icons.Filled.Home,"home")
+    object Settings: BottomNavItem("設定", Icons.Filled.Settings,"settings")
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -34,19 +36,24 @@ fun MainScreenView(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel
+    promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel
 ) {
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { AppBottomNavigation(navController = navController) }
-    ) {
-        NavigationGraph(
-            navController = navController,
-            context,
-            lifecycleOwner,
-            sumViewModel,
-            promptViewModel
-        )
+    ) { innerPadding ->
+        // Apply the padding globally to the whole navController
+        Box(modifier = Modifier.padding(innerPadding)) {
+            NavigationGraph(
+                navController = navController,
+                context,
+                lifecycleOwner,
+                sumViewModel,
+                promptViewModel,
+                apiKeyViewModel
+            )
+        }
     }
 }
 
@@ -56,14 +63,15 @@ fun NavigationGraph(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel
+    promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel
 ) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
             HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
         }
         composable(BottomNavItem.Settings.screen_route) {
-            SettingsScreen(promptViewModel)
+            SettingsScreen(promptViewModel, apiKeyViewModel)
         }
     }
 }
@@ -84,9 +92,7 @@ fun AppBottomNavigation(navController: NavController) {
 
         items.forEach { item ->
             NavigationBarItem(
-                icon = { Icon(painterResource(id = item.icon), contentDescription = item.title, modifier = Modifier.size(28.dp)) },
-                label = { Text(text = item.title, fontSize = 11.sp) },
-                alwaysShowLabel = true,
+                icon = { Icon(item.icon, contentDescription = item.title, modifier = Modifier.size(30.dp)) },
                 selected = currentRoute == item.screen_route,
                 onClick = {
                     navController.navigate(item.screen_route) {

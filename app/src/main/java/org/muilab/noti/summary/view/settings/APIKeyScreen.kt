@@ -1,51 +1,48 @@
 package org.muilab.noti.summary.view.settings
 
-import android.util.Log
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
-import org.muilab.noti.summary.viewModel.PromptViewModel
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 
 @Composable
-fun PromptScreen(promptViewModel: PromptViewModel) {
+fun APIKeyScreen(apiKeyViewModel: APIKeyViewModel) {
+
     MaterialTheme {
-        PromptHistory(promptViewModel = promptViewModel)
-        AddButton(promptViewModel = promptViewModel)
+        APIKeyList(apiKeyViewModel)
+        AddKeyButton(apiKeyViewModel)
     }
+
 }
 
-@Composable
-fun PromptHistory(promptViewModel: PromptViewModel) {
-    val selectedOption = promptViewModel.promptSentence.observeAsState()
-    val allPromptSentence = promptViewModel.allPromptSentence.observeAsState(listOf(""))
-    val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
 
-    val showDialog = remember { mutableStateOf(false) }
-    val currentEditPrompt = remember { mutableStateOf("") }
-    var currentEditPromptOriginalValue by remember { mutableStateOf("") }
+@Composable
+fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
+    val selectedOption = apiKeyViewModel.apiKey.observeAsState()
+    val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
+    val defaultAPIKey = "Default"
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
-        itemsIndexed(listOf(defaultPrompt) + allPromptSentence.value) { index, item ->
+        itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
             if (index == 0) {
-                Text("預設摘要提示句", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text("預設 API 金鑰", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
             } else if (index == 1) {
-                Text("自訂摘要提示句", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text("自訂 API 金鑰", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
             }
             Card(
                 modifier = Modifier
@@ -53,7 +50,7 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .clickable {
-                        promptViewModel.choosePrompt(item)
+                        apiKeyViewModel.chooseAPI(item)
                     },
                 colors = CardDefaults.cardColors(
                     containerColor =
@@ -72,54 +69,31 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = item,
+                        text = if (item != defaultAPIKey) {
+                            "sk-**********" + item.takeLast(4)
+                        } else {
+                            defaultAPIKey
+                        },
                     )
 
-                    if (item != defaultPrompt) {
-                        IconButton(
-                            onClick = {
-                                currentEditPrompt.value = item
-                                currentEditPromptOriginalValue = item
-                                showDialog.value = true
-                            }
-                        ) {
-                            Icon(Icons.Rounded.Edit, contentDescription = "edit prompt")
-                        }
-
-                        IconButton(
-                            onClick = {
-                                promptViewModel.deletePrompt(item)
-                            }
-                        ) {
-                            Icon(Icons.Rounded.Delete, contentDescription = "delete prompt")
+                    if (item != defaultAPIKey) {
+                        IconButton(onClick = { apiKeyViewModel.deleteAPI(item) }) {
+                            Icon(Icons.Rounded.Delete, contentDescription = "delete api")
                         }
                     }
                 }
             }
         }
     }
-
-    val confirmAction =  {
-        if (currentEditPrompt.value != "") {
-            promptViewModel.updatePrompt(
-                currentEditPromptOriginalValue,
-                currentEditPrompt.value
-            )
-            currentEditPrompt.value = ""
-            showDialog.value = false
-        }
-    }
-
-    if (showDialog.value) {
-        PromptEditor(showDialog, currentEditPrompt, confirmAction)
-    }
 }
 
+
+
 @Composable
-fun AddButton(promptViewModel: PromptViewModel) {
+fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
-    val inputPrompt = remember { mutableStateOf("") }
+    val inputKey = remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
@@ -128,29 +102,28 @@ fun AddButton(promptViewModel: PromptViewModel) {
         FloatingActionButton(
             onClick = { showDialog.value = true },
         ) {
-            Icon(Icons.Filled.Add, "add new prompt")
+            Icon(Icons.Filled.Add, "add new key")
         }
     }
 
     val confirmAction = {
-        if (inputPrompt.value != "") {
-            Log.d("currentEditPrompt", inputPrompt.value)
-            promptViewModel.addPrompt(inputPrompt.value)
-            inputPrompt.value = ""
+        if (inputKey.value != "") {
+            apiKeyViewModel.addAPI(inputKey.value)
+            inputKey.value = ""
             showDialog.value = false
         }
     }
 
-    val dismissAction = { inputPrompt.value = "" }
+    val dismissAction = { inputKey.value = "" }
 
     if (showDialog.value) {
-        PromptEditor(showDialog, inputPrompt, confirmAction, dismissAction)
+        APIKeyEditor(showDialog, inputKey, confirmAction, dismissAction)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PromptEditor(
+fun APIKeyEditor(
     showDialog: MutableState<Boolean>,
     defaultPromptInTextBox: MutableState<String>,
     confirmAction: () -> Unit,
@@ -160,8 +133,8 @@ fun PromptEditor(
         title = {
             Image(
                 modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
-                painter = painterResource(id = R.drawable.prompt),
-                contentDescription = "prompt_icon",
+                painter = painterResource(id = R.drawable.key),
+                contentDescription = "key_icon",
             )
         },
         text = {
@@ -170,7 +143,7 @@ fun PromptEditor(
                 singleLine = true,
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },
-                label = { Text("提示句") },
+                label = { Text("API 金鑰") },
             )
         },
         confirmButton = {

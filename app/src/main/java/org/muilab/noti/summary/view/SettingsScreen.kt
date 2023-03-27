@@ -1,13 +1,17 @@
 package org.muilab.noti.summary.view
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,15 +22,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.view.settings.Empty
+import org.muilab.noti.summary.view.settings.APIKeyScreen
 import org.muilab.noti.summary.view.settings.MainSettingScreen
 import org.muilab.noti.summary.view.settings.PromptScreen
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
-enum class SettingScreenItem(var title: String) {
-    Start("Main Setting Page"),
-    SettingPrompt("提示句設定"),
-    Setting2("設定2"),
+enum class SettingScreenItem(var title: String, var iconId: Int) {
+    Start("Main Setting Page", R.drawable.settings),
+    SettingPrompt("提示句設定", R.drawable.setting_sms),
+    SettingAPI("OpenAI API 金鑰設定", R.drawable.setting_key),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -34,6 +39,7 @@ enum class SettingScreenItem(var title: String) {
 @Composable
 fun SettingsScreen(
     promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel,
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier
 ) {
@@ -55,7 +61,8 @@ fun SettingsScreen(
         NavigateSetting(
             navController = navController,
             modifier = modifier.padding(innerPadding),
-            promptViewModel
+            promptViewModel,
+            apiKeyViewModel
         )
     }
 }
@@ -98,7 +105,8 @@ fun SettingTopBar(
 fun NavigateSetting(
     navController: NavHostController,
     modifier: Modifier,
-    promptViewModel: PromptViewModel
+    promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel
 ) {
     NavHost(navController, startDestination = SettingScreenItem.Start.name, modifier = modifier) {
         composable(SettingScreenItem.Start.name) {
@@ -107,8 +115,8 @@ fun NavigateSetting(
         composable(SettingScreenItem.SettingPrompt.name) {
             PromptScreen(promptViewModel)
         }
-        composable(SettingScreenItem.Setting2.name) {
-            Empty()
+        composable(SettingScreenItem.SettingAPI.name) {
+            APIKeyScreen(apiKeyViewModel)
         }
     }
 }

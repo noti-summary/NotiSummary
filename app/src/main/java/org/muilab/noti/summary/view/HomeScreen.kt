@@ -2,22 +2,22 @@ package org.muilab.noti.summary.view
 
 
 import android.content.Context
-import android.service.notification.StatusBarNotification
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
@@ -31,12 +31,6 @@ import org.muilab.noti.summary.database.firestore.FirestoreDocument
 import org.muilab.noti.summary.database.firestore.documentStateOf
 import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
-import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
-import org.muilab.noti.summary.service.NotiItem
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
@@ -54,48 +48,132 @@ fun HomeScreen(
 
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.teal_700))
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Credit(lifecycleOwner, userId)
-        NotiDrawer(context, sumViewModel)
-        promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
-        SummaryCard(sumViewModel, submitButtonState, setSubmitButtonState)
-        SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
+    val drawerCardState = remember { mutableStateOf(false) }
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val minorHeight = (
+        with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
+        + 32.dp + 50.dp + 100.dp
+    )
+    val maxMainHeight = screenHeight - minorHeight
+    val titleHeight = with(LocalDensity.current) {
+        MaterialTheme.typography.headlineSmall.lineHeight.toDp()
     }
+    val collapseHeight = titleHeight + 16.dp
+    val drawerCardHeight by animateDpAsState(
+        targetValue = if (drawerCardState.value)
+            maxMainHeight / 2
+        else
+            collapseHeight,
+        animationSpec = tween(durationMillis = 500)
+    )
+    val summaryCardHeight by animateDpAsState(
+        targetValue = if (drawerCardState.value)
+            maxMainHeight / 2
+        else
+            maxMainHeight - collapseHeight,
+        animationSpec = tween(durationMillis = 500)
+    )
 
-}
-
-@Composable
-fun Credit(lifecycleOwner: LifecycleOwner, userId: String) {
-
-    val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
-    val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
-
-    if (result is FirestoreDocument.Snapshot) {
-        val item = result.snapshot.toObject<UserCredit>()!!
+    Column(
+        modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.TopCenter)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                .height(drawerCardHeight)
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .clickable {
+                        drawerCardState.value = !drawerCardState.value
+                    }
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                ) {
+                    Text(
+                        text = "我的通知",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (!drawerCardState.value)
+                        Icon(
+                            painter = painterResource(id = R.drawable.expand_arrow),
+                            contentDescription = "",
+                            modifier = Modifier.size(titleHeight).padding(4.dp)
+                        )
+                    else
+                        Icon(
+                            painter = painterResource(id = R.drawable.collapse_arrow),
+                            contentDescription = "",
+                            modifier = Modifier.size(titleHeight).padding(4.dp)
+                        )
+                    Spacer(modifier = Modifier.width(16.dp))
+                }
+                NotiDrawer(context, sumViewModel)
+            }
+        }
 
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .height(summaryCardHeight)
+                .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
         ) {
-            Row(modifier = Modifier.padding(16.dp)) {
-                Text(text = "每日額度：${item.credit} / $maxCredit")
+            Column(
+                Modifier.fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "我的摘要",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(16.dp))
+                    Credit(context, lifecycleOwner, userId)
+                }
+
+                SummaryCard(sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
+        SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
     }
-
 }
 
 @Composable
-fun CurrentPrompt(curPrompt: String) {
-    Card(modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp)) {
-        Text("當前摘要提示句：$curPrompt")
+fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
+
+    val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
+    val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
+    var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
+
+    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    val userAPIKey = sharedPref.getString("userAPIKey", "default")!!
+
+    if (userAPIKey == "default") {
+        if (result is FirestoreDocument.Snapshot) {
+            if (result.snapshot.exists()) {
+                val res = result.snapshot.toObject<UserCredit>()!!
+                displayText = "每日額度：${res.credit} / $maxCredit"
+            } else {
+                displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
+            }
+        }
+    } else {
+        displayText = "正在使用您的 API 金鑰：\nsk-****" + userAPIKey.takeLast(4)
     }
+
+    Text(
+        text = displayText,
+        style = MaterialTheme.typography.labelMedium,
+    )
+
 }
 
 @Composable
@@ -112,7 +190,7 @@ fun SubmitButton(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 100.dp),
+            .padding(bottom = 30.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         SSJetPackComposeProgressButtonMaterial3(
@@ -126,11 +204,13 @@ fun SubmitButton(
                     docRef.get()
                         .addOnSuccessListener { document ->
                             if (document != null) {
-                                val res = document.toObject<UserCredit>()!!
-                                if(res.credit > 0) {
-                                    sumViewModel.getSummaryText(prompt)
-                                } else {
-                                    Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                                if(document.exists()){
+                                    val res = document.toObject<UserCredit>()!!
+                                    if(res.credit > 0) {
+                                        sumViewModel.getSummaryText(prompt)
+                                    } else {
+                                        Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                                    }
                                 }
                             }
                         }
@@ -139,50 +219,9 @@ fun SubmitButton(
                         }
                 }
             },
-            assetColor = Color.Black,
+            assetColor = MaterialTheme.colorScheme.onPrimary,
             text = "產生摘要",
             buttonState = submitButtonState
         )
-    }
-}
-
-@Composable
-fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
-    val notifications by sumViewModel.notifications.observeAsState()
-
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp
-    val HEIGHT_RATIO = 0.3f
-    val cardHeight = (screenHeight * HEIGHT_RATIO).toInt()
-
-    LazyColumn(modifier = Modifier.fillMaxWidth().height(cardHeight.dp).background(Color(0, 23, 53))) {
-        notifications?.forEach {
-            item {
-
-                Card(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 2.dp)
-                        .fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                ) {
-                        Text(
-                            modifier = Modifier
-                                .fillMaxWidth().padding(horizontal = 10.dp),
-                            text = "${it.appName} / ${it.time}"
-                        )
-                        Text(
-                            modifier = Modifier
-                                .fillMaxWidth().padding(horizontal = 10.dp),
-                            text = it.title,
-                            style = TextStyle(fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            modifier = Modifier
-                                .fillMaxWidth().padding(horizontal = 10.dp),
-                            text = it.content
-                        )
-                    }
-                }
-        }
     }
 }
