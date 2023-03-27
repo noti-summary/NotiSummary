@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
@@ -15,9 +16,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
@@ -49,11 +53,10 @@ fun HomeScreen(
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
 
     val drawerCardState = remember { mutableStateOf(false) }
-    val summaryCardState = remember { mutableStateOf(true) }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
         with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
-        + 32.dp + 50.dp + 30.dp
+        + 32.dp + 50.dp + 100.dp
     )
     val maxMainHeight = screenHeight - minorHeight
     val titleHeight = with(LocalDensity.current) {
@@ -61,21 +64,17 @@ fun HomeScreen(
     }
     val collapseHeight = titleHeight + 16.dp
     val drawerCardHeight by animateDpAsState(
-        targetValue = if (drawerCardState.value && summaryCardState.value)
+        targetValue = if (drawerCardState.value)
             maxMainHeight / 2
-        else if (drawerCardState.value)
-            maxMainHeight - collapseHeight
         else
             collapseHeight,
         animationSpec = tween(durationMillis = 500)
     )
     val summaryCardHeight by animateDpAsState(
-        targetValue = if (drawerCardState.value && summaryCardState.value)
+        targetValue = if (drawerCardState.value)
             maxMainHeight / 2
-        else if (summaryCardState.value)
-            maxMainHeight - collapseHeight
         else
-            collapseHeight,
+            maxMainHeight - collapseHeight,
         animationSpec = tween(durationMillis = 500)
     )
 
@@ -95,15 +94,13 @@ fun HomeScreen(
                 Modifier
                     .fillMaxSize()
                     .clickable {
-                        drawerCardState.value =
-                            if (drawerCardState.value && !summaryCardState.value)
-                                drawerCardState.value
-                            else
-                                !drawerCardState.value
+                        drawerCardState.value = !drawerCardState.value
                     }
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 ) {
                     Text(
                         text = "我的通知",
@@ -117,14 +114,16 @@ fun HomeScreen(
                             painter = painterResource(id = R.drawable.expand_arrow),
                             contentDescription = "",
                             modifier = Modifier
-                                .size(titleHeight).padding(4.dp)
+                                .size(titleHeight)
+                                .padding(4.dp)
                         )
-                    else if (summaryCardState.value)
+                    else
                         Icon(
                             painter = painterResource(id = R.drawable.collapse_arrow),
                             contentDescription = "",
                             modifier = Modifier
-                                .size(titleHeight).padding(4.dp)
+                                .size(titleHeight)
+                                .padding(4.dp)
                         )
                     Spacer(modifier = Modifier.width(16.dp))
                 }
@@ -142,46 +141,59 @@ fun HomeScreen(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .clickable {
-                        summaryCardState.value =
-                            if (summaryCardState.value && !drawerCardState.value)
-                                summaryCardState.value
-                            else
-                                !summaryCardState.value
-                    }
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 ) {
                     Text(
                         text = "我的摘要",
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                            .padding(start = 16.dp)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (!summaryCardState.value)
-                        Icon(
-                            painter = painterResource(id = R.drawable.expand_arrow),
-                            contentDescription = "",
-                            modifier = Modifier
-                                .size(titleHeight).padding(4.dp)
-                        )
-                    else if (drawerCardState.value)
-                        Icon(
-                            painter = painterResource(id = R.drawable.collapse_arrow),
-                            contentDescription = "",
-                            modifier = Modifier
-                                .size(titleHeight).padding(4.dp)
-                        )
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.padding(16.dp))
+                    Credit(context, lifecycleOwner, userId)
                 }
 
-                SummaryCard(userId, context, lifecycleOwner, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
+                SummaryCard(sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
         SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
     }
+}
+
+@Composable
+fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
+
+    val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
+    val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
+    var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
+
+    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    val userAPIKey = sharedPref.getString("userAPIKey", "default")!!
+
+    if (userAPIKey == "default") {
+        if (result is FirestoreDocument.Snapshot) {
+            if (result.snapshot.exists()) {
+                val res = result.snapshot.toObject<UserCredit>()!!
+                displayText = "每日額度：${res.credit} / $maxCredit"
+            } else {
+                displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
+            }
+        }
+    } else {
+        displayText = "正在使用您的 API 金鑰：\nsk-****" + userAPIKey!!.takeLast(4)
+    }
+
+    Box {
+        Text(
+            text = displayText,
+            style = MaterialTheme.typography.labelMedium
+        )
+    }
+
 }
 
 @Composable
@@ -196,7 +208,9 @@ fun SubmitButton(
     val prompt = promptViewModel.getCurPrompt()
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 30.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 30.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         SSJetPackComposeProgressButtonMaterial3(
