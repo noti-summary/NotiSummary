@@ -51,4 +51,16 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
     fun getCurPrompt(): String {
         return promptSentence.value ?: "Summarize the notifications in a Traditional Chinese statement."
     }
+
+    fun updatePrompt(oldPrompt: String, newPrompt: String) {
+        scope.launch{
+            promptDao.updatePromptText(oldPrompt, newPrompt)
+        }
+    }
+
+    fun deletePrompt(prompt: String) {
+        scope.launch {
+            promptDao.deleteByPromptText(prompt)
+        }
+    }
 }
