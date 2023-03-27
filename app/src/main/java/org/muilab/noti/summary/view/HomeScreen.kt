@@ -53,7 +53,7 @@ fun HomeScreen(
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
         with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
-        + 32.dp + 50.dp + 100.dp
+        + 32.dp + 50.dp + 30.dp
     )
     val maxMainHeight = screenHeight - minorHeight
     val titleHeight = with(LocalDensity.current) {
@@ -196,9 +196,7 @@ fun SubmitButton(
     val prompt = promptViewModel.getCurPrompt()
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 100.dp),
+        modifier = Modifier.fillMaxSize().padding(bottom = 30.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         SSJetPackComposeProgressButtonMaterial3(

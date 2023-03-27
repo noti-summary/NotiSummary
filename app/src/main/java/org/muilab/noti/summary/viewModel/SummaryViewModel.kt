@@ -11,6 +11,8 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.zqc.opencc.android.lib.ChineseConverter
+import com.zqc.opencc.android.lib.ConversionType
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,7 +46,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         directory = "./assets"
         filename = "env"
     }
-    private val serverIP = dotenv["SUMMARY_URL"]
+    private val serverURL = dotenv["SUMMARY_URL"]
     private val mediaType = "application/json; charset=utf-8".toMediaType()
 
     init {
@@ -59,7 +61,11 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             editor.putString("resultValue", newValue)
             editor.apply()
 
-            subtractCredit(1)
+            val userAPIKey = sharedPreferences.getString("userAPIKey", "default")!!
+            if (userAPIKey == "default") {
+                subtractCredit(1)
+            }
+
         } else {
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
@@ -137,28 +143,58 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
 
         Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
         data class GPTRequest(val prompt: String, val content: String)
+        data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val gptRequest = GPTRequest(prompt, content)
+        val userAPIKey = sharedPreferences.getString("userAPIKey", "default")!!
+
+        val requestURL = if(userAPIKey == "default") {
+            serverURL
+        } else {
+            "$serverURL/key"
+        }
+
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val gptRequest = if(userAPIKey == "default") {
+            GPTRequest(prompt, content)
+        } else {
+            GPTRequestWithKey(prompt, content, userAPIKey)
+        }
+
         val postBody = Gson().toJson(gptRequest)
 
         val request = Request.Builder()
-            .url(serverIP)
+            .url(requestURL)
             .post(postBody.toRequestBody(mediaType))
             .build()
+
         try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val summary = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                val responseText = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 updateLiveDataValue(summary)
             } else {
-                _result.postValue(SummaryResponse.SERVER_ERROR.message)
-                response.body?.let { Log.i("Server", it.string()) }
+                response.body?.let {
+                    val responseBody = it.string()
+                    Log.i("ServerResponse", responseBody)
+                    if (responseBody.contains("You didn't provide an API key") || responseBody.contains("Incorrect API key provided")) {
+                        _result.postValue(SummaryResponse.APIKEY_ERROR.message)
+                    } else {
+                        _result.postValue(SummaryResponse.SERVER_ERROR.message)
+                    }
+                } ?:let {
+                    _result.postValue(SummaryResponse.SERVER_ERROR.message)
+                }
             }
+            response.close()
         } catch (e: InterruptedIOException) {
+            Log.i("InterruptedIOException", e.toString())
             _result.postValue(SummaryResponse.TIMEOUT_ERROR.message)
         } catch (e: IOException) {
+            Log.i("IOException", e.toString())
             _result.postValue(SummaryResponse.NETWORK_ERROR.message)
         } catch (e: JSONException) {
+            Log.i("JSONException", e.toString())
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
     }
