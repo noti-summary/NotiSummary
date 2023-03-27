@@ -35,14 +35,14 @@ fun APIKeyScreen(apiKeyViewModel: APIKeyViewModel) {
 fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val selectedOption = apiKeyViewModel.apiKey.observeAsState()
     val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
-    val defaultAPIKey = "預設 API Key"
+    val defaultAPIKey = "Default"
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
             if (index == 0) {
-                Text("預設 API Key", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text("預設 API 金鑰", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
             } else if (index == 1) {
-                Text("自訂 API Key", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text("自訂 API 金鑰", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
             }
             Card(
                 modifier = Modifier

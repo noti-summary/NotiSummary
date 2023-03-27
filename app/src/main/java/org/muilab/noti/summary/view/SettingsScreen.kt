@@ -1,13 +1,17 @@
 package org.muilab.noti.summary.view
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -24,10 +28,10 @@ import org.muilab.noti.summary.view.settings.PromptScreen
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
-enum class SettingScreenItem(var title: String) {
-    Start("Main Setting Page"),
-    SettingPrompt("提示句設定"),
-    SettingAPI("OpenAI API 金鑰設定"),
+enum class SettingScreenItem(var title: String, var iconId: Int) {
+    Start("Main Setting Page", R.drawable.settings),
+    SettingPrompt("提示句設定", R.drawable.setting_sms),
+    SettingAPI("OpenAI API 金鑰設定", R.drawable.setting_key),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
