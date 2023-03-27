@@ -88,7 +88,7 @@ fun AppBottomNavigation(navController: NavController) {
 
         items.forEach { item ->
             NavigationBarItem(
-                icon = { Icon(item.icon, contentDescription = item.title, modifier = Modifier.size(28.dp)) },
+                icon = { Icon(item.icon, contentDescription = item.title, modifier = Modifier.size(30.dp)) },
                 selected = currentRoute == item.screen_route,
                 onClick = {
                     navController.navigate(item.screen_route) {

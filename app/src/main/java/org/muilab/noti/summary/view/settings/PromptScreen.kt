@@ -45,13 +45,13 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultPrompt) + allPromptSentence.value) { index, item ->
             if (index == 0) {
-                Text("預設摘要提示句", modifier = Modifier.padding(all = 8.dp))
+                Text("預設摘要提示句", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
             } else if (index == 1) {
-                Text("自訂摘要提示句", modifier = Modifier.padding(all = 8.dp))
+                Text("自訂摘要提示句", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
             }
             Card(
                 modifier = Modifier
-                    .padding(3.dp)
+                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .clickable {
@@ -79,7 +79,7 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
 
                     if (item != defaultPrompt) {
                         IconButton(
-                            onClick = { // edit the prompt
+                            onClick = {
                                 currentEditPrompt.value = item
                                 currentEditPromptOriginalValue = item
                                 showDialog.value = true
@@ -124,7 +124,7 @@ fun AddButton(promptViewModel: PromptViewModel) {
     val inputPrompt = remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 25.dp, end = 25.dp),
+        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
