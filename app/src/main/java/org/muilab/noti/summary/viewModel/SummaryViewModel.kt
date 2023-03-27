@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit
 
 class SummaryViewModel(application: Application): AndroidViewModel(application) {
     private val sharedPreferences = getApplication<Application>().getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    private val apiPref = getApplication<Application>().getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
 
     private val _notifications = MutableLiveData<List<NotiUnit>>()
     val notifications: LiveData<List<NotiUnit>> = _notifications
@@ -145,18 +146,19 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         data class GPTRequest(val prompt: String, val content: String)
         data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val userAPIKey = sharedPreferences.getString("userAPIKey", "default")!!
+        val userAPIKey = apiPref.getString("userAPIKey", "預設 API Key")!!
 
-        val requestURL = if(userAPIKey == "default") {
+        val requestURL = if(userAPIKey == "預設 API Key") {
             serverURL
         } else {
             "$serverURL/key"
         }
 
         @Suppress("IMPLICIT_CAST_TO_ANY")
-        val gptRequest = if(userAPIKey == "default") {
+        val gptRequest = if(userAPIKey == "預設 API Key") {
             GPTRequest(prompt, content)
         } else {
+            Log.d("sendToServer", "userAPIKey: $userAPIKey")
             GPTRequestWithKey(prompt, content, userAPIKey)
         }
 

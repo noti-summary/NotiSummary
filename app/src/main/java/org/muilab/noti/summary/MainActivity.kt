@@ -17,12 +17,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
+import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.view.MainScreenView
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
@@ -54,7 +56,7 @@ class MainActivity : ComponentActivity() {
         
         setContent {
             NotiappTheme {
-                MainScreenView(this, this, sumViewModel, promptViewModel)
+                MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
             }
         }
     }
@@ -68,6 +70,9 @@ class MainActivity : ComponentActivity() {
 
     private val promptDatabase by lazy { PromptDatabase.getInstance(this) }
     private val promptViewModel by lazy { PromptViewModel(application, promptDatabase = promptDatabase) }
+
+    private val apiKeyDatabase  by lazy { APIKeyDatabase.getInstance(this) }
+    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase = apiKeyDatabase ) }
 
     private fun isNotiListenerEnabled(): Boolean {
         val cn = ComponentName(this, NotiListenerService::class.java)

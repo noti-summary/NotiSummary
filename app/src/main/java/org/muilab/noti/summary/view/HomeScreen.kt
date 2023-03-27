@@ -53,7 +53,7 @@ fun HomeScreen(
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
         with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
-        + 32.dp + 50.dp + 30.dp
+        + 32.dp + 50.dp + 100.dp
     )
     val maxMainHeight = screenHeight - minorHeight
     val titleHeight = with(LocalDensity.current) {
@@ -82,7 +82,6 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            // .background(colorResource(id = R.color.teal_700))
             .wrapContentSize(Alignment.TopCenter)
     ) {
         Card(
@@ -128,7 +127,6 @@ fun HomeScreen(
                         )
                     Spacer(modifier = Modifier.width(16.dp))
                 }
-
                 NotiDrawer(context, sumViewModel)
             }
         }
