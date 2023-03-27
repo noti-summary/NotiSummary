@@ -42,7 +42,6 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
         if (_promptSentence.value != updatePrompt) {
             _promptSentence.postValue(updatePrompt)
             sharedPreferences.edit().putString("curPrompt", updatePrompt).apply()
-            Log.d("choosePrompt", promptSentence.value!!)
         }
     }
 

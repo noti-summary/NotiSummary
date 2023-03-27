@@ -22,6 +22,7 @@ import org.muilab.noti.summary.R
 import org.muilab.noti.summary.view.settings.APIKeyScreen
 import org.muilab.noti.summary.view.settings.MainSettingScreen
 import org.muilab.noti.summary.view.settings.PromptScreen
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
 enum class SettingScreenItem(var title: String) {
@@ -34,8 +35,8 @@ enum class SettingScreenItem(var title: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    context: Context,
     promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel,
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier
 ) {
@@ -55,10 +56,10 @@ fun SettingsScreen(
         }
     ) { innerPadding ->
         NavigateSetting(
-            context,
             navController = navController,
             modifier = modifier.padding(innerPadding),
-            promptViewModel
+            promptViewModel,
+            apiKeyViewModel
         )
     }
 }
@@ -99,10 +100,10 @@ fun SettingTopBar(
 
 @Composable
 fun NavigateSetting(
-    context: Context,
     navController: NavHostController,
     modifier: Modifier,
-    promptViewModel: PromptViewModel
+    promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel
 ) {
     NavHost(navController, startDestination = SettingScreenItem.Start.name, modifier = modifier) {
         composable(SettingScreenItem.Start.name) {
@@ -112,7 +113,7 @@ fun NavigateSetting(
             PromptScreen(promptViewModel)
         }
         composable(SettingScreenItem.SettingAPI.name) {
-            APIKeyScreen(context)
+            APIKeyScreen(apiKeyViewModel)
         }
     }
 }

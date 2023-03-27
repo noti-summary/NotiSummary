@@ -71,7 +71,7 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
     val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
     var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
 
-    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
     val userAPIKey = sharedPref.getString("userAPIKey", "default")!!
 
     if (userAPIKey == "default") {

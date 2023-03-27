@@ -1,10 +1,5 @@
 package org.muilab.noti.summary.view.settings
 
-import android.app.Application
-import android.content.Context
-import android.content.SharedPreferences
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -14,41 +9,84 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.util.getActiveNotifications
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 
 @Composable
-fun APIKeyScreen(context: Context) {
-
-    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
-
-    val displayApiKey = remember {
-        val apiKeyInSharedPref =  sharedPref.getString("userAPIKey", "")
-        if (apiKeyInSharedPref == "")
-            mutableStateOf("sk-********")
-        else
-            mutableStateOf("sk-****" + apiKeyInSharedPref!!.takeLast(4))
-    }
+fun APIKeyScreen(apiKeyViewModel: APIKeyViewModel) {
 
     MaterialTheme {
-//        Column(modifier = Modifier.fillMaxHeight()) { TextBoxForSetAPI(context, displayApiKey) }
-        Text(displayApiKey.value)
-        AddKeyButton(sharedPref, displayApiKey)
+        APIKeyList(apiKeyViewModel)
+        AddKeyButton(apiKeyViewModel)
     }
 
 }
 
 
 @Composable
-fun APIKeyList() {
+fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
+    val selectedOption = apiKeyViewModel.apiKey.observeAsState()
+    val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
+    val defaultAPIKey = "預設 API Key"
 
+    LazyColumn(modifier = Modifier.fillMaxHeight()) {
+        itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
+            if (index == 0) {
+                Text("預設 API Key", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+            } else if (index == 1) {
+                Text("自訂 API Key", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+            }
+            Card(
+                modifier = Modifier
+                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .clickable {
+                        apiKeyViewModel.chooseAPI(item)
+                    },
+                colors = CardDefaults.cardColors(
+                    containerColor =
+                    if (item == selectedOption.value) {
+                        Color.DarkGray
+                    } else {
+                        Color.Gray
+                    }
+                ),
+                shape = MaterialTheme.shapes.medium,
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = "sk-**********" + item.takeLast(4),
+                    )
+
+                    if (item != defaultAPIKey) {
+                        IconButton(onClick = { apiKeyViewModel.deleteAPI(item) }) {
+                            Icon(Icons.Rounded.Delete, contentDescription = "delete api")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 
+
 @Composable
-fun AddKeyButton(sharedPref: SharedPreferences, displayApiKey: MutableState<String>,) {
+fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
     val inputKey = remember { mutableStateOf("") }
@@ -66,15 +104,7 @@ fun AddKeyButton(sharedPref: SharedPreferences, displayApiKey: MutableState<Stri
 
     val confirmAction = {
         if (inputKey.value != "") {
-
-            with(sharedPref.edit()) {
-                putString("userAPIKey", inputKey.value)
-                apply()
-            }
-
-            val lastPartOfApiKey = inputKey.value.takeLast(4)
-            displayApiKey.value = displayApiKey.value.dropLast(4) + lastPartOfApiKey
-
+            apiKeyViewModel.addAPI(inputKey.value)
             inputKey.value = ""
             showDialog.value = false
         }

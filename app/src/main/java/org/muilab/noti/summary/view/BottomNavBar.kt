@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
@@ -35,7 +36,8 @@ fun MainScreenView(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel
+    promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel
 ) {
     val navController = rememberNavController()
     Scaffold(
@@ -48,7 +50,8 @@ fun MainScreenView(
                 context,
                 lifecycleOwner,
                 sumViewModel,
-                promptViewModel
+                promptViewModel,
+                apiKeyViewModel
             )
         }
     }
@@ -60,14 +63,15 @@ fun NavigationGraph(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel
+    promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel
 ) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
             HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
         }
         composable(BottomNavItem.Settings.screen_route) {
-            SettingsScreen(context, promptViewModel)
+            SettingsScreen(promptViewModel, apiKeyViewModel)
         }
     }
 }
