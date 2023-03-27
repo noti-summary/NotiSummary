@@ -1,6 +1,7 @@
 package org.muilab.noti.summary.view
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -18,7 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.view.settings.Empty
+import org.muilab.noti.summary.view.settings.APIKeyScreen
 import org.muilab.noti.summary.view.settings.MainSettingScreen
 import org.muilab.noti.summary.view.settings.PromptScreen
 import org.muilab.noti.summary.viewModel.PromptViewModel
@@ -26,13 +27,14 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 enum class SettingScreenItem(var title: String) {
     Start("Main Setting Page"),
     SettingPrompt("提示句設定"),
-    Setting2("設定2"),
+    SettingAPI("OpenAI API 金鑰設定"),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    context: Context,
     promptViewModel: PromptViewModel,
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier
@@ -53,6 +55,7 @@ fun SettingsScreen(
         }
     ) { innerPadding ->
         NavigateSetting(
+            context,
             navController = navController,
             modifier = modifier.padding(innerPadding),
             promptViewModel
@@ -96,6 +99,7 @@ fun SettingTopBar(
 
 @Composable
 fun NavigateSetting(
+    context: Context,
     navController: NavHostController,
     modifier: Modifier,
     promptViewModel: PromptViewModel
@@ -107,8 +111,8 @@ fun NavigateSetting(
         composable(SettingScreenItem.SettingPrompt.name) {
             PromptScreen(promptViewModel)
         }
-        composable(SettingScreenItem.Setting2.name) {
-            Empty()
+        composable(SettingScreenItem.SettingAPI.name) {
+            APIKeyScreen(context)
         }
     }
 }

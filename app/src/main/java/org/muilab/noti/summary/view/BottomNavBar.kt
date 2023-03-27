@@ -67,7 +67,7 @@ fun NavigationGraph(
             HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
         }
         composable(BottomNavItem.Settings.screen_route) {
-            SettingsScreen(promptViewModel)
+            SettingsScreen(context, promptViewModel)
         }
     }
 }
