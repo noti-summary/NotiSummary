@@ -17,7 +17,7 @@ class APIKeyViewModel(application: Application, apiKeyDatabase: APIKeyDatabase) 
 
     private val apiKeyDao = apiKeyDatabase.apiKeyDao()
 
-    private val defaultAPI = "預設 API Key"
+    private val defaultAPI = "系統金鑰"
     private val _apiKey = MutableLiveData<String>()
     val apiKey: LiveData<String> = _apiKey
     val allAPIKey: LiveData<List<String>> = apiKeyDao.getAllAPI().asLiveData()

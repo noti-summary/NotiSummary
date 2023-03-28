@@ -182,9 +182,9 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
     var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
 
     val sharedPref = context.getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
-    val userAPIKey = sharedPref.getString("userAPIKey", "預設 API Key")!!
+    val userAPIKey = sharedPref.getString("userAPIKey", "系統金鑰")!!
 
-    if (userAPIKey == "預設 API Key") {
+    if (userAPIKey == "系統金鑰") {
         if (result is FirestoreDocument.Snapshot) {
             if (result.snapshot.exists()) {
                 val res = result.snapshot.toObject<UserCredit>()!!
