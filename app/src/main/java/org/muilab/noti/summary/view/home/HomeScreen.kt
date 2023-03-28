@@ -53,7 +53,7 @@ fun HomeScreen(
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
         with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
-        + 32.dp + 50.dp + 100.dp
+        + 32.dp + 50.dp + 110.dp
     )
     val maxMainHeight = screenHeight - minorHeight
     val titleHeight = with(LocalDensity.current) {
