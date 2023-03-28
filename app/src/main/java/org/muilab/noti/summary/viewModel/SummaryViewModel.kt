@@ -25,7 +25,7 @@ import okio.IOException
 import org.json.JSONException
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
-import org.muilab.noti.summary.view.SummaryResponse
+import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
 

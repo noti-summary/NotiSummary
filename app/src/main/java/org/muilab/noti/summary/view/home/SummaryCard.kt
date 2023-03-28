@@ -1,4 +1,4 @@
-package org.muilab.noti.summary.view
+package org.muilab.noti.summary.view.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,7 +70,7 @@ fun CurrentPrompt(curPrompt: String) {
         .fillMaxWidth()
         .padding(16.dp, 4.dp)) {
         Text(
-            text = curPrompt,
+            text = "> $curPrompt",
             style = MaterialTheme.typography.titleMedium.copy(
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.ExtraBold,

@@ -1,4 +1,4 @@
-package org.muilab.noti.summary.view
+package org.muilab.noti.summary.view.settings
 
 import android.annotation.SuppressLint
 import android.content.Context

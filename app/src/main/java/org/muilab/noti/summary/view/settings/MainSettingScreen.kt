@@ -17,8 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import org.muilab.noti.summary.R
-import org.muilab.noti.summary.view.SettingScreenItem
+
 
 @Composable
 fun MainSettingScreen(navController: NavHostController) {
