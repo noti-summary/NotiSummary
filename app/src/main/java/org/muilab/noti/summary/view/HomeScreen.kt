@@ -118,6 +118,7 @@ fun HomeScreen(
                         )
                     Spacer(modifier = Modifier.width(16.dp))
                 }
+                Text("以下通知僅供摘要的閱覽和比對", modifier = Modifier.padding(horizontal = 16.dp))
                 NotiDrawer(context, sumViewModel)
             }
         }
@@ -193,7 +194,7 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
             }
         }
     } else {
-        displayText = "正在使用您的 API 金鑰：\nsk-****" + userAPIKey.takeLast(4)
+        displayText = "正在使用您的 API 金鑰\nsk-****" + userAPIKey.takeLast(4)
     }
 
     Text(

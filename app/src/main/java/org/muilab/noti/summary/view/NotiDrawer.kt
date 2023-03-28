@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 import java.lang.Float.max
@@ -72,7 +73,9 @@ fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSecondary
-                                )
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 modifier = Modifier
@@ -80,7 +83,9 @@ fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
                                     .padding(horizontal = 10.dp)
                                     .background(Color.Transparent),
                                 text = it.content,
-                                style = TextStyle(color = MaterialTheme.colorScheme.onSecondary)
+                                style = TextStyle(color = MaterialTheme.colorScheme.onSecondary),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
