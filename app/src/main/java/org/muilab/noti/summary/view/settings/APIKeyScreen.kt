@@ -107,7 +107,7 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
     }
 
     val confirmAction = {
-        if (inputKey.value != "") {
+        if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
             apiKeyViewModel.addAPI(inputKey.value)
             inputKey.value = ""
             showDialog.value = false
