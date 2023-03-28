@@ -49,6 +49,7 @@ fun HomeScreen(
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
 
     val drawerCardState = remember { mutableStateOf(false) }
+    val summaryCardState = remember { mutableStateOf(true) }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
         with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
@@ -60,17 +61,21 @@ fun HomeScreen(
     }
     val collapseHeight = titleHeight + 16.dp
     val drawerCardHeight by animateDpAsState(
-        targetValue = if (drawerCardState.value)
+        targetValue = if (drawerCardState.value && summaryCardState.value)
             maxMainHeight / 2
+        else if (drawerCardState.value)
+            maxMainHeight - collapseHeight
         else
             collapseHeight,
         animationSpec = tween(durationMillis = 500)
     )
     val summaryCardHeight by animateDpAsState(
-        targetValue = if (drawerCardState.value)
+        targetValue = if (drawerCardState.value && summaryCardState.value)
             maxMainHeight / 2
+        else if (summaryCardState.value)
+            maxMainHeight - collapseHeight
         else
-            maxMainHeight - collapseHeight,
+            collapseHeight,
         animationSpec = tween(durationMillis = 500)
     )
 
@@ -80,18 +85,18 @@ fun HomeScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                .padding(top = 16.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
                 .height(drawerCardHeight)
         ) {
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .clickable {
-                        drawerCardState.value = !drawerCardState.value
-                    }
-            ) {
+            Column(Modifier.fillMaxSize()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable {
+                            drawerCardState.value = if (!summaryCardState.value)
+                                drawerCardState.value else !drawerCardState.value
+                        },
                 ) {
                     Text(
                         text = "我的通知",
@@ -105,7 +110,7 @@ fun HomeScreen(
                             contentDescription = "",
                             modifier = Modifier.size(titleHeight).padding(4.dp)
                         )
-                    else
+                    else if (summaryCardState.value)
                         Icon(
                             painter = painterResource(id = R.drawable.collapse_arrow),
                             contentDescription = "",
@@ -120,14 +125,20 @@ fun HomeScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(summaryCardHeight)
                 .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+                .height(summaryCardHeight)
         ) {
             Column(
                 Modifier.fillMaxSize()
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable {
+                            summaryCardState.value = if (!drawerCardState.value)
+                                summaryCardState.value else !summaryCardState.value
+                        },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -135,8 +146,24 @@ fun HomeScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(start = 16.dp)
                     )
-                    Spacer(modifier = Modifier.padding(16.dp))
-                    Credit(context, lifecycleOwner, userId)
+                    if (summaryCardState.value) {
+                        Spacer(modifier = Modifier.padding(16.dp))
+                        Credit(context, lifecycleOwner, userId)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (!summaryCardState.value)
+                        Icon(
+                            painter = painterResource(id = R.drawable.expand_arrow),
+                            contentDescription = "",
+                            modifier = Modifier.size(titleHeight).padding(4.dp)
+                        )
+                    else if (drawerCardState.value)
+                        Icon(
+                            painter = painterResource(id = R.drawable.collapse_arrow),
+                            contentDescription = "",
+                            modifier = Modifier.size(titleHeight).padding(4.dp)
+                        )
+                    Spacer(modifier = Modifier.width(16.dp))
                 }
 
                 SummaryCard(sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
