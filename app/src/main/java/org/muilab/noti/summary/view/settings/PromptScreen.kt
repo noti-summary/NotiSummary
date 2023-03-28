@@ -1,6 +1,11 @@
 package org.muilab.noti.summary.view.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Context.CLIPBOARD_SERVICE
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,15 +28,15 @@ import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
 @Composable
-fun PromptScreen(promptViewModel: PromptViewModel) {
+fun PromptScreen(context: Context, promptViewModel: PromptViewModel) {
     MaterialTheme {
-        PromptHistory(promptViewModel = promptViewModel)
+        PromptHistory(context, promptViewModel = promptViewModel)
         AddButton(promptViewModel = promptViewModel)
     }
 }
 
 @Composable
-fun PromptHistory(promptViewModel: PromptViewModel) {
+fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
     val selectedOption = promptViewModel.promptSentence.observeAsState()
     val allPromptSentence = promptViewModel.allPromptSentence.observeAsState(listOf(""))
     val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
@@ -39,6 +44,8 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
     val showDialog = remember { mutableStateOf(false) }
     val currentEditPrompt = remember { mutableStateOf("") }
     var currentEditPromptOriginalValue by remember { mutableStateOf("") }
+
+    val clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultPrompt) + allPromptSentence.value) { index, item ->
@@ -74,6 +81,17 @@ fun PromptHistory(promptViewModel: PromptViewModel) {
                         modifier = Modifier.weight(1f),
                         text = item,
                     )
+
+                    IconButton(
+                        onClick = {
+                            val clip = ClipData.newPlainText("copy prompt text", item)
+                            clipboardManager.setPrimaryClip(clip)
+                            Toast.makeText(context, "已複製至剪貼簿", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Icon(painter = painterResource(R.drawable.content_copy),
+                             contentDescription = "copy content")
+                    }
 
                     if (item != defaultPrompt) {
                         IconButton(
