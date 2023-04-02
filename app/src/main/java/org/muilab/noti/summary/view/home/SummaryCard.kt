@@ -35,8 +35,6 @@ fun SummaryCard(sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel
     val result by sumViewModel.result.observeAsState(SummaryResponse.HINT.message)
 
     Card(modifier = Modifier.fillMaxSize()) {
-        // Credit(context, lifecycleOwner, userId)
-        // Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.onSecondaryContainer)
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
         Divider(
             thickness = 1.dp,

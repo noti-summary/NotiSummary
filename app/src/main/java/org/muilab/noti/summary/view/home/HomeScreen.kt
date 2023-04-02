@@ -119,7 +119,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                 }
                 Text("以下通知僅供摘要的閱覽和比對", modifier = Modifier.padding(horizontal = 16.dp))
-                NotiDrawer(context, sumViewModel)
+                NotiDrawer(sumViewModel)
             }
         }
 

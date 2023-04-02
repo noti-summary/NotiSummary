@@ -1,6 +1,5 @@
 package org.muilab.noti.summary.view.home
 
-import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,11 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -26,11 +22,11 @@ import org.muilab.noti.summary.viewModel.SummaryViewModel
 import java.lang.Float.max
 
 @Composable
-fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
+fun NotiDrawer(sumViewModel: SummaryViewModel) {
     val notifications by sumViewModel.notifications.observeAsState()
-    var drawerHeight = remember { mutableStateOf(Float.POSITIVE_INFINITY) }
+    var drawerHeight by remember { mutableStateOf(Float.POSITIVE_INFINITY) }
 
-    val padToPx = with(LocalDensity.current) {16.dp.toPx() / drawerHeight.value}
+    val padToPx = with(LocalDensity.current) {16.dp.toPx() / drawerHeight}
     val brush = Brush.verticalGradient(
         0.0f to MaterialTheme.colorScheme.surfaceVariant,
         padToPx to Color.Transparent,
@@ -44,7 +40,7 @@ fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp)
-                .onSizeChanged { drawerHeight.value = max(it.height.toFloat(), 1F) },
+                .onSizeChanged { drawerHeight = max(it.height.toFloat(), 1F) },
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             notifications?.forEach {
@@ -93,13 +89,6 @@ fun NotiDrawer(appContext: Context, sumViewModel: SummaryViewModel) {
             }
         }
 
-        Canvas(modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = brush
-            )
-        ) {
-
-        }
+        Canvas(modifier = Modifier.fillMaxSize().background(brush)) { }
     }
 }

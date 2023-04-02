@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -47,37 +46,17 @@ fun MainScreenView(
     ) { innerPadding ->
         // Apply the padding globally to the whole navController
         Box(modifier = Modifier.padding(innerPadding)) {
-            NavigationGraph(
-                navController = navController,
-                context,
-                lifecycleOwner,
-                sumViewModel,
-                promptViewModel,
-                apiKeyViewModel
-            )
+            NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
+                composable(BottomNavItem.Home.screen_route) {
+                    HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
+                }
+                composable(BottomNavItem.Settings.screen_route) {
+                    SettingsScreen(promptViewModel, apiKeyViewModel, context)
+                }
+            }
         }
     }
 }
-
-@Composable
-fun NavigationGraph(
-    navController: NavHostController,
-    context: Context,
-    lifecycleOwner: LifecycleOwner,
-    sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel,
-    apiKeyViewModel: APIKeyViewModel
-) {
-    NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
-        composable(BottomNavItem.Home.screen_route) {
-            HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
-        }
-        composable(BottomNavItem.Settings.screen_route) {
-            SettingsScreen(promptViewModel, apiKeyViewModel, context)
-        }
-    }
-}
-
 
 @Composable
 fun AppBottomNavigation(navController: NavController) {

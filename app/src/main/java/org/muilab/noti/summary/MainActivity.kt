@@ -11,9 +11,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.tooling.preview.Preview
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
@@ -69,10 +66,10 @@ class MainActivity : ComponentActivity() {
     private val sumViewModel by viewModels<SummaryViewModel>()
 
     private val promptDatabase by lazy { PromptDatabase.getInstance(this) }
-    private val promptViewModel by lazy { PromptViewModel(application, promptDatabase = promptDatabase) }
+    private val promptViewModel by lazy { PromptViewModel(application, promptDatabase) }
 
     private val apiKeyDatabase  by lazy { APIKeyDatabase.getInstance(this) }
-    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase = apiKeyDatabase ) }
+    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase ) }
 
     private fun isNotiListenerEnabled(): Boolean {
         val cn = ComponentName(this, NotiListenerService::class.java)
@@ -136,18 +133,5 @@ class MainActivity : ComponentActivity() {
                 Log.e("Installations", "Unable to get Installation ID")
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    NotiappTheme {
-        Greeting("Android")
     }
 }
