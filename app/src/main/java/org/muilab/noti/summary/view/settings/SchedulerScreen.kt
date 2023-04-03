@@ -1,0 +1,99 @@
+package org.muilab.noti.summary.view.settings
+
+import android.app.TimePickerDialog
+import android.content.Context
+import android.util.Log
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import org.muilab.noti.summary.viewModel.ScheduleViewModel
+import java.util.*
+
+@Composable
+fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
+    TimeList(context, scheduleViewModel)
+    AddScheduleButton(context, scheduleViewModel)
+}
+
+@Composable
+fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
+    val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf(""))
+
+    val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
+        // TODO: update Schedule
+        Log.d("TimeList", "hour: $hour")
+        Log.d("TimeList", "minute: $minute")
+    }
+
+    LazyColumn(modifier = Modifier.fillMaxHeight()) {
+        itemsIndexed(allSchedule.value) { index, item ->
+            if (index == 0) {
+                Text("排程", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+            }
+            Card(
+                modifier = Modifier
+                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                colors = CardDefaults.cardColors(containerColor = Color.Gray),
+                shape = MaterialTheme.shapes.medium,
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = item,
+                    )
+                    IconButton(onClick = {
+                        // TODO: use the clicked schedule to set the TimePickerDialog
+                        val picker = TimePickerDialog(context, listener, 0, 0, false)
+                        picker.show()
+                    }) {
+                        Icon(Icons.Rounded.Edit, contentDescription = "edit schedule")
+                    }
+
+                    IconButton(onClick = { scheduleViewModel.deleteSchedule(item) }) {
+                        Icon(Icons.Rounded.Delete, contentDescription = "delete schedule")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
+    val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
+        scheduleViewModel.addNewSchedule("現在時間是 $hour:$minute")
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        FloatingActionButton(onClick = {
+            val calendar = Calendar.getInstance()
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+            val picker = TimePickerDialog(context, listener, 0, 0, false)
+            picker.show()
+            picker.updateTime(hour, minute)
+        }) {
+            Icon(Icons.Filled.Add, "schedule summary")
+        }
+    }
+}

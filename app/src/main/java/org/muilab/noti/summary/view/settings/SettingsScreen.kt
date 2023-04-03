@@ -28,11 +28,13 @@ import org.muilab.noti.summary.view.settings.MainSettingScreen
 import org.muilab.noti.summary.view.settings.PromptScreen
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
+import org.muilab.noti.summary.viewModel.ScheduleViewModel
 
 enum class SettingScreenItem(var title: String, var iconId: Int) {
     Start("Main Setting Page", R.drawable.settings),
     SettingPrompt("提示句設定", R.drawable.setting_sms),
     SettingAPI("OpenAI API 金鑰設定", R.drawable.setting_key),
+    SettingScheduler("摘要排程", R.drawable.schedule),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -41,9 +43,10 @@ enum class SettingScreenItem(var title: String, var iconId: Int) {
 fun SettingsScreen(
     promptViewModel: PromptViewModel,
     apiKeyViewModel: APIKeyViewModel,
+    scheduleViewModel: ScheduleViewModel,
     context: Context,
+    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
@@ -65,7 +68,8 @@ fun SettingsScreen(
             modifier = modifier.padding(innerPadding),
             context,
             promptViewModel,
-            apiKeyViewModel
+            apiKeyViewModel,
+            scheduleViewModel
         )
     }
 }
@@ -110,7 +114,8 @@ fun NavigateSetting(
     modifier: Modifier,
     context: Context,
     promptViewModel: PromptViewModel,
-    apiKeyViewModel: APIKeyViewModel
+    apiKeyViewModel: APIKeyViewModel,
+    scheduleViewModel: ScheduleViewModel
 ) {
     NavHost(navController, startDestination = SettingScreenItem.Start.name, modifier = modifier) {
         composable(SettingScreenItem.Start.name) {
@@ -121,6 +126,9 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.SettingAPI.name) {
             APIKeyScreen(apiKeyViewModel)
+        }
+        composable(SettingScreenItem.SettingScheduler.name) {
+            SchedulerScreen(context, scheduleViewModel)
         }
     }
 }
