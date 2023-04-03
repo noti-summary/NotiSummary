@@ -1,7 +1,10 @@
 package org.muilab.noti.summary.view.settings
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.muilab.noti.summary.receiver.AlarmReceiver
+import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.util.*
 
@@ -82,6 +87,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
         scheduleViewModel.addNewSchedule("$hour:$minute")
+        addAlarm(context, hour, minute)
     }
 
     Box(

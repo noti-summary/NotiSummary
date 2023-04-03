@@ -103,7 +103,8 @@ class MainActivity : ComponentActivity() {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
                 if (activeNotifications != null) {
-                    sumViewModel.updateSummaryText(activeNotifications)
+                    val curPrompt = promptViewModel.getCurPrompt()
+                    sumViewModel.updateSummaryText(curPrompt, activeNotifications)
                 }
             }
         }
