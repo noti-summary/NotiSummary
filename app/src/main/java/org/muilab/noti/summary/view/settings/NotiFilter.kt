@@ -30,13 +30,13 @@ fun NotiFilter(context: Context) {
     val mainIntent = Intent(Intent.ACTION_MAIN, null)
     mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
 
-    val packages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+    val packages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         pm.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
     } else {
         pm.getInstalledApplications(0)
     }
 
-    val launcherActivities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+    val launcherActivities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         pm.queryIntentActivities(mainIntent, PackageManager.ResolveInfoFlags.of(0))
     } else {
         pm.queryIntentActivities(mainIntent, 0)
@@ -47,7 +47,7 @@ fun NotiFilter(context: Context) {
         packagesWithLauncher.add(activity.activityInfo.packageName)
     }
     packagesWithLauncher.remove("org.muilab.noti.summary")
-    
+
     val density = LocalDensity.current
 
     val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
@@ -59,7 +59,6 @@ fun NotiFilter(context: Context) {
             if (packageInfo.packageName in packagesWithLauncher) {
                 map[packageInfo.packageName] = true
             }
-
         }
         map
     }
@@ -91,12 +90,11 @@ fun NotiFilter(context: Context) {
                     Row(modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(painter = appIconPainter, contentDescription = null,
-                            contentScale = ContentScale.FillHeight)
+                        Image(painter = appIconPainter, contentDescription = null, contentScale = ContentScale.FillHeight)
 
                         Spacer(modifier = Modifier.width(20.dp))
 
-                        Text(text = pm.getApplicationLabel(packageInfo).toString(),  modifier = Modifier.weight(1f),)
+                        Text(text = pm.getApplicationLabel(packageInfo).toString(), modifier = Modifier.weight(1f))
 
                         val checkedState = notiFilterMap.getOrDefault(packageInfo.packageName, false)
                         Switch(
@@ -111,9 +109,7 @@ fun NotiFilter(context: Context) {
                         )
                     }
                 }
-
             }
-
         }
     }
 
