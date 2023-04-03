@@ -88,33 +88,6 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         return sb.toString()
     }
 
-    private fun levenshteinDistance(str1: String, str2: String): Int {
-        val m = str1.length
-        val n = str2.length
-
-        val distanceMatrix = Array(m + 1) { IntArray(n + 1) }
-
-        for (i in 0..m)
-            distanceMatrix[i][0] = i
-
-        for (j in 0..n)
-            distanceMatrix[0][j] = j
-
-        for (i in 1..m) {
-            for (j in 1..n) {
-                val cost = if (str1[i - 1] == str2[j - 1]) 0 else 1
-
-                distanceMatrix[i][j] = minOf(
-                    distanceMatrix[i - 1][j] + 1,
-                    distanceMatrix[i][j - 1] + 1,
-                    distanceMatrix[i - 1][j - 1] + cost
-                )
-            }
-        }
-
-        return distanceMatrix[m][n]
-    }
-
     fun getSummaryText(curPrompt: String) {
         prompt = curPrompt
         val intent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
