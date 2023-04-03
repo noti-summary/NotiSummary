@@ -89,8 +89,9 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                             Toast.makeText(context, "已複製至剪貼簿", Toast.LENGTH_SHORT).show()
                         }
                     ) {
-                        Icon(painter = painterResource(R.drawable.content_copy),
-                             contentDescription = "copy content")
+                        Icon(painter = painterResource(R.drawable.copy),
+                             contentDescription = "copy content",
+                             modifier = Modifier.size(24.dp))
                     }
 
                     if (item != defaultPrompt) {

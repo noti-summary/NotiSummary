@@ -25,7 +25,7 @@ import okio.IOException
 import org.json.JSONException
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
-import org.muilab.noti.summary.view.SummaryResponse
+import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
 
@@ -119,16 +119,16 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         data class GPTRequest(val prompt: String, val content: String)
         data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val userAPIKey = apiPref.getString("userAPIKey", "預設 API Key")!!
+        val userAPIKey = apiPref.getString("userAPIKey", "系統金鑰")!!
 
-        val requestURL = if(userAPIKey == "預設 API Key") {
+        val requestURL = if(userAPIKey == "系統金鑰") {
             serverURL
         } else {
             "$serverURL/key"
         }
 
         @Suppress("IMPLICIT_CAST_TO_ANY")
-        val gptRequest = if(userAPIKey == "預設 API Key") {
+        val gptRequest = if(userAPIKey == "系統金鑰") {
             GPTRequest(prompt, content)
         } else {
             Log.d("sendToServer", "userAPIKey: $userAPIKey")

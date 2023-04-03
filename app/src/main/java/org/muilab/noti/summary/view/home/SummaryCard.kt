@@ -1,4 +1,4 @@
-package org.muilab.noti.summary.view
+package org.muilab.noti.summary.view.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,8 +35,6 @@ fun SummaryCard(sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel
     val result by sumViewModel.result.observeAsState(SummaryResponse.HINT.message)
 
     Card(modifier = Modifier.fillMaxSize()) {
-        // Credit(context, lifecycleOwner, userId)
-        // Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.onSecondaryContainer)
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
         Divider(
             thickness = 1.dp,
@@ -70,7 +68,7 @@ fun CurrentPrompt(curPrompt: String) {
         .fillMaxWidth()
         .padding(16.dp, 4.dp)) {
         Text(
-            text = curPrompt,
+            text = "> $curPrompt",
             style = MaterialTheme.typography.titleMedium.copy(
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.ExtraBold,

@@ -35,7 +35,7 @@ fun APIKeyScreen(apiKeyViewModel: APIKeyViewModel) {
 fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val selectedOption = apiKeyViewModel.apiKey.observeAsState()
     val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
-    val defaultAPIKey = "預設 API Key"
+    val defaultAPIKey = "系統金鑰"
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
