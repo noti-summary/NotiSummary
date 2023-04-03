@@ -29,11 +29,12 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
 @Composable
 fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
     val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf(""))
+    lateinit var oldTime: String
 
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-        // TODO: update Schedule
-        Log.d("TimeList", "hour: $hour")
-        Log.d("TimeList", "minute: $minute")
+        Log.d("TimeList", "oldTime: $oldTime")
+        Log.d("TimeList", "newTime: $hour:$minute")
+        scheduleViewModel.updateSchedule(oldTime, "$hour:$minute")
     }
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
@@ -59,8 +60,10 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         text = item,
                     )
                     IconButton(onClick = {
-                        // TODO: use the clicked schedule to set the TimePickerDialog
-                        val picker = TimePickerDialog(context, listener, 0, 0, false)
+                        val hour: Int = item.split(':')[0].toInt()
+                        val minute: Int = item.split(':')[1].toInt()
+                        oldTime = item
+                        val picker = TimePickerDialog(context, listener, hour, minute, false)
                         picker.show()
                     }) {
                         Icon(Icons.Rounded.Edit, contentDescription = "edit schedule")
@@ -78,7 +81,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
 @Composable
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-        scheduleViewModel.addNewSchedule("現在時間是 $hour:$minute")
+        scheduleViewModel.addNewSchedule("$hour:$minute")
     }
 
     Box(

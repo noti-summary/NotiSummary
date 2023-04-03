@@ -22,6 +22,12 @@ class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleData
         }
     }
 
+    fun updateSchedule(oldTime: String, newTime: String) {
+        scope.launch{
+            scheduleDao.updateTime(oldTime, newTime)
+        }
+    }
+
     fun deleteSchedule(time: String) {
         scope.launch {
             scheduleDao.deleteByTime(time)
