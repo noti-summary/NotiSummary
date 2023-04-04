@@ -33,16 +33,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!isNotiListenerEnabled()) {
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-        }
-
-        /*
-        if (!isUsageEnabled()) {
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-        }
-        */
-
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
         startService(notiListenerIntent)
 
@@ -56,6 +46,12 @@ class MainActivity : ComponentActivity() {
                 MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!isNotiListenerEnabled())
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
     }
 
     override fun onDestroy() {
@@ -76,20 +72,6 @@ class MainActivity : ComponentActivity() {
         val flat: String =
             Settings.Secure.getString(this.contentResolver, "enabled_notification_listeners")
         return cn.flattenToString() in flat
-    }
-
-    private fun chkPermissionOps(permission: String): Boolean {
-        val appOps = this.getSystemService(APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), this.packageName)
-        return if (mode == AppOpsManager.MODE_DEFAULT) {
-            checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-        } else {
-            mode == AppOpsManager.MODE_ALLOWED
-        }
-    }
-
-    private fun isUsageEnabled(): Boolean {
-        return chkPermissionOps(Manifest.permission.PACKAGE_USAGE_STATS)
     }
 
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
