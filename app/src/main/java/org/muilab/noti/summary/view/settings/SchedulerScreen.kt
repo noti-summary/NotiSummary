@@ -34,7 +34,7 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
 
 @Composable
 fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
-    val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf(""))
+    val allSchedule = scheduleViewModel.allScheduleStr.observeAsState(listOf(""))
     lateinit var oldTime: String
 
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
@@ -100,7 +100,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
 @Composable
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-        scheduleViewModel.addNewSchedule("$hour:$minute")
+        scheduleViewModel.addNewSchedule("$hour:$minute", hour, minute)
         addAlarm(context, hour, minute)
     }
 

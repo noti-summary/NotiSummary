@@ -12,13 +12,19 @@ class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleData
     AndroidViewModel(application) {
 
     private val scheduleDao = scheduleDatabase.scheduleDao()
-    val allSchedule: LiveData<List<String>> = scheduleDao.getAllSchedule().asLiveData()
+    private val allSchedule: LiveData<List<Schedule>> = scheduleDao.getSortedSchedules().asLiveData()
+    val allScheduleStr: LiveData<List<String>> = Transformations.map(allSchedule) { schedules ->
+        schedules.map { schedule ->
+            schedule.time
+        }
+    }
+
     private val scope = viewModelScope + Dispatchers.IO
 
-    fun addNewSchedule(newSchedule: String) {
+    fun addNewSchedule(newSchedule: String, hour: Int, minute: Int) {
         val updateSchedule = newSchedule.trim()
         scope.launch {
-            scheduleDao.insertScheduleIfNotExists(Schedule(0, updateSchedule))
+            scheduleDao.insertScheduleIfNotExists(Schedule(0, updateSchedule, hour, minute))
         }
     }
 

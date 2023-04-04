@@ -9,6 +9,9 @@ interface ScheduleDao {
     @Query("SELECT time FROM time_events")
     fun getAllSchedule(): Flow<List<String>>
 
+    @Query("SELECT * FROM time_events ORDER BY hour ASC, minute ASC")
+    fun getSortedSchedules(): Flow<List<Schedule>>
+
     @Query("SELECT * FROM time_events WHERE time = :time")
     fun getScheduleByTime(time: String): Schedule?
 
