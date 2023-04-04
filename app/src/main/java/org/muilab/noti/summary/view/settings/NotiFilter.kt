@@ -47,6 +47,7 @@ fun NotiFilter(context: Context) {
         packagesWithLauncher.add(activity.activityInfo.packageName)
     }
     packagesWithLauncher.remove("org.muilab.noti.summary")
+    packagesWithLauncher.add("android")
 
     val density = LocalDensity.current
 
