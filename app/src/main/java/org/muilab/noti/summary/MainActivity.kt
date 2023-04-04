@@ -89,6 +89,7 @@ class MainActivity : ComponentActivity() {
         FirebaseInstallations.getInstance().id.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val userId: String = task.result
+                Log.v("userId", userId)
 
                 val sharedPref = this.getSharedPreferences("user_id", Context.MODE_PRIVATE)
                 with(sharedPref.edit()) {
