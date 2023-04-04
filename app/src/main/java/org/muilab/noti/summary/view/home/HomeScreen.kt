@@ -48,7 +48,7 @@ fun HomeScreen(
 
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
 
-    val drawerCardState = remember { mutableStateOf(false) }
+    val drawerCardState = remember { mutableStateOf(true) }
     val summaryCardState = remember { mutableStateOf(true) }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
