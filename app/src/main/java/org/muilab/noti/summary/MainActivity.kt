@@ -71,11 +71,11 @@ class MainActivity : ComponentActivity() {
     private val promptDatabase by lazy { PromptDatabase.getInstance(this) }
     private val promptViewModel by lazy { PromptViewModel(application, promptDatabase) }
 
-    private val apiKeyDatabase  by lazy { APIKeyDatabase.getInstance(this) }
-    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase ) }
+    private val apiKeyDatabase by lazy { APIKeyDatabase.getInstance(this) }
+    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase) }
 
-    private val scheduleDatabase  by lazy { ScheduleDatabase.getInstance(this) }
-    private val scheduleViewModel by lazy { ScheduleViewModel(application, scheduleDatabase ) }
+    private val scheduleDatabase by lazy { ScheduleDatabase.getInstance(this) }
+    private val scheduleViewModel by lazy { ScheduleViewModel(application, scheduleDatabase) }
 
     private fun isNotiListenerEnabled(): Boolean {
         val cn = ComponentName(this, NotiListenerService::class.java)

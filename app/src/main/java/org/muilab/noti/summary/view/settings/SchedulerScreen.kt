@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.receiver.AlarmReceiver
 import org.muilab.noti.summary.util.addAlarm
+import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.util.*
 
@@ -40,6 +41,14 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
         Log.d("TimeList", "oldTime: $oldTime")
         Log.d("TimeList", "newTime: $hour:$minute")
         scheduleViewModel.updateSchedule(oldTime, "$hour:$minute")
+    }
+
+    fun formatTimeString(time: String): String {
+        if (!time.contains(':'))
+            return time
+        val hour = time.split(':')[0].padStart(2, '0')
+        val minute = time.split(':')[1].padStart(2, '0')
+        return "$hour:$minute"
     }
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
@@ -62,7 +71,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = item,
+                        text = formatTimeString(item),
                     )
                     IconButton(onClick = {
                         val hour: Int = item.split(':')[0].toInt()
@@ -74,7 +83,12 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         Icon(Icons.Rounded.Edit, contentDescription = "edit schedule")
                     }
 
-                    IconButton(onClick = { scheduleViewModel.deleteSchedule(item) }) {
+                    IconButton(onClick = {
+                        val hour: Int = item.split(':')[0].toInt()
+                        val minute: Int = item.split(':')[1].toInt()
+                        scheduleViewModel.deleteSchedule(item)
+                        deleteAlarm(context, hour, minute)
+                    }) {
                         Icon(Icons.Rounded.Delete, contentDescription = "delete schedule")
                     }
                 }

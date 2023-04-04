@@ -23,7 +23,7 @@ class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleData
     }
 
     fun updateSchedule(oldTime: String, newTime: String) {
-        scope.launch{
+        scope.launch {
             scheduleDao.updateTime(oldTime, newTime)
         }
     }
