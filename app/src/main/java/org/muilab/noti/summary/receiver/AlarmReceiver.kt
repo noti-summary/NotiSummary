@@ -24,10 +24,10 @@ class AlarmReceiver : BroadcastReceiver() {
 
         Log.d("AlarmReceiver", "onReceive")
 
-        scheduleNextDayAlarm(context)
-
         val refreshSummaryIntent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
         LocalBroadcastManager.getInstance(context).sendBroadcast(refreshSummaryIntent)
+
+        scheduleNextDayAlarm(context)
 
         val builder = NotificationCompat.Builder(context, "Alarm")
             .setSmallIcon(R.mipmap.ic_launcher_foreground)

@@ -18,6 +18,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Notiapp"
         tools:targetApi="31">
+        <service
+            android:name=".service.ReScheduleService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver
+            android:name=".receiver.BootUpReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
         <receiver
             android:name=".receiver.AlarmReceiver"
             android:enabled="true"
@@ -48,15 +61,6 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-
-        <receiver
-            android:name=".receiver.BootUpReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>
