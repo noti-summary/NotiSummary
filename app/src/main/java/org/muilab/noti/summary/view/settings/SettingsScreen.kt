@@ -31,8 +31,9 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 
 enum class SettingScreenItem(var title: String, var iconId: Int) {
     Start("Main Setting Page", R.drawable.settings),
-    SettingPrompt("提示句設定", R.drawable.setting_sms),
-    SettingAPI("OpenAI API 金鑰設定", R.drawable.setting_key),
+    SettingPrompt("提示句", R.drawable.setting_sms),
+    SettingAPI("OpenAI API 金鑰", R.drawable.setting_key),
+    SettingNotiFilter("摘要涵蓋的應用程式", R.drawable.play_store),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -121,6 +122,9 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.SettingAPI.name) {
             APIKeyScreen(apiKeyViewModel)
+        }
+        composable(SettingScreenItem.SettingNotiFilter.name) {
+            NotiFilter(context)
         }
     }
 }
