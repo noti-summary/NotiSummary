@@ -34,6 +34,8 @@ enum class SettingScreenItem(var title: String, var iconId: Int) {
     SettingPrompt("提示句", R.drawable.setting_sms),
     SettingAPI("OpenAI API 金鑰", R.drawable.setting_key),
     SettingNotiFilter("摘要涵蓋的應用程式", R.drawable.play_store),
+    Feedback("問題回報 / 許願", R.drawable.feedback),
+    About("關於", R.drawable.about),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -125,6 +127,12 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.SettingNotiFilter.name) {
             NotiFilter(context)
+        }
+        composable(SettingScreenItem.Feedback.name) {
+            FeedbackScreen()
+        }
+        composable(SettingScreenItem.About.name) {
+            AboutScreen()
         }
     }
 }
