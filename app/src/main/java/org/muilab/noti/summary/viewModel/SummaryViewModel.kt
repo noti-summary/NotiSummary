@@ -170,8 +170,8 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         } catch (e: IOException) {
             Log.i("IOException", e.toString())
             _result.postValue(SummaryResponse.NETWORK_ERROR.message)
-        } finally {
-            Log.i("sendToServer", "Some Unknown Exception")
+        } catch (e: Exception) {
+            Log.i("Exception in sendToServer", e.toString())
             _result.postValue(SummaryResponse.SERVER_ERROR.message)
         }
     }
