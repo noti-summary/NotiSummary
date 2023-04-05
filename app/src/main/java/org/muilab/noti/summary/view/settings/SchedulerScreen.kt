@@ -2,14 +2,12 @@ package org.muilab.noti.summary.view.settings
 
 import android.app.TimePickerDialog
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -31,51 +29,40 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
 @Composable
 fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
     val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf())
-    lateinit var oldTime: String
 
-    val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-        Log.d("TimeList", "oldTime: $oldTime")
-        Log.d("TimeList", "newTime: ${String.format("%02d:%02d", hour, minute)}")
-        scheduleViewModel.updateSchedule(oldTime, String.format("%02d:%02d", hour, minute))
-    }
-
-    LazyColumn(modifier = Modifier.fillMaxHeight()) {
-        itemsIndexed(allSchedule.value) { index, item ->
-            if (index == 0) {
-                Text("排程", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
-            }
-            Card(
-                modifier = Modifier
-                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                colors = CardDefaults.cardColors(containerColor = Color.Gray),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+    Column {
+        Text(
+            "點擊下方按鈕新增排程",
+            modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+        )
+        LazyColumn(modifier = Modifier.fillMaxHeight()) {
+            itemsIndexed(allSchedule.value) { index, item ->
+                if (index == 0) Divider(color = Color.DarkGray, thickness = 1.dp) // TODO: use color in material3 instead?
+                Box(
+                    modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
                 ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = item.time,
-                    )
-                    IconButton(onClick = {
-                        oldTime = item.time
-                        val picker = TimePickerDialog(context, listener, item.hour, item.minute, false)
-                        picker.show()
-                    }) {
-                        Icon(Icons.Rounded.Edit, contentDescription = "edit schedule")
-                    }
-
-                    IconButton(onClick = {
-                        scheduleViewModel.deleteSchedule(item.time)
-                        deleteAlarm(context, item.hour, item.minute)
-                    }) {
-                        Icon(Icons.Rounded.Delete, contentDescription = "delete schedule")
+                    Row(
+                        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = item.time,
+                            style = MaterialTheme.typography.displaySmall
+                        )
+                        IconButton(onClick = {
+                            scheduleViewModel.deleteSchedule(item.time)
+                            deleteAlarm(context, item.hour, item.minute)
+                        }) {
+                            Icon(Icons.Rounded.Delete, contentDescription = "delete schedule")
+                        }
                     }
                 }
+                Divider(color = Color.DarkGray, thickness = 1.dp) // TODO: use color in material3 instead?
             }
         }
     }
