@@ -26,6 +26,7 @@ import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
+import java.util.*
 
 
 const val maxCredit: Int = 50
@@ -42,6 +43,10 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
 
         setUserId()
+        val primaryLocale: Locale = applicationContext.resources.configuration.locales[0]
+        val locale: String = primaryLocale.displayName
+
+        Log.d("MainActivity", locale)
         
         setContent {
             NotiappTheme {
