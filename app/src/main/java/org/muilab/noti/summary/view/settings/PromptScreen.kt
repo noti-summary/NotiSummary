@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
@@ -50,9 +51,15 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultPrompt) + allPromptSentence.value) { index, item ->
             if (index == 0) {
-                Text("預設摘要提示句", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text(
+                    stringResource(R.string.default_prompt),
+                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+                )
             } else if (index == 1) {
-                Text("自訂摘要提示句", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text(
+                    stringResource(R.string.custom_prompt),
+                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+                )
             }
             Card(
                 modifier = Modifier
@@ -86,12 +93,18 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                         onClick = {
                             val clip = ClipData.newPlainText("copy prompt text", item)
                             clipboardManager.setPrimaryClip(clip)
-                            Toast.makeText(context, "已複製至剪貼簿", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.copied_to_clipboard),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     ) {
-                        Icon(painter = painterResource(R.drawable.copy),
-                             contentDescription = "copy content",
-                             modifier = Modifier.size(24.dp))
+                        Icon(
+                            painter = painterResource(R.drawable.copy),
+                            contentDescription = "copy content",
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
 
                     if (item != defaultPrompt) {
@@ -118,7 +131,7 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
         }
     }
 
-    val confirmAction =  {
+    val confirmAction = {
         if (currentEditPrompt.value != "") {
             promptViewModel.updatePrompt(
                 currentEditPromptOriginalValue,
@@ -178,7 +191,10 @@ fun PromptEditor(
     NoPaddingAlertDialog(
         title = {
             Image(
-                modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 30.dp, bottom = 20.dp)
+                    .height(70.dp),
                 painter = painterResource(id = R.drawable.prompt),
                 contentDescription = "prompt_icon",
             )
@@ -189,7 +205,7 @@ fun PromptEditor(
                 singleLine = true,
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },
-                label = { Text("提示句") },
+                label = { Text(stringResource(R.string.prompt)) },
             )
         },
         confirmButton = {
@@ -199,7 +215,12 @@ fun PromptEditor(
                     confirmAction()
                 }
             )
-            { Text(text = "確認", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+            {
+                Text(
+                    text = stringResource(R.string.ok),
+                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                )
+            }
         },
         dismissButton = {
             TextButton(
@@ -209,7 +230,12 @@ fun PromptEditor(
                     showDialog.value = false
                 }
             )
-            { Text(text = "取消", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+            {
+                Text(
+                    text = stringResource(R.string.cancel),
+                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                )
+            }
         }
     )
 }

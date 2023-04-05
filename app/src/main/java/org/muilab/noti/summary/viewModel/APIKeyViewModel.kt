@@ -1,11 +1,13 @@
 package org.muilab.noti.summary.viewModel
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.model.APIKeyEntity
 
@@ -17,7 +19,10 @@ class APIKeyViewModel(application: Application, apiKeyDatabase: APIKeyDatabase) 
 
     private val apiKeyDao = apiKeyDatabase.apiKeyDao()
 
-    private val defaultAPI = "系統金鑰"
+    @SuppressLint("StaticFieldLeak")
+    private val context = getApplication<Application>().applicationContext
+
+    private val defaultAPI = context.getString(R.string.system_key)
     private val _apiKey = MutableLiveData<String>()
     val apiKey: LiveData<String> = _apiKey
     val allAPIKey: LiveData<List<String>> = apiKeyDao.getAllAPI().asLiveData()
