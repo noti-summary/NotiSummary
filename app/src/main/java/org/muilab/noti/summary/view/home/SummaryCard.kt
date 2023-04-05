@@ -14,26 +14,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
-enum class SummaryResponse(val message: String) {
-    HINT("請按下方按鈕產生通知摘要"),
-    GENERATING("通知摘要產生中，請稍候..."),
-    NO_NOTIFICATION("您的手機目前沒有通知"),
-    NETWORK_ERROR("無法連線，請確認您的網路設定"),
-    SERVER_ERROR("伺服器發生錯誤，請稍後再試"),
-    TIMEOUT_ERROR("伺服器忙碌中，請稍後再試"),
-    APIKEY_ERROR("請確認您的 API 金鑰是否有誤"),
-    QUOTA_ERROR("請確認您的 API 金鑰額度或聯繫開發人員")
+enum class SummaryResponse(val message: Int) {
+    HINT(R.string.hint_msg),
+    GENERATING(R.string.gen_msg),
+    NO_NOTIFICATION(R.string.no_noti_msg),
+    NETWORK_ERROR(R.string.nework_err_msg),
+    SERVER_ERROR(R.string.server_err_msg),
+    TIMEOUT_ERROR(R.string.timeout_msg),
+    APIKEY_ERROR(R.string.key_msg),
+    QUOTA_ERROR(R.string.quota_msg)
 }
 
 @Composable
-fun SummaryCard(sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel, submitButtonState: SSButtonState, setSubmitButtonState: (SSButtonState) -> Unit) {
-    val result by sumViewModel.result.observeAsState(SummaryResponse.HINT.message)
+fun SummaryCard(
+    sumViewModel: SummaryViewModel,
+    promptViewModel: PromptViewModel,
+    submitButtonState: SSButtonState,
+    setSubmitButtonState: (SSButtonState) -> Unit
+) {
+    val result by sumViewModel.result.observeAsState(stringResource(SummaryResponse.HINT.message))
 
     Card(modifier = Modifier.fillMaxSize()) {
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
@@ -46,14 +53,14 @@ fun SummaryCard(sumViewModel: SummaryViewModel, promptViewModel: PromptViewModel
             .verticalScroll(rememberScrollState())) {
             Text(text = result)
 
-            if (result == SummaryResponse.GENERATING.message) {
+            if (result == stringResource(SummaryResponse.GENERATING.message)) {
                 setSubmitButtonState(SSButtonState.LOADING)
-            } else if (result == SummaryResponse.NO_NOTIFICATION.message ||
-                       result == SummaryResponse.NETWORK_ERROR.message ||
-                       result == SummaryResponse.SERVER_ERROR.message ||
-                       result == SummaryResponse.TIMEOUT_ERROR.message ||
-                       result == SummaryResponse.APIKEY_ERROR.message ||
-                       result == SummaryResponse.QUOTA_ERROR.message
+            } else if (result == stringResource(SummaryResponse.NO_NOTIFICATION.message) ||
+                       result == stringResource(SummaryResponse.NETWORK_ERROR.message) ||
+                       result == stringResource(SummaryResponse.SERVER_ERROR.message) ||
+                       result == stringResource(SummaryResponse.TIMEOUT_ERROR.message) ||
+                       result == stringResource(SummaryResponse.APIKEY_ERROR.message) ||
+                       result == stringResource(SummaryResponse.QUOTA_ERROR.message)
             ) {
                 setSubmitButtonState(SSButtonState.FAILIURE)
             } else if (submitButtonState == SSButtonState.LOADING){
