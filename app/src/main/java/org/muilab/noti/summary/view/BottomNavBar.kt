@@ -78,6 +78,7 @@ fun AppBottomNavigation(navController: NavController) {
                 icon = { Icon(item.icon, contentDescription = item.title, modifier = Modifier.size(30.dp)) },
                 selected = currentRoute == item.screen_route,
                 onClick = {
+                    navController.popBackStack()
                     navController.navigate(item.screen_route) {
                         navController.graph.startDestinationRoute?.let { screen_route ->
                             popUpTo(screen_route) {

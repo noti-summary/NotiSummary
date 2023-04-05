@@ -32,8 +32,9 @@ import org.muilab.noti.summary.viewModel.ScheduleViewModel
 
 enum class SettingScreenItem(var title: String, var iconId: Int) {
     Start("Main Setting Page", R.drawable.settings),
-    SettingPrompt("提示句設定", R.drawable.setting_sms),
-    SettingAPI("OpenAI API 金鑰設定", R.drawable.setting_key),
+    SettingPrompt("提示句", R.drawable.setting_sms),
+    SettingAPI("OpenAI API 金鑰", R.drawable.setting_key),
+    SettingNotiFilter("摘要涵蓋的應用程式", R.drawable.play_store),
     SettingScheduler("摘要排程", R.drawable.schedule),
 }
 
@@ -129,6 +130,9 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.SettingScheduler.name) {
             SchedulerScreen(context, scheduleViewModel)
+        }
+        composable(SettingScreenItem.SettingNotiFilter.name) {
+            NotiFilter(context)
         }
     }
 }
