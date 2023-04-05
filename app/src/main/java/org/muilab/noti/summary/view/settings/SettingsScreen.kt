@@ -28,7 +28,7 @@ enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
     SettingPrompt(R.string.prompt, R.drawable.setting_sms),
     SettingAPI(R.string.openai_api_key, R.drawable.setting_key),
     SettingNotiFilter(R.string.app_covered, R.drawable.play_store),
-    SettingScheduler("摘要排程", R.drawable.schedule),
+    SettingScheduler(R.string.scheduled_summary, R.drawable.schedule),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")

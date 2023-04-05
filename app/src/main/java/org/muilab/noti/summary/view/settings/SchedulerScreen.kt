@@ -31,10 +31,6 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
     val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf())
 
     Column {
-        Text(
-            "點擊下方按鈕新增排程",
-            modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
-        )
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
             itemsIndexed(allSchedule.value) { index, item ->
                 if (index == 0) Divider(color = Color.DarkGray, thickness = 1.dp) // TODO: use color in material3 instead?

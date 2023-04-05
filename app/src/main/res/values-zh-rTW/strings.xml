@@ -29,4 +29,5 @@
     <string name="timeout_msg">伺服器忙碌中，請稍後再試</string>
     <string name="key_msg">請確認您的 API 金鑰是否有誤</string>
     <string name="quota_msg">請確認您的 API 金鑰額度或聯繫開發人員</string>
+    <string name="scheduled_summary">摘要排程</string>
 </resources>

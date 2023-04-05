@@ -29,4 +29,5 @@
     <string name="timeout_msg">The server is busy, please try again later.</string>
     <string name="key_msg">Please check if your API key is valid.</string>
     <string name="quota_msg">Please check your API key quota or contact the developers.</string>
+    <string name="scheduled_summary">Scheduled Summary</string>
 </resources>
