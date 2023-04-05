@@ -12,7 +12,7 @@ class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleData
     AndroidViewModel(application) {
 
     private val scheduleDao = scheduleDatabase.scheduleDao()
-    private val allSchedule: LiveData<List<Schedule>> = scheduleDao.getSortedSchedules().asLiveData()
+    val allSchedule: LiveData<List<Schedule>> = scheduleDao.getSortedSchedules().asLiveData()
     val allScheduleStr: LiveData<List<String>> = Transformations.map(allSchedule) { schedules ->
         schedules.map { schedule ->
             schedule.time

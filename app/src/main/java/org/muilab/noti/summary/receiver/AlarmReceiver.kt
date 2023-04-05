@@ -14,6 +14,7 @@ import androidx.lifecycle.asLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.ScheduleDatabase
+import org.muilab.noti.summary.model.Schedule
 import java.time.LocalTime
 import java.util.*
 
@@ -47,15 +48,12 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun scheduleNextDayAlarm(context: Context) {
-        val alarmTimes = getAlarmTimeFromDatabase(context) ?: return
+        val alarmSchedules = getAlarmTimeFromDatabase(context) ?: return
 
         val now = LocalTime.now()
         var nextAlarmTime: LocalTime? = null
-        for (alarmTimeStr in alarmTimes) {
-            val alarmTime = LocalTime.of(
-                alarmTimeStr.split(':')[0].toInt(),
-                alarmTimeStr.split(':')[1].toInt()
-            )
+        for (alarmSchedule in alarmSchedules) {
+            val alarmTime = LocalTime.of(alarmSchedule.hour, alarmSchedule.minute)
             if (alarmTime > now) {
                 nextAlarmTime = alarmTime
                 break
@@ -64,10 +62,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         // If there are no future alarm times, schedule the first alarm for tomorrow
         if (nextAlarmTime == null) {
-            nextAlarmTime = LocalTime.of(
-                alarmTimes.first().split(':')[0].toInt(),
-                alarmTimes.first().split(':')[1].toInt()
-            )
+            nextAlarmTime = LocalTime.of(alarmSchedules.first().hour, alarmSchedules.first().minute)
         }
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -79,7 +74,7 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val intent = Intent(context, AlarmReceiver::class.java)
-        intent.putExtra("time", "${nextAlarmTime!!.hour}:${nextAlarmTime.minute}")
+        intent.putExtra("time", String.format("%02d:%02d", nextAlarmTime!!.hour, nextAlarmTime.minute))
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent,
             PendingIntent.FLAG_IMMUTABLE
         )
@@ -90,10 +85,10 @@ class AlarmReceiver : BroadcastReceiver() {
         )
     }
 
-    private fun getAlarmTimeFromDatabase(context: Context): List<String>? {
+    private fun getAlarmTimeFromDatabase(context: Context): List<Schedule>? {
         val scheduleDatabase by lazy { ScheduleDatabase.getInstance(context) }
         val scheduleDao = scheduleDatabase.scheduleDao()
 
-        return scheduleDao.getAllSchedule().asLiveData().value
+        return scheduleDao.getSortedSchedules().asLiveData().value
     }
 }

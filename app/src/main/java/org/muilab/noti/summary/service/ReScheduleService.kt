@@ -25,11 +25,9 @@ class ReScheduleService : Service(), LifecycleOwner {
         val scheduleDao = scheduleDatabase.scheduleDao()
 
         lifecycleScope.launch {
-            scheduleDao.getAllSchedule().collect { allSchedule ->
+            scheduleDao.getSortedSchedules().collect { allSchedule ->
                 for (schedule in allSchedule) {
-                    val hour = schedule.split(":")[0].toInt()
-                    val minute = schedule.split(":")[1].toInt()
-                    addAlarm(applicationContext, hour, minute)
+                    addAlarm(applicationContext, schedule.hour, schedule.minute)
                 }
                 stopSelf()
             }

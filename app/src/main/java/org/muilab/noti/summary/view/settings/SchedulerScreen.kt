@@ -1,10 +1,7 @@
 package org.muilab.noti.summary.view.settings
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import org.muilab.noti.summary.receiver.AlarmReceiver
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
@@ -34,21 +30,13 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
 
 @Composable
 fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
-    val allSchedule = scheduleViewModel.allScheduleStr.observeAsState(listOf(""))
+    val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf())
     lateinit var oldTime: String
 
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
         Log.d("TimeList", "oldTime: $oldTime")
-        Log.d("TimeList", "newTime: $hour:$minute")
-        scheduleViewModel.updateSchedule(oldTime, "$hour:$minute")
-    }
-
-    fun formatTimeString(time: String): String {
-        if (!time.contains(':'))
-            return time
-        val hour = time.split(':')[0].padStart(2, '0')
-        val minute = time.split(':')[1].padStart(2, '0')
-        return "$hour:$minute"
+        Log.d("TimeList", "newTime: ${String.format("%02d:%02d", hour, minute)}")
+        scheduleViewModel.updateSchedule(oldTime, String.format("%02d:%02d", hour, minute))
     }
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
@@ -71,23 +59,19 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = formatTimeString(item),
+                        text = item.time,
                     )
                     IconButton(onClick = {
-                        val hour: Int = item.split(':')[0].toInt()
-                        val minute: Int = item.split(':')[1].toInt()
-                        oldTime = item
-                        val picker = TimePickerDialog(context, listener, hour, minute, false)
+                        oldTime = item.time
+                        val picker = TimePickerDialog(context, listener, item.hour, item.minute, false)
                         picker.show()
                     }) {
                         Icon(Icons.Rounded.Edit, contentDescription = "edit schedule")
                     }
 
                     IconButton(onClick = {
-                        val hour: Int = item.split(':')[0].toInt()
-                        val minute: Int = item.split(':')[1].toInt()
-                        scheduleViewModel.deleteSchedule(item)
-                        deleteAlarm(context, hour, minute)
+                        scheduleViewModel.deleteSchedule(item.time)
+                        deleteAlarm(context, item.hour, item.minute)
                     }) {
                         Icon(Icons.Rounded.Delete, contentDescription = "delete schedule")
                     }
@@ -100,7 +84,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
 @Composable
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-        scheduleViewModel.addNewSchedule("$hour:$minute", hour, minute)
+        scheduleViewModel.addNewSchedule(String.format("%02d:%02d", hour, minute), hour, minute)
         addAlarm(context, hour, minute)
     }
 
