@@ -6,45 +6,41 @@ import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.receiver.AlarmReceiver
 import java.util.*
 
-fun addAlarm(context: Context, hour: Int, minute: Int) {
-    val time = String.format("%02d:%02d", hour, minute)
-    Log.d("addAlarm", "time=$time")
+fun addAlarm(context: Context, schedule: Schedule) {
+    Log.d("addAlarm", "time=${schedule.time}")
+    Log.d("primaryKey", schedule.primaryKey.toString())
 
     val calendar = Calendar.getInstance().apply {
         timeZone = TimeZone.getDefault()
-        set(Calendar.HOUR_OF_DAY, hour)
-        set(Calendar.MINUTE, minute)
+        set(Calendar.HOUR_OF_DAY, schedule.hour)
+        set(Calendar.MINUTE, schedule.minute)
     }
-
-    val alarmRequestCodePref = context.getSharedPreferences("AlarmRCPref", Context.MODE_PRIVATE)
-    var requestCode = alarmRequestCodePref.getInt("alarm_request_code", 0)
 
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, AlarmReceiver::class.java)
-    intent.putExtra("time", time)
+    intent.putExtra("time", schedule.time)
 
-    ++requestCode
-    val pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, FLAG_IMMUTABLE)
+    val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
 
     alarmManager.setExactAndAllowWhileIdle(
         /* type = */ AlarmManager.RTC_WAKEUP,
         /* triggerAtMillis = */ calendar.timeInMillis,
         /* operation = */ pendingIntent
     )
-
-    alarmRequestCodePref.edit().putInt("alarm_request_code", requestCode).apply()
 }
 
-fun deleteAlarm(context: Context, hour: Int, minute: Int) {
-    val time = String.format("%02d:%02d", hour, minute)
-    Log.d("deleteAlarm", "time=$time")
+fun deleteAlarm(context: Context, schedule: Schedule) {
+    Log.d("deleteAlarm", "time=${schedule.time}")
+    Log.d("primaryKey", schedule.primaryKey.toString())
+
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, AlarmReceiver::class.java)
-    intent.putExtra("time", time)
-    val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, FLAG_IMMUTABLE)
+    intent.putExtra("time", schedule.time)
+    val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
 
     alarmManager.cancel(pendingIntent)
 }

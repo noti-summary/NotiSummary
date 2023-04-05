@@ -15,6 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
@@ -52,7 +55,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         )
                         IconButton(onClick = {
                             scheduleViewModel.deleteSchedule(item.time)
-                            deleteAlarm(context, item.hour, item.minute)
+                            deleteAlarm(context, item)
                         }) {
                             Icon(Icons.Rounded.Delete, contentDescription = "delete schedule")
                         }
@@ -67,8 +70,14 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
 @Composable
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-        scheduleViewModel.addNewSchedule(String.format("%02d:%02d", hour, minute), hour, minute)
-        addAlarm(context, hour, minute)
+        val time = String.format("%02d:%02d", hour, minute)
+        val coroutineScope = CoroutineScope(Dispatchers.IO)
+        coroutineScope.launch {
+            val newSchedule = scheduleViewModel.addNewSchedule(time, hour, minute)
+            if (newSchedule != null) {
+                addAlarm(context, newSchedule)
+            }
+        }
     }
 
     Box(

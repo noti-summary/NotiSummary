@@ -27,7 +27,7 @@ class ReScheduleService : Service(), LifecycleOwner {
         lifecycleScope.launch {
             scheduleDao.getSortedSchedules().collect { allSchedule ->
                 for (schedule in allSchedule) {
-                    addAlarm(applicationContext, schedule.hour, schedule.minute)
+                    addAlarm(applicationContext, schedule)
                 }
                 stopSelf()
             }
