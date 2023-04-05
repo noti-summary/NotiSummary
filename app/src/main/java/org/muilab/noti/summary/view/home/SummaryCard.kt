@@ -26,7 +26,7 @@ enum class SummaryResponse(val message: Int) {
     HINT(R.string.hint_msg),
     GENERATING(R.string.gen_msg),
     NO_NOTIFICATION(R.string.no_noti_msg),
-    NETWORK_ERROR(R.string.nework_err_msg),
+    NETWORK_ERROR(R.string.network_err_msg),
     SERVER_ERROR(R.string.server_err_msg),
     TIMEOUT_ERROR(R.string.timeout_msg),
     APIKEY_ERROR(R.string.key_msg),

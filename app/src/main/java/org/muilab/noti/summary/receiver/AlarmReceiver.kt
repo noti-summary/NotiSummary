@@ -33,7 +33,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(context, "Alarm")
             .setSmallIcon(R.mipmap.ic_launcher_foreground)
             .setContentTitle(context.getString(R.string.app_name))
-            .setContentText("您的通知摘要來囉！")
+            .setContentText(context.getString(R.string.noti_content))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
 
@@ -54,10 +54,8 @@ class AlarmReceiver : BroadcastReceiver() {
         var nextAlarmTime: LocalTime? = null
         for (alarmSchedule in alarmSchedules) {
             val alarmTime = LocalTime.of(alarmSchedule.hour, alarmSchedule.minute)
-            if (alarmTime > now) {
-                nextAlarmTime = alarmTime
-                break
-            }
+            if (alarmTime > now) break
+            nextAlarmTime = alarmTime
         }
 
         // If there are no future alarm times, schedule the first alarm for tomorrow
@@ -74,10 +72,15 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         val intent = Intent(context, AlarmReceiver::class.java)
-        intent.putExtra("time", String.format("%02d:%02d", nextAlarmTime!!.hour, nextAlarmTime.minute))
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent,
+        intent.putExtra(
+            "time",
+            String.format("%02d:%02d", nextAlarmTime!!.hour, nextAlarmTime.minute)
+        )
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, 0, intent,
             PendingIntent.FLAG_IMMUTABLE
         )
+
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
