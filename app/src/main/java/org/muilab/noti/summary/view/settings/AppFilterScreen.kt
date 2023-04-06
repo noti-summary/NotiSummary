@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 
 @Composable
-fun NotiFilter(context: Context) {
+fun AppFilterScreen(context: Context) {
 
     val pm = context.packageManager
     val mainIntent = Intent(Intent.ACTION_MAIN, null)
@@ -51,9 +51,9 @@ fun NotiFilter(context: Context) {
 
     val density = LocalDensity.current
 
-    val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+    val appFilterPrefs = context.getSharedPreferences("app_filter", Context.MODE_PRIVATE)
 
-    val notiFilterMap = remember {
+    val appFilterMap = remember {
         val map = mutableStateMapOf<String, Boolean>()
         // Initialize all package names with true as the default state
         packages.forEach { packageInfo ->
@@ -66,9 +66,9 @@ fun NotiFilter(context: Context) {
 
     // Load the saved state from shared preferences on composition start
     LaunchedEffect(Unit) {
-        notiFilterPrefs.all.forEach { (packageName, state) ->
+        appFilterPrefs.all.forEach { (packageName, state) ->
             if (state is Boolean) {
-                notiFilterMap[packageName] = state
+                appFilterMap[packageName] = state
             }
         }
     }
@@ -88,21 +88,20 @@ fun NotiFilter(context: Context) {
                 val appIconPainter: Painter = BitmapPainter(appIconBitmap)
 
                 Box(Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+
                         Image(painter = appIconPainter, contentDescription = null, contentScale = ContentScale.FillHeight)
 
                         Spacer(modifier = Modifier.width(20.dp))
 
                         Text(text = pm.getApplicationLabel(packageInfo).toString(), modifier = Modifier.weight(1f))
 
-                        val checkedState = notiFilterMap.getOrDefault(packageInfo.packageName, false)
+                        val checkedState = appFilterMap.getOrDefault(packageInfo.packageName, false)
                         Switch(
                             checked = checkedState,
                             onCheckedChange = { newState ->
-                                notiFilterMap[packageInfo.packageName] = newState
-                                with(notiFilterPrefs.edit()) {
+                                appFilterMap[packageInfo.packageName] = newState
+                                with(appFilterPrefs.edit()) {
                                     putBoolean(packageInfo.packageName, newState)
                                     apply()
                                 }

@@ -9,7 +9,8 @@
     <string name="prompt">Prompt</string>
     <string name="main_setting" translatable="false">Main Setting Page</string>
     <string name="openai_api_key">OpenAI API Key</string>
-    <string name="app_covered">Applications Covered by the Summary</string>
+    <string name="app_covered">Scope of Summary (App)</string>
+    <string name="noti_info_covered">Scope of Summary (Notification Attributes)</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="default_prompt">Default Prompt</string>
@@ -29,4 +30,8 @@
     <string name="timeout_msg">The server is busy, please try again later.</string>
     <string name="key_msg">Please check if your API key is valid.</string>
     <string name="quota_msg">Please check your API key quota or contact the developers.</string>
+    <string name="application_name">Application Name</string>
+    <string name="time">Time</string>
+    <string name="title">Title</string>
+    <string name="content">Content</string>
 </resources>

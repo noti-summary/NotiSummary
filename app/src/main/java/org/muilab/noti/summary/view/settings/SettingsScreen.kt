@@ -26,7 +26,8 @@ enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
     Start(R.string.main_setting, R.drawable.settings),
     SettingPrompt(R.string.prompt, R.drawable.setting_sms),
     SettingAPI(R.string.openai_api_key, R.drawable.setting_key),
-    SettingNotiFilter(R.string.app_covered, R.drawable.play_store),
+    SettingAppFilter(R.string.app_covered, R.drawable.play_store),
+    SettingNotiFilter(R.string.noti_info_covered, R.drawable.mail),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -116,8 +117,11 @@ fun NavigateSetting(
         composable(SettingScreenItem.SettingAPI.name) {
             APIKeyScreen(apiKeyViewModel)
         }
+        composable(SettingScreenItem.SettingAppFilter.name) {
+            AppFilterScreen(context)
+        }
         composable(SettingScreenItem.SettingNotiFilter.name) {
-            NotiFilter(context)
+            NotiFilterScreen(context)
         }
     }
 }

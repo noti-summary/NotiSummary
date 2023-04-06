@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.firebase.firestore.ktx.firestore
@@ -81,15 +82,20 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private fun getPostContent(activeNotifications: ArrayList<NotiUnit>): String {
         val sb = StringBuilder()
         activeNotifications.shuffle()
-        activeNotifications.forEach {
+        activeNotifications.forEach { noti ->
 
-            val appName = it.appName
-            val time = it.time
-            val title = it.title
-            val content = it.content
+            val filterMap = mutableMapOf<String, String>()
+            filterMap[context.getString(R.string.application_name)] = "App: ${noti.appName}"
+            filterMap[context.getString(R.string.time)] = "Time: ${noti.time}"
+            filterMap[context.getString(R.string.title)] = "Title: ${noti.title}"
+            filterMap[context.getString(R.string.content)] = "Content: ${noti.content}"
 
-            sb.append("App: $appName, Time: $time, Title: $title, Content: $content\n")
-            // sb.append("[App] $appName\n[Time] $time\n[Title] $title\n[Content] $content\n\n")
+            val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+            val input = filterMap.filter { attribute -> notiFilterPrefs.getBoolean(attribute.key, true) }
+                .values
+                .joinToString(separator = ", ")
+
+            sb.append("$input\n")
         }
         return sb.toString()
     }
