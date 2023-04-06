@@ -1,6 +1,13 @@
 package org.muilab.noti.summary.view.component
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.util.Log
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,9 +23,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import org.muilab.noti.summary.MainActivity
+import org.muilab.noti.summary.util.TAG
 import java.util.*
 
 @Composable
@@ -69,6 +82,7 @@ fun PrivacyPolicyDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalInformationScreen(
+    context: Context,
     onContinue: (Int, String, String) -> Unit
 ) {
     var age by remember { mutableStateOf("") }
@@ -208,9 +222,51 @@ fun PersonalInformationScreen(
                 }
             }
 
+            val activity = (LocalContext.current as? Activity)
+
             if (age.toIntOrNull().let { it != null && it > 0 } && gender.isNotEmpty() && country.isNotEmpty()) {
                 Button(
-                    onClick = { onContinue(age.toInt(), gender, country) },
+                    onClick = {
+                        val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+                        val userId = sharedPref.getString("user_id", "000").toString()
+                        val db = Firebase.firestore
+                        val userInfo = hashMapOf<String, Any>(
+                            "age" to age.toInt(),
+                            "gender" to gender,
+                            "country" to country
+                        )
+
+                        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                        val activeNetwork = connectivityManager.activeNetwork
+                        val isConnected = activeNetwork != null && connectivityManager.getNetworkCapabilities(activeNetwork)?.hasCapability(
+                            NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+
+                        if (isConnected) {
+                            db.collection("user-free-credit")
+                                .document(userId)
+                                .update(userInfo)
+                                .addOnSuccessListener {
+                                    Log.d(TAG, "Uploaded user info to $userId")
+                                    onContinue(age.toInt(), gender, country)
+                                }
+                                .addOnFailureListener { e ->
+                                    if (e is FirebaseFirestoreException &&
+                                            e.code == FirebaseFirestoreException.Code.NOT_FOUND) {
+                                        Toast.makeText(context, "網路連線失敗，請再試一次", Toast.LENGTH_LONG)
+                                            .show()
+                                        val restartIntent = Intent(context, MainActivity::class.java)
+                                        restartIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                        context.startActivity(restartIntent)
+                                        activity?.finish()
+                                    }
+                                    Log.d(TAG, "Failed to upload user info")
+                                    Toast.makeText(context, "網路連線失敗，請再試一次", Toast.LENGTH_LONG)
+                                        .show()
+                                }
+                        } else {
+                            Toast.makeText(context, "沒有網路連線，請檢查網路設定", Toast.LENGTH_LONG).show()
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 32.dp)

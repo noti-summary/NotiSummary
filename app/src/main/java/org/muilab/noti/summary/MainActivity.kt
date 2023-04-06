@@ -23,7 +23,6 @@ import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.view.component.PersonalInformationScreen
 import org.muilab.noti.summary.view.component.PrivacyPolicyDialog
-import org.muilab.noti.summary.view.component.TermsAndConditionsDialog
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
@@ -71,13 +70,16 @@ class MainActivity : ComponentActivity() {
                     })
                 } else if (age < 0) {
                     PersonalInformationScreen(
+                        context = applicationContext,
                         onContinue = { age, gender, country ->
+
                             with(sharedPref.edit()) {
                                 putInt("age", age)
                                 putString("gender", gender)
                                 putString("country", country)
                                 apply()
                             }
+
                             val restartIntent = Intent(this, MainActivity::class.java)
                             startActivity(restartIntent)
                             finish()
