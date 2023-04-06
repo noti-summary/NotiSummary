@@ -10,7 +10,7 @@
     <string name="main_setting" translatable="false">Main Setting Page</string>
     <string name="openai_api_key">OpenAI API Key</string>
     <string name="app_covered">Scope of Summary (App)</string>
-    <string name="noti_info_covered">Scope of Summary (Notification Attributes)</string>
+    <string name="noti_info_covered">Scope of Summary (Notification Info)</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="default_prompt">Default Prompt</string>
