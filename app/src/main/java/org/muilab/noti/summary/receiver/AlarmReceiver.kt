@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.asLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.Schedule
@@ -30,11 +31,16 @@ class AlarmReceiver : BroadcastReceiver() {
 
         scheduleNextDayAlarm(context)
 
+        val notiContentIntent = Intent(context, MainActivity::class.java)
+        val pendingIntent =
+            PendingIntent.getActivity(context, 0, notiContentIntent, PendingIntent.FLAG_IMMUTABLE)
+
         val builder = NotificationCompat.Builder(context, "Alarm")
-            .setSmallIcon(R.mipmap.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.quotation)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(context.getString(R.string.noti_content))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         val importance = NotificationManager.IMPORTANCE_DEFAULT

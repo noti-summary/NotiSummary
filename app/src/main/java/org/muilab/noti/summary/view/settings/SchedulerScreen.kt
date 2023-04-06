@@ -2,6 +2,8 @@ package org.muilab.noti.summary.view.settings
 
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -14,12 +16,16 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
+import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.util.*
 
@@ -69,6 +75,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
 
 @Composable
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
+    var showDialog by remember { mutableStateOf(false) }
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
         val time = String.format("%02d:%02d", hour, minute)
         val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -77,6 +84,10 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
             if (newSchedule != null) {
                 addAlarm(context, newSchedule)
             }
+        }
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            // Notifications are not enabled, navigate to settings
+            showDialog = true
         }
     }
 
@@ -94,5 +105,41 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
         }) {
             Icon(Icons.Filled.Add, "schedule summary")
         }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            title = { Text("您的通知權限尚未開啟") },
+            text = { Text("點擊確認前往開啟") },
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDialog = false
+                        val intent = Intent().apply {
+                            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+                {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                    )
+                }
+            }
+        )
     }
 }
