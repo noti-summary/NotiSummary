@@ -98,4 +98,6 @@ dependencies {
 
     // Chinese Translation
     implementation 'com.github.qichuan:android-opencc:1.2.0'
+
+    implementation "androidx.webkit:webkit:1.4.0"
 }

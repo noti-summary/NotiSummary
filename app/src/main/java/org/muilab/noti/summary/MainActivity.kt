@@ -21,6 +21,9 @@ import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.view.MainScreenView
+import org.muilab.noti.summary.view.component.PersonalInformationScreen
+import org.muilab.noti.summary.view.component.PrivacyPolicyDialog
+import org.muilab.noti.summary.view.component.TermsAndConditionsDialog
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
@@ -50,10 +53,38 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
 
         setUserId()
+        val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
+        val agreeTerms = sharedPref.getBoolean("agreeTerms", false)
+        val age = sharedPref.getInt("age", -1)
         
         setContent {
             NotiappTheme {
-                MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
+                if (!agreeTerms) {
+                    PrivacyPolicyDialog(onAgree = {
+                        with(sharedPref.edit()) {
+                            putBoolean("agreeTerms", true)
+                            apply()
+                        }
+                        val restartIntent = Intent(this, MainActivity::class.java)
+                        startActivity(restartIntent)
+                        finish()
+                    })
+                } else if (age < 0) {
+                    PersonalInformationScreen(
+                        onContinue = { age, gender, country ->
+                            with(sharedPref.edit()) {
+                                putInt("age", age)
+                                putString("gender", gender)
+                                putString("country", country)
+                                apply()
+                            }
+                            val restartIntent = Intent(this, MainActivity::class.java)
+                            startActivity(restartIntent)
+                            finish()
+                        })
+                } else {
+                    MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
+                }
             }
         }
     }
@@ -108,7 +139,7 @@ class MainActivity : ComponentActivity() {
             if (task.isSuccessful) {
                 val userId: String = task.result
 
-                val sharedPref = this.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+                val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
                 with(sharedPref.edit()) {
                     putString("user_id", userId)
                     apply()
