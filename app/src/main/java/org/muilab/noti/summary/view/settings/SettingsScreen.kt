@@ -36,6 +36,7 @@ enum class SettingScreenItem(var title: String, var iconId: Int) {
     SettingNotiFilter("摘要涵蓋的應用程式", R.drawable.play_store),
     Feedback("問題回報 / 許願", R.drawable.feedback),
     About("關於", R.drawable.about),
+    Recruitment("研究受測者招募中 \uD83D\uDD25", R.drawable.participant),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -133,6 +134,9 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.About.name) {
             AboutScreen()
+        }
+        composable(SettingScreenItem.Recruitment.name) {
+            RecruitmentScreen()
         }
     }
 }
