@@ -9,7 +9,8 @@
     <string name="prompt">Prompt</string>
     <string name="main_setting" translatable="false">Main Setting Page</string>
     <string name="openai_api_key">OpenAI API Key</string>
-    <string name="app_covered">Apps Covered by the Summary</string>
+    <string name="app_covered">Scope of Summary (App)</string>
+    <string name="noti_info_covered">Scope of Summary (Notification Info)</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="default_prompt">Default Prompt</string>
@@ -31,4 +32,11 @@
     <string name="quota_msg">Please check your API key quota or contact the developers.</string>
     <string name="scheduled_summary">Scheduled Summary</string>
     <string name="noti_content">Here\'s your notification summary!</string>
+    <string name="application_name">Application Name</string>
+    <string name="time">Time</string>
+    <string name="title">Title</string>
+    <string name="content">Content</string>
+    <string name="feedback">Feedback &amp; Suggestions</string>
+    <string name="about">About NotiSummary</string>
+    <string name="recruitment">Join Our Study as a Participant 🔥</string>
 </resources>

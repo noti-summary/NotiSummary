@@ -45,7 +45,10 @@ class APIKeyViewModel(application: Application, apiKeyDatabase: APIKeyDatabase) 
     fun chooseAPI(updateAPIKey: String) {
         if (_apiKey.value != updateAPIKey) {
             _apiKey.postValue(updateAPIKey)
-            sharedPreferences.edit().putString("userAPIKey", updateAPIKey).apply()
+            if (updateAPIKey == context.getString(R.string.system_key))
+                sharedPreferences.edit().remove("userAPIKey").apply()
+            else
+                sharedPreferences.edit().putString("userAPIKey", updateAPIKey).apply()
         }
     }
 
