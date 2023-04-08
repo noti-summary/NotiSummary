@@ -34,7 +34,7 @@ fun MainSettingScreen(navController: NavHostController) {
                 ) {
                     Card(
                         modifier = Modifier
-                            .padding(3.dp)
+                            .padding(start = 10.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
                             .clickable {
