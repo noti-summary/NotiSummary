@@ -16,6 +16,7 @@ import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
 import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
+import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
@@ -23,6 +24,7 @@ import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
+import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 import java.util.*
 
@@ -56,7 +58,8 @@ class MainActivity : ComponentActivity() {
         
         setContent {
             NotiappTheme {
-                MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
+                MainScreenView(this, this,
+                    sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
             }
         }
     }
@@ -77,8 +80,11 @@ class MainActivity : ComponentActivity() {
     private val promptDatabase by lazy { PromptDatabase.getInstance(this) }
     private val promptViewModel by lazy { PromptViewModel(application, promptDatabase) }
 
-    private val apiKeyDatabase  by lazy { APIKeyDatabase.getInstance(this) }
-    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase ) }
+    private val apiKeyDatabase by lazy { APIKeyDatabase.getInstance(this) }
+    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase) }
+
+    private val scheduleDatabase by lazy { ScheduleDatabase.getInstance(this) }
+    private val scheduleViewModel by lazy { ScheduleViewModel(application, scheduleDatabase) }
 
     private fun isNotiListenerEnabled(): Boolean {
         val cn = ComponentName(this, NotiListenerService::class.java)
@@ -92,7 +98,8 @@ class MainActivity : ComponentActivity() {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
                 if (activeNotifications != null) {
-                    sumViewModel.updateSummaryText(activeNotifications)
+                    val curPrompt = promptViewModel.getCurPrompt()
+                    sumViewModel.updateSummaryText(curPrompt, activeNotifications)
                 }
             }
         }

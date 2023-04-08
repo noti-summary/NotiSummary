@@ -105,8 +105,9 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
-    fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>) {
-        if (activeNotifications.size > 0) {
+    fun updateSummaryText(curPrompt: String, activeNotifications: ArrayList<NotiUnit>) {
+        prompt = curPrompt
+        if (activeNotifications.size > 0){
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
             val postContent = getPostContent(activeNotifications)
             _notifications.postValue(activeNotifications.toList())

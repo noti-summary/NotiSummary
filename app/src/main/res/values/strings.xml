@@ -25,11 +25,13 @@
     <string name="hint_msg">Click the button below to generate a summary.</string>
     <string name="gen_msg">Generating summary, please wait…</string>
     <string name="no_noti_msg">There are no notifications on your phone at the moment.</string>
-    <string name="nework_err_msg">Unable to connect, please check your network settings.</string>
+    <string name="network_err_msg">Unable to connect, please check your network settings.</string>
     <string name="server_err_msg">Server error, please try again later.</string>
     <string name="timeout_msg">The server is busy, please try again later.</string>
     <string name="key_msg">Please check if your API key is valid.</string>
     <string name="quota_msg">Please check your API key quota or contact the developers.</string>
+    <string name="scheduled_summary">Scheduled Summary</string>
+    <string name="noti_content">Here\'s your notification summary!</string>
     <string name="application_name">Application Name</string>
     <string name="time">Time</string>
     <string name="title">Title</string>
