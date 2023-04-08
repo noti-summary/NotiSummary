@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
-import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.util.*
 
@@ -56,11 +55,11 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                     ) {
                         Text(
                             modifier = Modifier.weight(1f),
-                            text = item.time,
+                            text = item.getTime(),
                             style = MaterialTheme.typography.displaySmall
                         )
                         IconButton(onClick = {
-                            scheduleViewModel.deleteSchedule(item.time)
+                            scheduleViewModel.deleteSchedule(item)
                             deleteAlarm(context, item)
                         }) {
                             Icon(Icons.Rounded.Delete, contentDescription = "delete schedule")
@@ -77,10 +76,9 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     var showDialog by remember { mutableStateOf(false) }
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
-        val time = String.format("%02d:%02d", hour, minute)
         val coroutineScope = CoroutineScope(Dispatchers.IO)
         coroutineScope.launch {
-            val newSchedule = scheduleViewModel.addNewSchedule(time, hour, minute)
+            val newSchedule = scheduleViewModel.addNewSchedule(hour, minute)
             if (newSchedule != null) {
                 addAlarm(context, newSchedule)
             }

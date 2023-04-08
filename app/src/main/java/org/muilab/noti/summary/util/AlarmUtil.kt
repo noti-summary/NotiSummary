@@ -11,7 +11,7 @@ import org.muilab.noti.summary.receiver.AlarmReceiver
 import java.util.*
 
 fun addAlarm(context: Context, schedule: Schedule) {
-    Log.d("addAlarm", "time=${schedule.time}")
+    Log.d("addAlarm", "time=${schedule.getTime()}")
     Log.d("primaryKey", schedule.primaryKey.toString())
 
     val calendar = Calendar.getInstance().apply {
@@ -22,7 +22,7 @@ fun addAlarm(context: Context, schedule: Schedule) {
 
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, AlarmReceiver::class.java)
-    intent.putExtra("time", schedule.time)
+    intent.putExtra("time", schedule.getTime())
 
     val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
 
@@ -34,12 +34,12 @@ fun addAlarm(context: Context, schedule: Schedule) {
 }
 
 fun deleteAlarm(context: Context, schedule: Schedule) {
-    Log.d("deleteAlarm", "time=${schedule.time}")
+    Log.d("deleteAlarm", "time=${schedule.getTime()}")
     Log.d("primaryKey", schedule.primaryKey.toString())
 
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, AlarmReceiver::class.java)
-    intent.putExtra("time", schedule.time)
+    intent.putExtra("time", schedule.getTime())
     val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
 
     alarmManager.cancel(pendingIntent)

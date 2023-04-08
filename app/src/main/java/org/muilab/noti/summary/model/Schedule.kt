@@ -7,7 +7,10 @@ import androidx.room.PrimaryKey
 data class Schedule(
     @PrimaryKey(autoGenerate = true)
     var primaryKey: Int = 0,
-    var time: String,
     var hour: Int,
     var minute: Int
-)
+) {
+    fun getTime(): String {
+        return String.format("%02d:%02d", hour, minute)
+    }
+}

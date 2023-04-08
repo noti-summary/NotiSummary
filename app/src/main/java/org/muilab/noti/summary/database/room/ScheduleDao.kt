@@ -6,32 +6,23 @@ import org.muilab.noti.summary.model.Schedule
 
 @Dao
 interface ScheduleDao {
-    @Query("SELECT time FROM time_events")
-    fun getAllSchedule(): Flow<List<String>>
-
     @Query("SELECT * FROM time_events ORDER BY hour ASC, minute ASC")
     fun getSortedSchedules(): Flow<List<Schedule>>
 
-    @Query("SELECT * FROM time_events WHERE time = :time")
-    fun getScheduleByTime(time: String): Schedule?
+    @Query("SELECT * FROM time_events WHERE minute = :minute AND hour = :hour")
+    fun getScheduleByTime(hour: Int, minute: Int): Schedule?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertSchedule(schedule: Schedule)
 
     @Transaction
     fun insertScheduleIfNotExists(schedule: Schedule) {
-        val existingTime = getScheduleByTime(time = schedule.time)
+        val existingTime = getScheduleByTime(schedule.hour, schedule.minute)
         if (existingTime == null) {
             insertSchedule(schedule)
         }
     }
 
-    @Query("UPDATE time_events SET time = :newTime WHERE time = :oldTime")
-    fun updateTime(oldTime: String, newTime: String)
-
-    @Query("DELETE FROM time_events WHERE time = :time")
-    fun deleteByTime(time: String)
-
-    @Query("DELETE FROM time_events")
-    fun deleteAllSchedule()
+    @Query("DELETE FROM time_events WHERE hour = :hour AND minute = :minute")
+    fun deleteByTime(hour: Int, minute: Int)
 }

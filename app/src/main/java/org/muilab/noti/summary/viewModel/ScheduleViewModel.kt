@@ -11,25 +11,19 @@ class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleData
 
     private val scheduleDao = scheduleDatabase.scheduleDao()
     val allSchedule: LiveData<List<Schedule>> = scheduleDao.getSortedSchedules().asLiveData()
-    val allScheduleStr: LiveData<List<String>> = Transformations.map(allSchedule) { schedules ->
-        schedules.map { schedule ->
-            schedule.time
-        }
-    }
 
     private val scope = viewModelScope + Dispatchers.IO
 
-    suspend fun addNewSchedule(newSchedule: String, hour: Int, minute: Int): Schedule? {
-        val updateSchedule = newSchedule.trim()
+    suspend fun addNewSchedule(hour: Int, minute: Int): Schedule? {
         return withContext(Dispatchers.IO) {
-            scheduleDao.insertScheduleIfNotExists(Schedule(0, updateSchedule, hour, minute))
-            scheduleDao.getScheduleByTime(updateSchedule)
+            scheduleDao.insertScheduleIfNotExists(Schedule(0, hour, minute))
+            scheduleDao.getScheduleByTime(hour, minute)
         }
     }
 
-    fun deleteSchedule(time: String) {
+    fun deleteSchedule(schedule: Schedule) {
         scope.launch {
-            scheduleDao.deleteByTime(time)
+            scheduleDao.deleteByTime(schedule.hour, schedule.minute)
         }
     }
 }
