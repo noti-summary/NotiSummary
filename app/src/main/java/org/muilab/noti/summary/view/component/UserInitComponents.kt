@@ -217,7 +217,7 @@ fun PersonalInformationScreen(
                     )
 
                     ExposedDropdownMenu(
-                        expanded = query.isNotEmpty(),
+                        expanded = query.isNotEmpty() && filteredCountries.isNotEmpty(),
                         onDismissRequest = {},
                     ) {
                         filteredCountries.forEach { c ->
@@ -232,8 +232,8 @@ fun PersonalInformationScreen(
 
             val activity = (LocalContext.current as? Activity)
 
-            if (age.toIntOrNull().let { it != null && it > 0 } && gender.isNotEmpty() && country.isNotEmpty()) {
-                Button(
+            Button(
+                    enabled = !ageIsError && gender.isNotEmpty() && country.isNotEmpty(),
                     onClick = {
                         val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
                         val userId = sharedPref.getString("user_id", "000").toString()
@@ -278,9 +278,8 @@ fun PersonalInformationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 32.dp)
-                ) {
-                    Text(text = "歡迎使用 NotiSummary !")
-                }
+            ) {
+                Text(text = "歡迎使用 NotiSummary !")
             }
         }
     }
