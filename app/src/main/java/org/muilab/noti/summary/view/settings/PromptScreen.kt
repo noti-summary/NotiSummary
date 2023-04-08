@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.Delete
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -66,6 +68,7 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                     .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
                     .fillMaxWidth()
                     .wrapContentHeight()
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         promptViewModel.choosePrompt(item)
                     },

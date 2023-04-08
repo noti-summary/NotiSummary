@@ -12,8 +12,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -57,6 +59,7 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                     .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
                     .fillMaxWidth()
                     .height(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         apiKeyViewModel.chooseAPI(item)
                     },
