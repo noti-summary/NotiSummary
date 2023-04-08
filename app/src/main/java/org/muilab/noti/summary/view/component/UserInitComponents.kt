@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -35,9 +37,7 @@ import org.muilab.noti.summary.util.TAG
 import java.util.*
 
 @Composable
-fun PrivacyPolicyDialog(
-    onAgree: () -> Unit
-) {
+fun PrivacyPolicyDialog(onAgree: () -> Unit) {
     var agree by remember { mutableStateOf(false) }
     val privacyURL = "https://notisum.nycu.me" // TODO: Change in the future
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -46,9 +46,7 @@ fun PrivacyPolicyDialog(
     AlertDialog(
         onDismissRequest = {},
         modifier = Modifier.wrapContentSize(),
-        title = {
-            Text(text = "隱私權政策")
-        },
+        title = { Text(text = "隱私權政策") },
         text = {
             Column {
                 Box {
@@ -86,6 +84,7 @@ fun PersonalInformationScreen(
     onContinue: (Int, String, String) -> Unit
 ) {
     var age by remember { mutableStateOf("") }
+    var ageIsError by rememberSaveable { mutableStateOf(false) }
 
     var gender by remember { mutableStateOf("") }
     val genderOptions = listOf("男性", "女性", "非二元性別", "不便透露")
@@ -105,11 +104,18 @@ fun PersonalInformationScreen(
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
+    fun validateAge(age: String) {
+        val ageInt = age.toIntOrNull()
+        ageIsError = if (ageInt == null) {
+            true
+        } else {
+            ageInt <= 0
+        }
+    }
+
     Box (Modifier.background(MaterialTheme.colorScheme.surface)) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
         ) {
             Text(
                 text = "請填寫您的基本資料",
@@ -120,18 +126,25 @@ fun PersonalInformationScreen(
 
             OutlinedTextField(
                 value = age,
-                onValueChange = { age = it },
+                onValueChange = { age = it; validateAge(age) },
                 label = { Text("年齡") },
                 colors = customTextFieldColors,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                isError = ageIsError,
+                supportingText = {
+                    if (ageIsError) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "請輸入合法的年齡",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
             )
 
             ExposedDropdownMenuBox(
-                expanded = genderExpanded,
-                onExpandedChange = {genderExpanded}
+                expanded = genderExpanded, {}
             ) {
 
                 OutlinedTextField(
@@ -175,17 +188,12 @@ fun PersonalInformationScreen(
                     onValueChange = {},
                     label = { Text("居住國家/地區") },
                     colors = customTextFieldColors,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     readOnly = true,
                     trailingIcon = {
                         Icon(Icons.Default.Clear,
                             contentDescription = "clear text",
-                            modifier = Modifier
-                                .clickable {
-                                    country = ""
-                                }
+                            modifier = Modifier.clickable { country = "" }
                         )
                     }
                 )
