@@ -142,7 +142,7 @@ class NotiListenerService: NotificationListenerService() {
                 .replace(",", " ")
         }
 
-        val notiFilterPrefs = applicationContext.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+        val appFilterPrefs = applicationContext.getSharedPreferences("app_filter", Context.MODE_PRIVATE)
         val userIdPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
 
         activeNotifications.forEach {
@@ -156,7 +156,7 @@ class NotiListenerService: NotificationListenerService() {
             if (appName == "null" || title == "null" || content == "null")
                 return@forEach
 
-            if (!notiFilterPrefs.getBoolean(notiItem.getPackageName(), true))
+            if (!appFilterPrefs.getBoolean(notiItem.getPackageName(), true))
                 return@forEach
                 
             notiUnits.add(NotiUnit(appName, time, title, content))

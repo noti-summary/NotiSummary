@@ -9,7 +9,8 @@
     <string name="generate_summary">產生摘要</string>
     <string name="prompt">提示句</string>
     <string name="openai_api_key">OpenAI API 金鑰</string>
-    <string name="app_covered">摘要涵蓋的應用程式</string>
+    <string name="app_covered">摘要範圍 (應用程式)</string>
+    <string name="noti_info_covered">摘要範圍 (通知資訊)</string>
     <string name="cancel">取消</string>
     <string name="ok">確認</string>
     <string name="default_prompt">預設摘要提示句</string>
@@ -29,6 +30,10 @@
     <string name="timeout_msg">伺服器忙碌中，請稍後再試</string>
     <string name="key_msg">請確認您的 API 金鑰是否有誤</string>
     <string name="quota_msg">請確認您的 API 金鑰額度或聯繫開發人員</string>
+    <string name="application_name">應用程式名稱</string>
+    <string name="time">時間</string>
+    <string name="title">標題</string>
+    <string name="content">內容</string>
     <string name="feedback">意見回饋</string>
     <string name="about">關於 NotiSummary</string>
     <string name="recruitment">研究受試者招募中 🔥</string>
