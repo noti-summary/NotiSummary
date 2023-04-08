@@ -158,7 +158,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 val responseText =
-                    response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")
+                    response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")?.removeSurrounding("\"")
                 val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 updateLiveDataValue(summary)
             } else {
