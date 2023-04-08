@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
@@ -153,6 +154,7 @@ fun APIKeyEditor(
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },
                 label = { Text(stringResource(R.string.api_key)) },
+                textStyle = MaterialTheme.typography.bodyLarge
             )
         },
         confirmButton = {

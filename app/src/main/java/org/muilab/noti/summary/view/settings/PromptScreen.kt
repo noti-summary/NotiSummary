@@ -206,6 +206,7 @@ fun PromptEditor(
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },
                 label = { Text(stringResource(R.string.prompt)) },
+                textStyle = MaterialTheme.typography.bodyLarge
             )
         },
         confirmButton = {
