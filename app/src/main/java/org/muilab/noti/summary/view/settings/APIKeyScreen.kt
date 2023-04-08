@@ -55,7 +55,7 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                 modifier = Modifier
                     .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .height(60.dp)
                     .clickable {
                         apiKeyViewModel.chooseAPI(item)
                     },
@@ -70,7 +70,7 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                 shape = MaterialTheme.shapes.medium,
             ) {
                 Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
