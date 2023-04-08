@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NotiSummary</string>
+    <string name="app_name" translatable="false">NotiSummary</string>
     <string name="back_button">Back</string>
     <string name="daily_quota">Daily Credit</string>
     <string name="settings">Settings</string>
