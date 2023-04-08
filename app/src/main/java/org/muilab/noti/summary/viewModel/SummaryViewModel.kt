@@ -93,7 +93,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             val input = filterMap.filter { attribute -> notiFilterPrefs.getBoolean(attribute.key, true) }
                 .values
                 .joinToString(separator = ", ")
-
+            
             sb.append("$input\n")
         }
         return sb.toString()

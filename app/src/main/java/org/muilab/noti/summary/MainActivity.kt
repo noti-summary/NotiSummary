@@ -45,6 +45,14 @@ class MainActivity : ComponentActivity() {
         val locale: String = primaryLocale.displayName
 
         Log.d("MainActivity", locale)
+
+        val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+        if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
+            with(notiFilterPrefs.edit()) {
+                putBoolean(getString(R.string.content), false)
+                apply()
+            }
+        }
         
         setContent {
             NotiappTheme {
