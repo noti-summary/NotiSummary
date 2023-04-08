@@ -156,6 +156,9 @@ class NotiListenerService: NotificationListenerService() {
             if (appName == "null" || title == "null" || content == "null")
                 return@forEach
 
+            if (notiItem.getPackageName() == "org.muilab.noti.summary")
+                return@forEach
+
             if (!appFilterPrefs.getBoolean(notiItem.getPackageName(), true))
                 return@forEach
                 
