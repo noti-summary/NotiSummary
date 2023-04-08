@@ -34,4 +34,7 @@
     <string name="time">Time</string>
     <string name="title">Title</string>
     <string name="content">Content</string>
+    <string name="feedback">Feedback &amp; Suggestions</string>
+    <string name="about">About NotiSummary</string>
+    <string name="recruitment">Join Our Study as a Participant 🔥</string>
 </resources>

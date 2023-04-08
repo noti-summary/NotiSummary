@@ -22,12 +22,16 @@ import org.muilab.noti.summary.R
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
+
 enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
     Start(R.string.main_setting, R.drawable.settings),
     SettingPrompt(R.string.prompt, R.drawable.setting_sms),
     SettingAPI(R.string.openai_api_key, R.drawable.setting_key),
     SettingAppFilter(R.string.app_covered, R.drawable.play_store),
     SettingNotiFilter(R.string.noti_info_covered, R.drawable.mail),
+    Feedback(R.string.feedback, R.drawable.feedback),
+    About(R.string.about, R.drawable.about),
+    Recruitment(R.string.recruitment, R.drawable.participant),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -122,6 +126,15 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.SettingNotiFilter.name) {
             NotiFilterScreen(context)
+        }
+        composable(SettingScreenItem.Feedback.name) {
+            FeedbackScreen()
+        }
+        composable(SettingScreenItem.About.name) {
+            AboutScreen()
+        }
+        composable(SettingScreenItem.Recruitment.name) {
+            RecruitmentScreen()
         }
     }
 }

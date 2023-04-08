@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -21,6 +22,9 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun MainSettingScreen(navController: NavHostController) {
+
+    val uriHandler = LocalUriHandler.current
+
     MaterialTheme {
         Column {
             LazyColumn(modifier = Modifier.fillMaxHeight()) {
@@ -33,7 +37,17 @@ fun MainSettingScreen(navController: NavHostController) {
                             .padding(3.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
-                            .clickable { navController.navigate(it.name) },
+                            .clickable {
+                                if (it.name == "Feedback") {
+                                    uriHandler.openUri("https://example.com")
+                                } else if (it.name == "About") {
+                                    uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
+                                } else if (it.name == "Recruitment") {
+                                    uriHandler.openUri("https://example.com")
+                                } else {
+                                    navController.navigate(it.name)
+                                }
+                            },
                         shape = MaterialTheme.shapes.medium,
                     ) {
                         Row(
