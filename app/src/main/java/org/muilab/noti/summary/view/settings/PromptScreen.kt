@@ -72,9 +72,9 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                 colors = CardDefaults.cardColors(
                     containerColor =
                     if (item == selectedOption.value) {
-                        Color.DarkGray
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        Color.Gray
+                        MaterialTheme.colorScheme.inverseOnSurface
                     }
                 ),
                 shape = MaterialTheme.shapes.medium,
@@ -87,6 +87,12 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                     Text(
                         modifier = Modifier.weight(1f),
                         text = item,
+                        color =
+                        if (item == selectedOption.value) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        }
                     )
 
                     IconButton(

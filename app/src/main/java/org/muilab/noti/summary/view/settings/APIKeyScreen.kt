@@ -63,9 +63,9 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                 colors = CardDefaults.cardColors(
                     containerColor =
                     if (item == selectedOption.value) {
-                        Color.DarkGray
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        Color.Gray
+                        MaterialTheme.colorScheme.inverseOnSurface
                     }
                 ),
                 shape = MaterialTheme.shapes.medium,
@@ -82,6 +82,12 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                         } else {
                             defaultAPIKey
                         },
+                        color =
+                        if (item == selectedOption.value) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        }
                     )
 
                     if (item != defaultAPIKey) {
