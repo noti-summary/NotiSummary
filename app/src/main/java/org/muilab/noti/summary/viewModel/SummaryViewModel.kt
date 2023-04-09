@@ -22,22 +22,25 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
-import org.json.JSONException
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
 
-class SummaryViewModel(application: Application): AndroidViewModel(application) {
-    private val sharedPreferences = getApplication<Application>().getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
-    private val apiPref = getApplication<Application>().getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
+class SummaryViewModel(application: Application) : AndroidViewModel(application) {
+    private val sharedPreferences =
+        getApplication<Application>().getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    private val apiPref =
+        getApplication<Application>().getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
 
     private val _notifications = MutableLiveData<List<NotiUnit>>()
     val notifications: LiveData<List<NotiUnit>> = _notifications
 
     private val _result = MutableLiveData<String>()
     val result: LiveData<String> = _result
+
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
 
@@ -51,7 +54,10 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     private val mediaType = "application/json; charset=utf-8".toMediaType()
 
     init {
-        val resultValue = sharedPreferences.getString("resultValue", SummaryResponse.HINT.message)
+        val resultValue = sharedPreferences.getString(
+            "resultValue",
+            application.getString(SummaryResponse.HINT.message)
+        )
         _result.value = resultValue!!
     }
 
@@ -62,28 +68,33 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
             editor.putString("resultValue", newValue)
             editor.apply()
 
-            val userAPIKey = sharedPreferences.getString("userAPIKey", "default")!!
-            if (userAPIKey == "default") {
+            val userAPIKey = sharedPreferences.getString("userAPIKey", context.getString(R.string.system_key))!!
+            if (userAPIKey == context.getString(R.string.system_key)) {
                 subtractCredit(1)
             }
 
         } else {
-            _result.postValue(SummaryResponse.SERVER_ERROR.message)
+            _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
         }
     }
 
     private fun getPostContent(activeNotifications: ArrayList<NotiUnit>): String {
         val sb = StringBuilder()
         activeNotifications.shuffle()
-        activeNotifications.forEach {
+        activeNotifications.forEach { noti ->
 
-            val appName = it.appName
-            val time = it.time
-            val title = it.title
-            val content = it.content
+            val filterMap = mutableMapOf<String, String>()
+            filterMap[context.getString(R.string.application_name)] = "App: ${noti.appName}"
+            filterMap[context.getString(R.string.time)] = "Time: ${noti.time}"
+            filterMap[context.getString(R.string.title)] = "Title: ${noti.title}"
+            filterMap[context.getString(R.string.content)] = "Content: ${noti.content}"
 
-            sb.append("App: $appName, Time: $time, Title: $title, Content: $content\n")
-            // sb.append("[App] $appName\n[Time] $time\n[Title] $title\n[Content] $content\n\n")
+            val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+            val input = filterMap.filter { attribute -> notiFilterPrefs.getBoolean(attribute.key, true) }
+                .values
+                .joinToString(separator = ", ")
+
+            sb.append("$input\n")
         }
         return sb.toString()
     }
@@ -95,15 +106,15 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
     }
 
     fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>) {
-        if (activeNotifications.size > 0){
-            _result.postValue(SummaryResponse.GENERATING.message)
+        if (activeNotifications.size > 0) {
+            _result.postValue(context.getString(SummaryResponse.GENERATING.message))
             val postContent = getPostContent(activeNotifications)
             _notifications.postValue(activeNotifications.toList())
             viewModelScope.launch {
                 sendToServer(postContent)
             }
         } else {
-            _result.postValue(SummaryResponse.NO_NOTIFICATION.message)
+            _result.postValue(context.getString(SummaryResponse.NO_NOTIFICATION.message))
         }
     }
 
@@ -119,16 +130,16 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         data class GPTRequest(val prompt: String, val content: String)
         data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-        val userAPIKey = apiPref.getString("userAPIKey", "系統金鑰")!!
+        val userAPIKey = apiPref.getString("userAPIKey", context.getString(R.string.system_key))!!
 
-        val requestURL = if(userAPIKey == "系統金鑰") {
+        val requestURL = if (userAPIKey == context.getString(R.string.system_key)) {
             serverURL
         } else {
             "$serverURL/key"
         }
 
         @Suppress("IMPLICIT_CAST_TO_ANY")
-        val gptRequest = if(userAPIKey == "系統金鑰") {
+        val gptRequest = if (userAPIKey == context.getString(R.string.system_key)) {
             GPTRequest(prompt, content)
         } else {
             Log.d("sendToServer", "userAPIKey: $userAPIKey")
@@ -145,32 +156,37 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         try {
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val responseText = response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                val responseText =
+                    response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
                 val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 updateLiveDataValue(summary)
             } else {
                 response.body?.let {
                     val responseBody = it.string()
                     Log.i("ServerResponse", responseBody)
-                    if (responseBody.contains("You didn't provide an API key") || responseBody.contains("Incorrect API key provided")) {
-                        _result.postValue(SummaryResponse.APIKEY_ERROR.message)
+                    if (responseBody.contains("You didn't provide an API key") ||
+                        responseBody.contains("Incorrect API key provided")
+                    ) {
+                        _result.postValue(context.getString(SummaryResponse.APIKEY_ERROR.message))
+                    } else if (responseBody.contains("exceeded your current quota")) {
+                        _result.postValue(context.getString(SummaryResponse.QUOTA_ERROR.message))
                     } else {
-                        _result.postValue(SummaryResponse.SERVER_ERROR.message)
+                        _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
                     }
-                } ?:let {
-                    _result.postValue(SummaryResponse.SERVER_ERROR.message)
+                } ?: let {
+                    _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
                 }
             }
             response.close()
         } catch (e: InterruptedIOException) {
             Log.i("InterruptedIOException", e.toString())
-            _result.postValue(SummaryResponse.TIMEOUT_ERROR.message)
+            _result.postValue(context.getString(SummaryResponse.TIMEOUT_ERROR.message))
         } catch (e: IOException) {
             Log.i("IOException", e.toString())
-            _result.postValue(SummaryResponse.NETWORK_ERROR.message)
-        } catch (e: JSONException) {
-            Log.i("JSONException", e.toString())
-            _result.postValue(SummaryResponse.SERVER_ERROR.message)
+            _result.postValue(context.getString(SummaryResponse.NETWORK_ERROR.message))
+        } catch (e: Exception) {
+            Log.i("Exception in sendToServer", e.toString())
+            _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
         }
     }
 
@@ -183,7 +199,7 @@ class SummaryViewModel(application: Application): AndroidViewModel(application) 
         docRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 val res = document.toObject<UserCredit>()!!
-                docRef.update("credit", res.credit-number)
+                docRef.update("credit", res.credit - number)
             }
         }
     }

@@ -4,10 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.State
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.*
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -20,7 +17,7 @@ import com.google.firebase.firestore.ListenerRegistration
  * @see [State]
  * @see [documentStateOf]
  */
-interface DocumentState : State<FirestoreDocument>, LifecycleObserver {
+interface DocumentState : State<FirestoreDocument>, LifecycleEventObserver {
     override val value: FirestoreDocument
     fun startListening()
     fun stopListening()
@@ -51,9 +48,28 @@ fun documentStateOf(
 
     init {
         lifecycleOwner?.lifecycle?.addObserver(this)
+
+        listener = documentReference.addSnapshotListener { snapshot, exception ->
+            if (exception != null) {
+                snapshotState = FirestoreDocument.Error(exception)
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
+                snapshotState = FirestoreDocument.Snapshot(snapshot)
+            } else {
+                snapshotState = FirestoreDocument.Error(Exception("Document does not exist"))
+            }
+        }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        when (event) {
+            Lifecycle.Event.ON_START -> startListening()
+            Lifecycle.Event.ON_STOP -> stopListening()
+            else -> Unit
+        }
+    }
+
     override fun startListening() {
         if (listener == null) {
             listener = documentReference.addSnapshotListener { value, error ->
@@ -67,7 +83,6 @@ fun documentStateOf(
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     override fun stopListening() {
         listener?.remove()
     }

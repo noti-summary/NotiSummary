@@ -2,17 +2,13 @@ package org.muilab.noti.summary.view.settings
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.drawable.Icon
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,16 +19,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.view.settings.APIKeyScreen
-import org.muilab.noti.summary.view.settings.MainSettingScreen
-import org.muilab.noti.summary.view.settings.PromptScreen
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
-enum class SettingScreenItem(var title: String, var iconId: Int) {
-    Start("Main Setting Page", R.drawable.settings),
-    SettingPrompt("提示句設定", R.drawable.setting_sms),
-    SettingAPI("OpenAI API 金鑰設定", R.drawable.setting_key),
+
+enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
+    Start(R.string.main_setting, R.drawable.settings),
+    SettingPrompt(R.string.prompt, R.drawable.setting_sms),
+    SettingAPI(R.string.openai_api_key, R.drawable.setting_key),
+    SettingAppFilter(R.string.app_covered, R.drawable.play_store),
+    SettingNotiFilter(R.string.noti_info_covered, R.drawable.mail),
+    Feedback(R.string.feedback, R.drawable.feedback),
+    About(R.string.about, R.drawable.about),
+    Recruitment(R.string.recruitment, R.drawable.participant),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -80,7 +79,7 @@ fun SettingTopBar(
 ) {
     if (currentScreen != SettingScreenItem.Start) {
         TopAppBar(
-            title = { Text(currentScreen.title) },
+            title = { Text(stringResource(currentScreen.titleId)) },
             modifier = modifier,
             navigationIcon = {
                 if (canNavigateBack) {
@@ -95,7 +94,7 @@ fun SettingTopBar(
         )
     } else {
         Text(
-            text = "設定",
+            text = stringResource(R.string.settings),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
@@ -121,6 +120,21 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.SettingAPI.name) {
             APIKeyScreen(apiKeyViewModel)
+        }
+        composable(SettingScreenItem.SettingAppFilter.name) {
+            AppFilterScreen(context)
+        }
+        composable(SettingScreenItem.SettingNotiFilter.name) {
+            NotiFilterScreen(context)
+        }
+        composable(SettingScreenItem.Feedback.name) {
+            FeedbackScreen()
+        }
+        composable(SettingScreenItem.About.name) {
+            AboutScreen()
+        }
+        composable(SettingScreenItem.Recruitment.name) {
+            RecruitmentScreen()
         }
     }
 }
