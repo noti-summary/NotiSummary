@@ -10,8 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import org.muilab.noti.summary.R
 
 @Composable
 fun PrivacyPolicyDialog(onAgree: () -> Unit) {
@@ -23,7 +25,7 @@ fun PrivacyPolicyDialog(onAgree: () -> Unit) {
     AlertDialog(
         onDismissRequest = {},
         modifier = Modifier.wrapContentSize(),
-        title = { Text(text = "隱私權政策") },
+        title = { Text(stringResource(R.string.privacy_policy)) },
         text = {
             Column {
                 Box {
@@ -41,13 +43,13 @@ fun PrivacyPolicyDialog(onAgree: () -> Unit) {
                         checked = agree,
                         onCheckedChange = { agree = it }
                     )
-                    Text(text = "我同意本APP之隱私權政策")
+                    Text(stringResource(R.string.agree_privacy_policy))
                 }
             }
         },
         confirmButton = {
             Button(onClick = onAgree, enabled = agree) {
-                Text(text = "Agree")
+                Text(stringResource(R.string.ok))
             }
         }
     )

@@ -37,4 +37,20 @@
     <string name="feedback">Feedback &amp; Suggestions</string>
     <string name="about">About NotiSummary</string>
     <string name="recruitment">Join Our Study as a Participant 🔥</string>
+    <string name="network_check">Please check your Internet connection</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="agree_privacy_policy">I acknowledge and agree to the privacy policy.</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="non_binary">Non-binary</string>
+    <string name="not_to_state">Prefer not to state</string>
+    <string name="fill_background">Your Basic Information</string>
+    <string name="age">Age</string>
+    <string name="age_error">Age invalid</string>
+    <string name="gender">Gender</string>
+    <string name="select_gender">Select Gender</string>
+    <string name="country">Country/Region</string>
+    <string name="clear_text">Clear Text</string>
+    <string name="search_country">Search Country/Region</string>
+    <string name="welcome">Welcome to NotiSummary!</string>
 </resources>

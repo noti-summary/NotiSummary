@@ -1,12 +1,5 @@
 package org.muilab.noti.summary.view.userInit
 
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,14 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import org.muilab.noti.summary.MainActivity
-import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.R
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +29,12 @@ fun PersonalInformationScreen(
     var ageIsError by rememberSaveable { mutableStateOf(false) }
 
     var gender by remember { mutableStateOf("") }
-    val genderOptions = listOf("男性", "女性", "非二元性別", "不便透露")
+    val genderOptions = listOf(
+        stringResource(R.string.male),
+        stringResource(R.string.female),
+        stringResource(R.string.non_binary),
+        stringResource(R.string.not_to_state)
+    )
     var genderExpanded by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed: Boolean by interactionSource.collectIsPressedAsState()
@@ -68,10 +62,12 @@ fun PersonalInformationScreen(
 
     Box (Modifier.background(MaterialTheme.colorScheme.surface)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
             Text(
-                text = "請填寫您的基本資料",
+                text = stringResource(R.string.fill_background),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(vertical = 16.dp)
@@ -80,16 +76,18 @@ fun PersonalInformationScreen(
             OutlinedTextField(
                 value = age,
                 onValueChange = { age = it; validateAge(age) },
-                label = { Text("年齡") },
+                label = { Text(stringResource(R.string.age)) },
                 colors = customTextFieldColors,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
                 isError = ageIsError,
                 supportingText = {
                     if (ageIsError) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "請輸入合法的年齡",
+                            text = stringResource(R.string.age_error),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -103,7 +101,7 @@ fun PersonalInformationScreen(
                 OutlinedTextField(
                     value = gender,
                     onValueChange = { gender = it },
-                    label = { Text("性別") },
+                    label = { Text(stringResource(R.string.gender)) },
                     colors = customTextFieldColors,
                     readOnly = true,
                     interactionSource = interactionSource,
@@ -113,7 +111,7 @@ fun PersonalInformationScreen(
                         .padding(top = 16.dp)
                         .clickable(onClick = { genderExpanded = true }),
                     trailingIcon = {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "Select")
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = stringResource(R.string.select_gender))
                     }
                 )
 
@@ -139,13 +137,15 @@ fun PersonalInformationScreen(
                 OutlinedTextField(
                     value = country,
                     onValueChange = {},
-                    label = { Text("居住國家/地區") },
+                    label = { Text(stringResource(R.string.country)) },
                     colors = customTextFieldColors,
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                     readOnly = true,
                     trailingIcon = {
                         Icon(Icons.Default.Clear,
-                            contentDescription = "clear text",
+                            contentDescription = stringResource(R.string.clear_text),
                             modifier = Modifier.clickable { country = "" }
                         )
                     }
@@ -160,13 +160,13 @@ fun PersonalInformationScreen(
                     OutlinedTextField(
                         value = query,
                         onValueChange = { query = it },
-                        label = { Text("居住國家/地區") },
+                        label = { Text(stringResource(R.string.country)) },
                         colors = customTextFieldColors,
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth()
                             .padding(top = 16.dp),
-                        trailingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") }
+                        trailingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_country)) }
                     )
 
                     ExposedDropdownMenu(
@@ -190,7 +190,7 @@ fun PersonalInformationScreen(
                         .fillMaxWidth()
                         .padding(top = 32.dp)
             ) {
-                Text(text = "歡迎使用 NotiSummary !")
+                Text(stringResource(R.string.welcome))
             }
         }
     }
