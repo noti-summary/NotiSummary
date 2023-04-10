@@ -1,21 +1,14 @@
 package org.muilab.noti.summary
 
-import android.Manifest
-import android.app.AppOpsManager
 import android.content.*
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
-import android.os.Process
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.installations.FirebaseInstallations
@@ -23,7 +16,6 @@ import com.google.firebase.ktx.Firebase
 import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.database.room.ScheduleDatabase
-import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.ui.theme.NotiappTheme
@@ -35,7 +27,6 @@ import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
-import java.util.*
 
 
 const val maxCredit: Int = 50
@@ -60,38 +51,48 @@ class MainActivity : ComponentActivity() {
         }
 
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-        val agreeTerms = sharedPref.getBoolean("agreeTerms", false)
-        val age = sharedPref.getInt("age", -1)
-        val userId = sharedPref.getString("user_id", "000")
-        
         setContent {
+
+            var initStatus by remember {
+                mutableStateOf(sharedPref.getString("initStatus", "NOT_STARTED").toString())
+            }
+
             NotiappTheme {
-                if (!agreeTerms) {
-                    if (isNetworkConnected())
-                        PrivacyPolicyDialog(onAgree = {
-                            with(sharedPref.edit()) {
-                                putBoolean("agreeTerms", true)
-                                apply()
+                when(initStatus) {
+                    "NOT_STARTED" -> {
+                        if (isNetworkConnected())
+                            PrivacyPolicyDialog(onAgree = {
+                                with(sharedPref.edit()) {
+                                    putBoolean("agreeTerms", true)
+                                    putString("initStatus", "AGREED")
+                                    apply()
+                                }
+                                initStatus = "AGREED"
+                            })
+                        else
+                            NetworkCheckDialog(applicationContext)
+                    }
+                    "AGREED" -> {
+                        PersonalInformationScreen(
+                            onContinue = { age, gender, country ->
+                                with(sharedPref.edit()) {
+                                    putInt("age", age)
+                                    putString("gender", gender)
+                                    putString("country", country)
+                                    putString("initStatus", "USER_INFO_FILLED")
+                                    apply()
+                                }
+                                initStatus = "USER_INFO_FILLED"
                             }
-                            appRestart()
-                        })
-                    else
-                        NetworkCheckDialog(applicationContext)
-                } else if (age < 0) {
-                    PersonalInformationScreen(
-                        onContinue = { age, gender, country ->
-                            with(sharedPref.edit()) {
-                                putInt("age", age)
-                                putString("gender", gender)
-                                putString("country", country)
-                                apply()
-                            }
-                            appRestart()
-                        })
-                } else {
-                    if (userId == "000")
+                        )
+                    }
+                    "USER_INFO_FILLED" -> {
                         setUserId()
-                    MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
+                        initStatus = "USER_READY"
+                    }
+                    "USER_READY" -> {
+                        MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
+                    }
                 }
             }
         }
@@ -174,6 +175,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     with(sharedPref.edit()) {
                                         putString("user_id", userId)
+                                        putString("initStatus", "USER_READY")
                                         apply()
                                     }
                                     initSuccess = 1
@@ -193,12 +195,6 @@ class MainActivity : ComponentActivity() {
         }
         if (initSuccess == -1)
             NetworkCheckDialog(applicationContext)
-    }
-
-    fun appRestart() {
-        val restartIntent = Intent(this, MainActivity::class.java)
-        startActivity(restartIntent)
-        finish()
     }
 
     fun isNetworkConnected(): Boolean {
