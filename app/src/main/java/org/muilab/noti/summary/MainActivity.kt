@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     if (userId == "000")
                         setUserId()
-                    MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
+                    MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
                 }
             }
         }
