@@ -45,7 +45,7 @@ fun HomeScreen(
     promptViewModel: PromptViewModel
 ) {
 
-    val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
 
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }

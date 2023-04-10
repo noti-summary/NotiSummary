@@ -190,7 +190,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun subtractCredit(number: Int) {
-        val sharedPref = context.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+        val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
         val userId = sharedPref.getString("user_id", "000").toString()
 
         val db = Firebase.firestore

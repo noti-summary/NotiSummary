@@ -103,7 +103,7 @@ class NotiListenerService: NotificationListenerService() {
                 return
             }
 
-            val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+            val sharedPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
             val userId = sharedPref.getString("user_id", "000").toString()
             val notiItem = NotiItem(this, sbn, userId)
 
@@ -129,7 +129,7 @@ class NotiListenerService: NotificationListenerService() {
         rankingMap: RankingMap?,
         reason: Int
     ) {
-        val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+        val sharedPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
         val userId = sharedPref.getString("user_id", "000").toString()
         val notiItem = NotiItem(this, sbn, userId)
     }
@@ -143,10 +143,10 @@ class NotiListenerService: NotificationListenerService() {
         }
 
         val appFilterPrefs = applicationContext.getSharedPreferences("app_filter", Context.MODE_PRIVATE)
-        val userIdPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+        val userPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
 
         activeNotifications.forEach {
-            val userId = userIdPref.getString("user_id", "000").toString()
+            val userId = userPref.getString("user_id", "000").toString()
             val notiItem = NotiItem(this, it, userId)
             val appName = replaceChars(notiItem.getAppName())
             val time = replaceChars(notiItem.getTimeStr())
