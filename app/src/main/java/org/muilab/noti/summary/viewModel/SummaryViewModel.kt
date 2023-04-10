@@ -27,7 +27,12 @@ import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
+import org.muilab.noti.summary.view.SummaryResponse
+import java.io.*
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 class SummaryViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences =
@@ -76,7 +81,50 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun getPostContent(activeNotifications: ArrayList<NotiUnit>): String {
+    fun saveCsv(activeNotifications: ArrayList<NotiUnit>) {
+        try {
+            val simpleDateFormat = SimpleDateFormat("MMddHHmm")
+            val date = Date()
+            val logDir = context.getExternalFilesDir(null)
+            val file = File(logDir, "${simpleDateFormat.format(date)}_drawer.csv")
+            val fos = FileOutputStream(file)
+            val osw = OutputStreamWriter(fos, "UTF-8")
+            val writer = PrintWriter(osw)
+
+            writer.println("App, Time, Title, Content")
+
+            activeNotifications.forEach {
+                val appName = it.appName
+                val time = it.time
+                val title = it.title
+                val content = it.content
+                writer.println("\"$appName\", \"$time\", \"$title\", \"$content\"")
+            }
+
+            writer.close()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun saveJson(postBody: String) {
+        val simpleDateFormat = SimpleDateFormat("MMddHHmm")
+        val date = Date()
+        val logDir = context.getExternalFilesDir(null)
+        val file = File(logDir, "${simpleDateFormat.format(date)}_postBody.json")
+        file.writeText(postBody)
+    }
+
+    fun saveSummary(postBody: String) {
+        val simpleDateFormat = SimpleDateFormat("MMddHHmm")
+        val date = Date()
+        val logDir = context.getExternalFilesDir(null)
+        val file = File(logDir, "${simpleDateFormat.format(date)}_summary.txt")
+        file.writeText(postBody)
+    }
+
+    fun getPostContent(activeNotifications: ArrayList<NotiUnit>) : String {
         val sb = StringBuilder()
         activeNotifications.shuffle()
         activeNotifications.forEach { noti ->
@@ -108,6 +156,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         if (activeNotifications.size > 0){
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
             val postContent = getPostContent(activeNotifications)
+            saveCsv(activeNotifications)
             _notifications.postValue(activeNotifications.toList())
             viewModelScope.launch {
                 sendToServer(postContent)
@@ -146,6 +195,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         }
 
         val postBody = Gson().toJson(gptRequest)
+        saveJson(postBody)
 
         val request = Request.Builder()
             .url(requestURL)
@@ -159,6 +209,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                     response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")?.removeSurrounding("\"")
                 val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 updateLiveDataValue(summary)
+                summary?.let { saveSummary(it) }
             } else {
                 response.body?.let {
                     val responseBody = it.string()
