@@ -52,7 +52,7 @@ fun SummaryCard(context: Context, sumViewModel: SummaryViewModel, promptViewMode
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.End
                 ) {
                     DislikeButton(likeDislike, summaryPerfs)
                     LikeButton(likeDislike, summaryPerfs)
