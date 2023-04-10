@@ -33,6 +33,7 @@ enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
     SettingNotiFilter(R.string.noti_info_covered, R.drawable.mail),
     Feedback(R.string.feedback, R.drawable.feedback),
     About(R.string.about, R.drawable.about),
+    Privacy(R.string.privacy_policy, R.drawable.privacy_policy),
     Recruitment(R.string.recruitment, R.drawable.participant),
 }
 
@@ -140,6 +141,9 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.About.name) {
             AboutScreen()
+        }
+        composable(SettingScreenItem.Privacy.name) {
+            PrivacyScreen()
         }
         composable(SettingScreenItem.Recruitment.name) {
             RecruitmentScreen()

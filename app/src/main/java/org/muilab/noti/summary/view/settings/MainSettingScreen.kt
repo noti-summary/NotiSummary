@@ -45,6 +45,8 @@ fun MainSettingScreen(navController: NavHostController) {
                                     uriHandler.openUri("https://forms.gle/LSe1fZP2sDnXUtC59")
                                 } else if (it.name == "About") {
                                     uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
+                                } else if (it.name == "Privacy") {
+                                    uriHandler.openUri("https://example.com")
                                 } else if (it.name == "Recruitment") {
                                     uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
                                 } else {
