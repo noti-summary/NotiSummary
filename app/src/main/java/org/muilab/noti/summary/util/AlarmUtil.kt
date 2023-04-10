@@ -18,11 +18,13 @@ fun addAlarm(context: Context, schedule: Schedule) {
         timeZone = TimeZone.getDefault()
         set(Calendar.HOUR_OF_DAY, schedule.hour)
         set(Calendar.MINUTE, schedule.minute)
+        set(Calendar.SECOND, 0)
     }
 
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, AlarmReceiver::class.java)
-    intent.putExtra("time", schedule.getTime())
+    intent.putExtra("hour", schedule.hour)
+    intent.putExtra("minute", schedule.minute)
 
     val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
 
@@ -39,7 +41,8 @@ fun deleteAlarm(context: Context, schedule: Schedule) {
 
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val intent = Intent(context, AlarmReceiver::class.java)
-    intent.putExtra("time", schedule.getTime())
+    intent.putExtra("hour", schedule.hour)
+    intent.putExtra("minute", schedule.minute)
     val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
 
     alarmManager.cancel(pendingIntent)
