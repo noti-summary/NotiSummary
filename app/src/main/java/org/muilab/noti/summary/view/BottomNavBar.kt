@@ -15,13 +15,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import org.muilab.noti.summary.view.home.HomeScreen
+import org.muilab.noti.summary.view.settings.SettingsScreen
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
+import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 sealed class BottomNavItem(var title: String, var icon: ImageVector, var screen_route: String) {
@@ -37,7 +39,8 @@ fun MainScreenView(
     lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
     promptViewModel: PromptViewModel,
-    apiKeyViewModel: APIKeyViewModel
+    apiKeyViewModel: APIKeyViewModel,
+    scheduleViewModel: ScheduleViewModel
 ) {
     val navController = rememberNavController()
     Scaffold(
@@ -45,37 +48,17 @@ fun MainScreenView(
     ) { innerPadding ->
         // Apply the padding globally to the whole navController
         Box(modifier = Modifier.padding(innerPadding)) {
-            NavigationGraph(
-                navController = navController,
-                context,
-                lifecycleOwner,
-                sumViewModel,
-                promptViewModel,
-                apiKeyViewModel
-            )
+            NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
+                composable(BottomNavItem.Home.screen_route) {
+                    HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
+                }
+                composable(BottomNavItem.Settings.screen_route) {
+                    SettingsScreen(promptViewModel, apiKeyViewModel, scheduleViewModel, context)
+                }
+            }
         }
     }
 }
-
-@Composable
-fun NavigationGraph(
-    navController: NavHostController,
-    context: Context,
-    lifecycleOwner: LifecycleOwner,
-    sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel,
-    apiKeyViewModel: APIKeyViewModel
-) {
-    NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
-        composable(BottomNavItem.Home.screen_route) {
-            HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
-        }
-        composable(BottomNavItem.Settings.screen_route) {
-            SettingsScreen(promptViewModel, apiKeyViewModel)
-        }
-    }
-}
-
 
 @Composable
 fun AppBottomNavigation(navController: NavController) {
@@ -95,6 +78,7 @@ fun AppBottomNavigation(navController: NavController) {
                 icon = { Icon(item.icon, contentDescription = item.title, modifier = Modifier.size(30.dp)) },
                 selected = currentRoute == item.screen_route,
                 onClick = {
+                    navController.popBackStack()
                     navController.navigate(item.screen_route) {
                         navController.graph.startDestinationRoute?.let { screen_route ->
                             popUpTo(screen_route) {

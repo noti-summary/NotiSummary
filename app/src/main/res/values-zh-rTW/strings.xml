@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="back_button">返回</string>
+    <string name="daily_quota">每日額度</string>
+    <string name="settings">設定</string>
+    <string name="my_notifications">我的通知</string>
+    <string name="my_summary">我的摘要</string>
+    <string name="generate_summary">產生摘要</string>
+    <string name="prompt">提示句</string>
+    <string name="openai_api_key">OpenAI API 金鑰</string>
+    <string name="app_covered">摘要範圍 (應用程式)</string>
+    <string name="noti_info_covered">摘要範圍 (通知資訊)</string>
+    <string name="cancel">取消</string>
+    <string name="ok">確認</string>
+    <string name="default_prompt">預設摘要提示句</string>
+    <string name="copied_to_clipboard">已複製至剪貼簿</string>
+    <string name="custom_prompt">自訂摘要提示句</string>
+    <string name="reached_limit">已達到每日摘要次數上限</string>
+    <string name="api_key">API 金鑰</string>
+    <string name="using_ur_apikey">正在使用您的 API 金鑰</string>
+    <string name="hint_msg">請按下方按鈕產生通知摘要</string>
+    <string name="gen_msg">通知摘要產生中，請稍候…</string>
+    <string name="no_noti_msg">您的手機目前沒有通知</string>
+    <string name="network_err_msg">無法連線，請確認您的網路設定</string>
+    <string name="default_key">預設 API 金鑰</string>
+    <string name="system_key">系統金鑰</string>
+    <string name="user_key">使用者 API 金鑰</string>
+    <string name="server_err_msg">伺服器發生錯誤，請稍後再試</string>
+    <string name="timeout_msg">伺服器忙碌中，請稍後再試</string>
+    <string name="key_msg">請確認您的 API 金鑰是否有誤</string>
+    <string name="quota_msg">請確認您的 API 金鑰額度或聯繫開發人員</string>
+    <string name="scheduled_summary">摘要排程</string>
+    <string name="noti_content">您有新的通知摘要！</string>
+    <string name="application_name">應用程式名稱</string>
+    <string name="time">時間</string>
+    <string name="title">標題</string>
+    <string name="content">內容</string>
+    <string name="feedback">意見回饋</string>
+    <string name="about">關於 NotiSummary</string>
+    <string name="recruitment">研究受試者招募中 🔥</string>
+    <string name="network_check">請確認網路連線</string>
+    <string name="privacy_policy">隱私權政策</string>
+    <string name="agree_privacy_policy">我同意本APP之隱私權政策</string>
+    <string name="male">男性</string>
+    <string name="female">女性</string>
+    <string name="non_binary">非二元性別</string>
+    <string name="not_to_state">不便透露</string>
+    <string name="fill_background">請填寫您的基本資料</string>
+    <string name="age">年齡</string>
+    <string name="age_error">請輸入合法的年齡</string>
+    <string name="gender">性別</string>
+    <string name="select_gender">選擇性別</string>
+    <string name="country">居住國家/地區</string>
+    <string name="clear_text">清除文字</string>
+    <string name="search_country">搜尋居住國家/地區</string>
+    <string name="welcome">歡迎使用 NotiSummary !</string>
+    <string name="no_noti_permission">您的通知權限尚未開啟</string>
+    <string name="click_to_open_permission">點擊確認前往開啟</string>
+    <string name="noti_covered_dialog_title">通知摘要取用之資訊</string>
+    <string name="noti_covered_dialog_content">
+        本App可自訂將通知的下列資訊傳送予ChatGPT進行文字摘要。\n
+        \n
+        • APP名稱(預設為「傳送️」)\n
+        • 發送時間(預設為「傳送️」)\n
+        • 通知標題(預設為「傳送️」)\n
+        • 通知內容(預設為「不傳送️」)\n
+        \n
+        若您希望納入更多詳細資訊進行摘要，可以進入「⚙️」>「摘要範圍 (通知資訊)」自行調整。
+    </string>
+</resources>

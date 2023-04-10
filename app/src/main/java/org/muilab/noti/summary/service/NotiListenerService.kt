@@ -60,7 +60,7 @@ class NotiListenerService: NotificationListenerService() {
         val restartServiceIntent = Intent(applicationContext, NotiListenerService::class.java).also {
             it.setPackage(packageName)
         }
-        val restartServicePendingIntent: PendingIntent = PendingIntent.getService(this, 1, restartServiceIntent, PendingIntent.FLAG_ONE_SHOT)
+        val restartServicePendingIntent: PendingIntent = PendingIntent.getService(this, 1, restartServiceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT)
         applicationContext.getSystemService(Context.ALARM_SERVICE)
         val alarmService: AlarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmService.set(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis() + 10000, restartServicePendingIntent)
@@ -103,7 +103,7 @@ class NotiListenerService: NotificationListenerService() {
                 return
             }
 
-            val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+            val sharedPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
             val userId = sharedPref.getString("user_id", "000").toString()
             val notiItem = NotiItem(this, sbn, userId)
 
@@ -129,7 +129,7 @@ class NotiListenerService: NotificationListenerService() {
         rankingMap: RankingMap?,
         reason: Int
     ) {
-        val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
+        val sharedPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
         val userId = sharedPref.getString("user_id", "000").toString()
         val notiItem = NotiItem(this, sbn, userId)
     }
@@ -142,9 +142,11 @@ class NotiListenerService: NotificationListenerService() {
                 .replace(",", " ")
         }
 
+        val appFilterPrefs = applicationContext.getSharedPreferences("app_filter", Context.MODE_PRIVATE)
+        val userPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
+
         activeNotifications.forEach {
-            val sharedPref = applicationContext.getSharedPreferences("user_id", Context.MODE_PRIVATE)
-            val userId = sharedPref.getString("user_id", "000").toString()
+            val userId = userPref.getString("user_id", "000").toString()
             val notiItem = NotiItem(this, it, userId)
             val appName = replaceChars(notiItem.getAppName())
             val time = replaceChars(notiItem.getTimeStr())
@@ -152,6 +154,12 @@ class NotiListenerService: NotificationListenerService() {
             val content = replaceChars(notiItem.getContent())
 
             if (appName == "null" || title == "null" || content == "null")
+                return@forEach
+
+            if (notiItem.getPackageName() == "org.muilab.noti.summary")
+                return@forEach
+
+            if (!appFilterPrefs.getBoolean(notiItem.getPackageName(), true))
                 return@forEach
                 
             notiUnits.add(NotiUnit(appName, time, title, content))
