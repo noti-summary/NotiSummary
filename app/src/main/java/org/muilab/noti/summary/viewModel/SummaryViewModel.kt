@@ -27,7 +27,6 @@ import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
-import org.muilab.noti.summary.view.SummaryResponse
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
