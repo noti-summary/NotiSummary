@@ -16,9 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog

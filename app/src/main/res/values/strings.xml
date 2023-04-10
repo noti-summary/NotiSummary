@@ -39,4 +39,6 @@
     <string name="feedback">Feedback &amp; Suggestions</string>
     <string name="about">About NotiSummary</string>
     <string name="recruitment">Join Our Study as a Participant 🔥</string>
+    <string name="no_noti_permission">Notification permission is not yet enabled</string>
+    <string name="click_to_open_permission">Click OK to enable the permission</string>
 </resources>
