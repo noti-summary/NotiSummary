@@ -12,9 +12,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
@@ -35,35 +39,42 @@ fun APIKeyScreen(apiKeyViewModel: APIKeyViewModel) {
 fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val selectedOption = apiKeyViewModel.apiKey.observeAsState()
     val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
-    val defaultAPIKey = "系統金鑰"
+    val defaultAPIKey = stringResource(R.string.system_key)
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
             if (index == 0) {
-                Text("預設 API 金鑰", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text(
+                    stringResource(R.string.default_key),
+                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+                )
             } else if (index == 1) {
-                Text("自訂 API 金鑰", modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp))
+                Text(
+                    stringResource(R.string.user_key),
+                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+                )
             }
             Card(
                 modifier = Modifier
                     .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         apiKeyViewModel.chooseAPI(item)
                     },
                 colors = CardDefaults.cardColors(
                     containerColor =
                     if (item == selectedOption.value) {
-                        Color.DarkGray
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        Color.Gray
+                        MaterialTheme.colorScheme.inverseOnSurface
                     }
                 ),
                 shape = MaterialTheme.shapes.medium,
             ) {
                 Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -74,6 +85,12 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                         } else {
                             defaultAPIKey
                         },
+                        color =
+                        if (item == selectedOption.value) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        }
                     )
 
                     if (item != defaultAPIKey) {
@@ -86,7 +103,6 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
         }
     }
 }
-
 
 
 @Composable
@@ -132,7 +148,10 @@ fun APIKeyEditor(
     NoPaddingAlertDialog(
         title = {
             Image(
-                modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 30.dp, bottom = 20.dp)
+                    .height(70.dp),
                 painter = painterResource(id = R.drawable.key),
                 contentDescription = "key_icon",
             )
@@ -143,7 +162,8 @@ fun APIKeyEditor(
                 singleLine = true,
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },
-                label = { Text("API 金鑰") },
+                label = { Text(stringResource(R.string.api_key)) },
+                textStyle = MaterialTheme.typography.bodyLarge
             )
         },
         confirmButton = {
@@ -153,7 +173,12 @@ fun APIKeyEditor(
                     confirmAction()
                 }
             )
-            { Text(text = "確認", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+            {
+                Text(
+                    text = stringResource(R.string.ok),
+                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                )
+            }
         },
         dismissButton = {
             TextButton(
@@ -163,7 +188,12 @@ fun APIKeyEditor(
                     showDialog.value = false
                 }
             )
-            { Text(text = "取消", modifier = Modifier.padding(start = 30.dp, end = 30.dp)) }
+            {
+                Text(
+                    text = stringResource(R.string.cancel),
+                    modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                )
+            }
         }
     )
 }

@@ -23,6 +23,7 @@ import org.muilab.noti.summary.view.home.HomeScreen
 import org.muilab.noti.summary.view.settings.SettingsScreen
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
+import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 sealed class BottomNavItem(var title: String, var icon: ImageVector, var screen_route: String) {
@@ -38,7 +39,8 @@ fun MainScreenView(
     lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
     promptViewModel: PromptViewModel,
-    apiKeyViewModel: APIKeyViewModel
+    apiKeyViewModel: APIKeyViewModel,
+    scheduleViewModel: ScheduleViewModel
 ) {
     val navController = rememberNavController()
     Scaffold(
@@ -51,7 +53,7 @@ fun MainScreenView(
                     HomeScreen(context, lifecycleOwner, sumViewModel, promptViewModel)
                 }
                 composable(BottomNavItem.Settings.screen_route) {
-                    SettingsScreen(promptViewModel, apiKeyViewModel, context)
+                    SettingsScreen(promptViewModel, apiKeyViewModel, scheduleViewModel, context)
                 }
             }
         }
@@ -76,6 +78,7 @@ fun AppBottomNavigation(navController: NavController) {
                 icon = { Icon(item.icon, contentDescription = item.title, modifier = Modifier.size(30.dp)) },
                 selected = currentRoute == item.screen_route,
                 onClick = {
+                    navController.popBackStack()
                     navController.navigate(item.screen_route) {
                         navController.graph.startDestinationRoute?.let { screen_route ->
                             popUpTo(screen_route) {

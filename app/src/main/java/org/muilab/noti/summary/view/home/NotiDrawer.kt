@@ -18,6 +18,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.muilab.noti.summary.ui.theme.DarkColorScheme
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 import java.lang.Float.max
 
@@ -51,14 +52,13 @@ fun NotiDrawer(sumViewModel: SummaryViewModel) {
                             .fillMaxWidth(),
                         shape = MaterialTheme.shapes.medium,
                     ) {
-                        Column(modifier = Modifier.background(MaterialTheme.colorScheme.secondary)) {
+                        Column(modifier = Modifier.background(DarkColorScheme.secondary)) {
                             Text(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 10.dp)
-                                    .background(MaterialTheme.colorScheme.secondary),
+                                    .padding(horizontal = 10.dp),
                                 text = "${it.appName} / ${it.time}",
-                                style = TextStyle(color = MaterialTheme.colorScheme.onSecondary)
+                                style = TextStyle(color = DarkColorScheme.onSecondary)
                             )
                             Text(
                                 modifier = Modifier
@@ -68,7 +68,7 @@ fun NotiDrawer(sumViewModel: SummaryViewModel) {
                                 text = it.title,
                                 style = TextStyle(
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSecondary
+                                    color = DarkColorScheme.onSecondary
                                 ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -79,7 +79,7 @@ fun NotiDrawer(sumViewModel: SummaryViewModel) {
                                     .padding(horizontal = 10.dp)
                                     .background(Color.Transparent),
                                 text = it.content,
-                                style = TextStyle(color = MaterialTheme.colorScheme.onSecondary),
+                                style = TextStyle(color = DarkColorScheme.onSecondary),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
