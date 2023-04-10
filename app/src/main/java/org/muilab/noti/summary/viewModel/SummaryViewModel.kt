@@ -64,9 +64,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private fun updateLiveDataValue(newValue: String?) {
         if (newValue != null) {
             _result.postValue(newValue!!)
-            val editor = sharedPreferences.edit()
-            editor.putString("resultValue", newValue)
-            editor.apply()
+            sharedPreferences.edit().putString("resultValue", newValue).apply()
 
             val userAPIKey = sharedPreferences.getString("userAPIKey", context.getString(R.string.system_key))!!
             if (userAPIKey == context.getString(R.string.system_key)) {

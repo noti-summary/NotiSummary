@@ -1,19 +1,16 @@
 package org.muilab.noti.summary.view.home
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,6 +32,7 @@ enum class SummaryResponse(val message: Int) {
 
 @Composable
 fun SummaryCard(
+    context: Context,
     sumViewModel: SummaryViewModel,
     promptViewModel: PromptViewModel,
     submitButtonState: SSButtonState,
@@ -44,14 +42,32 @@ fun SummaryCard(
 
     Card(modifier = Modifier.fillMaxSize()) {
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
+
+        val summaryPerfs = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+        val likeDislike  = remember { mutableStateOf(summaryPerfs.getInt("rating", 0)) }
+
         Divider(
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(horizontal = 16.dp))
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
         Box(modifier = Modifier
             .padding(16.dp, 4.dp)
-            .verticalScroll(rememberScrollState())) {
-            Text(text = result)
+            .verticalScroll(rememberScrollState())
+        ) {
+
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    DislikeButton(likeDislike, summaryPerfs)
+                    LikeButton(likeDislike, summaryPerfs)
+                }
+
+                Text(text = result)
+            }
 
             if (result == stringResource(SummaryResponse.GENERATING.message)) {
                 setSubmitButtonState(SSButtonState.LOADING)
@@ -65,9 +81,13 @@ fun SummaryCard(
                 setSubmitButtonState(SSButtonState.FAILIURE)
             } else if (submitButtonState == SSButtonState.LOADING){
                 setSubmitButtonState(SSButtonState.SUCCESS)
+
+                summaryPerfs.edit().putInt("rating", 0).apply()
+                likeDislike.value = 0
             }
 
         }
+
     }
 }
 
@@ -82,6 +102,46 @@ fun CurrentPrompt(curPrompt: String) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.ExtraBold,
             ),
+        )
+    }
+}
+
+@Composable
+fun LikeButton(likeDislike: MutableState<Int>, summaryPerfs: SharedPreferences) {
+    IconButton(
+        onClick = {
+            if (likeDislike.value == 1) {
+                likeDislike.value = 0
+            } else {
+                likeDislike.value = 1
+            }
+            summaryPerfs.edit().putInt("rating", likeDislike.value).apply()
+        }
+    ) {
+        Icon(
+            painter  = painterResource(R.drawable.thumb_up_500),
+            contentDescription = "Like",
+            tint = if (likeDislike.value == 1) Color.Cyan else Color.Gray
+        )
+    }
+}
+
+@Composable
+fun DislikeButton(likeDislike: MutableState<Int>, summaryPerfs: SharedPreferences) {
+    IconButton(
+        onClick = {
+            if (likeDislike.value == -1) {
+                likeDislike.value = 0
+            } else {
+                likeDislike.value = -1
+            }
+            summaryPerfs.edit().putInt("rating", likeDislike.value).apply()
+        }
+    ) {
+        Icon(
+            painter  = painterResource(R.drawable.thumb_down_500),
+            contentDescription = "Dislike",
+            tint = if (likeDislike.value == -1) Color.Red else Color.Gray
         )
     }
 }
