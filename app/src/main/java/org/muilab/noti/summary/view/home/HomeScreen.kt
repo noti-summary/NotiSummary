@@ -9,12 +9,17 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
@@ -45,7 +50,7 @@ fun HomeScreen(
 
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
 
-    val drawerCardState = remember { mutableStateOf(false) }
+    val drawerCardState = remember { mutableStateOf(true) }
     val summaryCardState = remember { mutableStateOf(true) }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val minorHeight = (
@@ -90,13 +95,14 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
+                        .clip(CircleShape)
                         .clickable {
                             drawerCardState.value = if (!summaryCardState.value)
                                 drawerCardState.value else !drawerCardState.value
                         },
                 ) {
                     Text(
-                        text = "我的通知",
+                        text = stringResource(R.string.my_notifications),
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
@@ -115,7 +121,6 @@ fun HomeScreen(
                         )
                     Spacer(modifier = Modifier.width(16.dp))
                 }
-                Text("以下通知僅供摘要的閱覽和比對", modifier = Modifier.padding(horizontal = 16.dp))
                 NotiDrawer(sumViewModel)
             }
         }
@@ -133,6 +138,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
+                        .clip(CircleShape)
                         .clickable {
                             summaryCardState.value = if (!drawerCardState.value)
                                 summaryCardState.value else !summaryCardState.value
@@ -140,7 +146,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "我的摘要",
+                        text = stringResource(R.string.my_summary),
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(start = 16.dp)
                     )
@@ -176,22 +182,22 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
 
     val documentRef = Firebase.firestore.collection("user-free-credit").document(userId)
     val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
-    var displayText by remember { mutableStateOf("每日額度：- / $maxCredit") }
+    var displayText by remember { mutableStateOf("${context.getString(R.string.daily_quota)}：- / $maxCredit") }
 
     val sharedPref = context.getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
-    val userAPIKey = sharedPref.getString("userAPIKey", "系統金鑰")!!
+    val userAPIKey = sharedPref.getString("userAPIKey", stringResource(R.string.system_key))!!
 
-    if (userAPIKey == "系統金鑰") {
+    if (userAPIKey == stringResource(R.string.system_key)) {
         if (result is FirestoreDocument.Snapshot) {
             if (result.snapshot.exists()) {
                 val res = result.snapshot.toObject<UserCredit>()!!
-                displayText = "每日額度：${res.credit} / $maxCredit"
+                displayText = "${context.getString(R.string.daily_quota)}：${res.credit} / $maxCredit"
             } else {
                 displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
             }
         }
     } else {
-        displayText = "正在使用您的 API 金鑰\nsk-****" + userAPIKey.takeLast(4)
+        displayText = "${context.getString(R.string.using_ur_apikey)}\nsk-****" + userAPIKey.takeLast(4)
     }
 
     Text(
@@ -234,7 +240,11 @@ fun SubmitButton(
                                     if(res.credit > 0) {
                                         sumViewModel.getSummaryText(prompt)
                                     } else {
-                                        Toast.makeText(context, "已達到每日摘要次數上限", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.reached_limit),
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 }
                             }
@@ -245,7 +255,7 @@ fun SubmitButton(
                 }
             },
             assetColor = MaterialTheme.colorScheme.onPrimary,
-            text = "產生摘要",
+            text = stringResource(R.string.generate_summary),
             buttonState = submitButtonState
         )
     }

@@ -16,6 +16,7 @@ import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
 import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
+import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
@@ -23,7 +24,9 @@ import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
+import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
+import java.util.*
 
 
 const val maxCredit: Int = 50
@@ -33,16 +36,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!isNotiListenerEnabled()) {
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-        }
-
-        /*
-        if (!isUsageEnabled()) {
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-        }
-        */
-
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
         startService(notiListenerIntent)
 
@@ -50,12 +43,31 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
 
         setUserId()
+        val primaryLocale: Locale = applicationContext.resources.configuration.locales[0]
+        val locale: String = primaryLocale.displayName
+
+        Log.d("MainActivity", locale)
+
+        val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+        if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
+            with(notiFilterPrefs.edit()) {
+                putBoolean(getString(R.string.content), false)
+                apply()
+            }
+        }
         
         setContent {
             NotiappTheme {
-                MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel)
+                MainScreenView(this, this,
+                    sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!isNotiListenerEnabled())
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
     }
 
     override fun onDestroy() {
@@ -68,8 +80,11 @@ class MainActivity : ComponentActivity() {
     private val promptDatabase by lazy { PromptDatabase.getInstance(this) }
     private val promptViewModel by lazy { PromptViewModel(application, promptDatabase) }
 
-    private val apiKeyDatabase  by lazy { APIKeyDatabase.getInstance(this) }
-    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase ) }
+    private val apiKeyDatabase by lazy { APIKeyDatabase.getInstance(this) }
+    private val apiViewModel by lazy { APIKeyViewModel(application, apiKeyDatabase) }
+
+    private val scheduleDatabase by lazy { ScheduleDatabase.getInstance(this) }
+    private val scheduleViewModel by lazy { ScheduleViewModel(application, scheduleDatabase) }
 
     private fun isNotiListenerEnabled(): Boolean {
         val cn = ComponentName(this, NotiListenerService::class.java)
@@ -78,26 +93,13 @@ class MainActivity : ComponentActivity() {
         return cn.flattenToString() in flat
     }
 
-    private fun chkPermissionOps(permission: String): Boolean {
-        val appOps = this.getSystemService(APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), this.packageName)
-        return if (mode == AppOpsManager.MODE_DEFAULT) {
-            checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-        } else {
-            mode == AppOpsManager.MODE_ALLOWED
-        }
-    }
-
-    private fun isUsageEnabled(): Boolean {
-        return chkPermissionOps(Manifest.permission.PACKAGE_USAGE_STATS)
-    }
-
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
                 if (activeNotifications != null) {
-                    sumViewModel.updateSummaryText(activeNotifications)
+                    val curPrompt = promptViewModel.getCurPrompt()
+                    sumViewModel.updateSummaryText(curPrompt, activeNotifications)
                 }
             }
         }
@@ -107,6 +109,7 @@ class MainActivity : ComponentActivity() {
         FirebaseInstallations.getInstance().id.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val userId: String = task.result
+                Log.v("userId", userId)
 
                 val sharedPref = this.getSharedPreferences("user_id", Context.MODE_PRIVATE)
                 with(sharedPref.edit()) {
