@@ -20,6 +20,7 @@ import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.view.MainScreenView
+import org.muilab.noti.summary.view.userInit.FilterNotify
 import org.muilab.noti.summary.view.userInit.NetworkCheckDialog
 import org.muilab.noti.summary.view.userInit.PersonalInformationScreen
 import org.muilab.noti.summary.view.userInit.PrivacyPolicyDialog
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
             }
 
             NotiappTheme {
-                when(initStatus) {
+                when (initStatus) {
                     "NOT_STARTED" -> {
                         if (isNetworkConnected())
                             PrivacyPolicyDialog(onAgree = {
@@ -87,9 +88,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     "USER_INFO_FILLED" -> {
-                        setUserId()
-                        initStatus = "USER_READY"
+                        if (setUserId())
+                            initStatus = "SHOW_FILTER_NOTICE"
                     }
+                    "SHOW_FILTER_NOTICE" -> FilterNotify(onAgree = {
+                        with(sharedPref.edit()) {
+                            putString("initStatus", "USER_READY")
+                            apply()
+                        }
+                        initStatus = "USER_READY"
+                    })
                     "USER_READY" -> {
                         MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
                     }
@@ -140,7 +148,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun setUserId() {
+    private fun setUserId(): Boolean {
 
         var initSuccess by remember { mutableStateOf(0) }
 
@@ -175,7 +183,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     with(sharedPref.edit()) {
                                         putString("user_id", userId)
-                                        putString("initStatus", "USER_READY")
+                                        putString("initStatus", "SHOW_FILTER_NOTICE")
                                         apply()
                                     }
                                     initSuccess = 1
@@ -195,6 +203,7 @@ class MainActivity : ComponentActivity() {
         }
         if (initSuccess == -1)
             NetworkCheckDialog(applicationContext)
+        return initSuccess == 1
     }
 
     fun isNetworkConnected(): Boolean {
