@@ -38,4 +38,6 @@
     <string name="feedback">意見回饋</string>
     <string name="about">關於 NotiSummary</string>
     <string name="recruitment">研究受試者招募中 🔥</string>
+    <string name="no_noti_permission">您的通知權限尚未開啟</string>
+    <string name="click_to_open_permission">點擊確認前往開啟</string>
 </resources>

@@ -107,8 +107,8 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
 
     if (showDialog) {
         AlertDialog(
-            title = { Text("您的通知權限尚未開啟") },
-            text = { Text("點擊確認前往開啟") },
+            title = { Text(stringResource(R.string.no_noti_permission)) },
+            text = { Text(stringResource(R.string.click_to_open_permission)) },
             onDismissRequest = { showDialog = false },
             confirmButton = {
                 TextButton(
