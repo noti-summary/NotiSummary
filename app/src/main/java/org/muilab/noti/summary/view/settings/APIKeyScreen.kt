@@ -12,9 +12,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
@@ -55,22 +56,23 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                 modifier = Modifier
                     .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         apiKeyViewModel.chooseAPI(item)
                     },
                 colors = CardDefaults.cardColors(
                     containerColor =
                     if (item == selectedOption.value) {
-                        Color.DarkGray
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        Color.Gray
+                        MaterialTheme.colorScheme.inverseOnSurface
                     }
                 ),
                 shape = MaterialTheme.shapes.medium,
             ) {
                 Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -81,6 +83,12 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                         } else {
                             defaultAPIKey
                         },
+                        color =
+                        if (item == selectedOption.value) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        }
                     )
 
                     if (item != defaultAPIKey) {
@@ -153,6 +161,7 @@ fun APIKeyEditor(
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },
                 label = { Text(stringResource(R.string.api_key)) },
+                textStyle = MaterialTheme.typography.bodyLarge
             )
         },
         confirmButton = {

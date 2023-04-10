@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.Card
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -34,9 +36,10 @@ fun MainSettingScreen(navController: NavHostController) {
                 ) {
                     Card(
                         modifier = Modifier
-                            .padding(3.dp)
+                            .padding(start = 10.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 if (it.name == "Feedback") {
                                     uriHandler.openUri("https://example.com")

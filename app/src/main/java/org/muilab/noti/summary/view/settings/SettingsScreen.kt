@@ -21,12 +21,14 @@ import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
+import org.muilab.noti.summary.viewModel.ScheduleViewModel
 
 
 enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
     Start(R.string.main_setting, R.drawable.settings),
     SettingPrompt(R.string.prompt, R.drawable.setting_sms),
     SettingAPI(R.string.openai_api_key, R.drawable.setting_key),
+    SettingScheduler(R.string.scheduled_summary, R.drawable.schedule),
     SettingAppFilter(R.string.app_covered, R.drawable.play_store),
     SettingNotiFilter(R.string.noti_info_covered, R.drawable.mail),
     Feedback(R.string.feedback, R.drawable.feedback),
@@ -40,9 +42,10 @@ enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
 fun SettingsScreen(
     promptViewModel: PromptViewModel,
     apiKeyViewModel: APIKeyViewModel,
+    scheduleViewModel: ScheduleViewModel,
     context: Context,
+    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    modifier: Modifier = Modifier
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen =
@@ -64,7 +67,8 @@ fun SettingsScreen(
             modifier = modifier.padding(innerPadding),
             context,
             promptViewModel,
-            apiKeyViewModel
+            apiKeyViewModel,
+            scheduleViewModel
         )
     }
 }
@@ -109,7 +113,8 @@ fun NavigateSetting(
     modifier: Modifier,
     context: Context,
     promptViewModel: PromptViewModel,
-    apiKeyViewModel: APIKeyViewModel
+    apiKeyViewModel: APIKeyViewModel,
+    scheduleViewModel: ScheduleViewModel
 ) {
     NavHost(navController, startDestination = SettingScreenItem.Start.name, modifier = modifier) {
         composable(SettingScreenItem.Start.name) {
@@ -120,6 +125,9 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.SettingAPI.name) {
             APIKeyScreen(apiKeyViewModel)
+        }
+        composable(SettingScreenItem.SettingScheduler.name) {
+            SchedulerScreen(context, scheduleViewModel)
         }
         composable(SettingScreenItem.SettingAppFilter.name) {
             AppFilterScreen(context)

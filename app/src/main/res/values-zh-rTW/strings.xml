@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">noti-summary</string>
     <string name="back_button">返回</string>
     <string name="daily_quota">每日額度</string>
     <string name="settings">設定</string>
@@ -22,7 +21,7 @@
     <string name="hint_msg">請按下方按鈕產生通知摘要</string>
     <string name="gen_msg">通知摘要產生中，請稍候…</string>
     <string name="no_noti_msg">您的手機目前沒有通知</string>
-    <string name="nework_err_msg">無法連線，請確認您的網路設定</string>
+    <string name="network_err_msg">無法連線，請確認您的網路設定</string>
     <string name="default_key">預設 API 金鑰</string>
     <string name="system_key">系統金鑰</string>
     <string name="user_key">使用者 API 金鑰</string>
@@ -30,6 +29,8 @@
     <string name="timeout_msg">伺服器忙碌中，請稍後再試</string>
     <string name="key_msg">請確認您的 API 金鑰是否有誤</string>
     <string name="quota_msg">請確認您的 API 金鑰額度或聯繫開發人員</string>
+    <string name="scheduled_summary">摘要排程</string>
+    <string name="noti_content">您有新的通知摘要！</string>
     <string name="application_name">應用程式名稱</string>
     <string name="time">時間</string>
     <string name="title">標題</string>
@@ -53,5 +54,6 @@
     <string name="clear_text">清除文字</string>
     <string name="search_country">搜尋居住國家/地區</string>
     <string name="welcome">歡迎使用 NotiSummary !</string>
-
+    <string name="no_noti_permission">您的通知權限尚未開啟</string>
+    <string name="click_to_open_permission">點擊確認前往開啟</string>
 </resources>

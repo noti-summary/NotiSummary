@@ -93,7 +93,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             val input = filterMap.filter { attribute -> notiFilterPrefs.getBoolean(attribute.key, true) }
                 .values
                 .joinToString(separator = ", ")
-
+            
             sb.append("$input\n")
         }
         return sb.toString()
@@ -105,8 +105,9 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
-    fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>) {
-        if (activeNotifications.size > 0) {
+    fun updateSummaryText(curPrompt: String, activeNotifications: ArrayList<NotiUnit>) {
+        prompt = curPrompt
+        if (activeNotifications.size > 0){
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
             val postContent = getPostContent(activeNotifications)
             _notifications.postValue(activeNotifications.toList())
@@ -157,7 +158,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 val responseText =
-                    response.body?.string()?.replace("\\n", "\r\n")?.removeSurrounding("\"")
+                    response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")?.removeSurrounding("\"")
                 val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 updateLiveDataValue(summary)
             } else {
