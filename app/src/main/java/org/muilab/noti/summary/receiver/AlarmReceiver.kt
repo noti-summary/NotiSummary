@@ -10,26 +10,32 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.asLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.*
 import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.Schedule
-import java.time.LocalTime
+import org.muilab.noti.summary.util.TAG
 import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
 
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
+
     override fun onReceive(context: Context, intent: Intent) {
         // This method is called when the BroadcastReceiver is receiving an Intent broadcast.
 
-        Log.d("AlarmReceiver", "onReceive")
+        Log.d(TAG, "onReceive")
 
         val refreshSummaryIntent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
         LocalBroadcastManager.getInstance(context).sendBroadcast(refreshSummaryIntent)
 
-        scheduleNextDayAlarm(context)
+        val hour = intent.getIntExtra("hour", -1)
+        val minute = intent.getIntExtra("minute", -1)
+        if (hour != -1 && minute != -1)
+            scheduleNextDayAlarm(context, hour, minute)
 
         val notiContentIntent = Intent(context, MainActivity::class.java)
         val pendingIntent =
@@ -53,51 +59,43 @@ class AlarmReceiver : BroadcastReceiver() {
         notificationManagerCompat.notify(0, builder.build())
     }
 
-    private fun scheduleNextDayAlarm(context: Context) {
-        val alarmSchedules = getAlarmTimeFromDatabase(context) ?: return
+    private fun scheduleNextDayAlarm(context: Context, hour: Int, minute: Int) {
+        scope.launch {
+            val schedule = getAlarmTimeFromDatabase(context, hour, minute) ?: return@launch
 
-        val now = LocalTime.now()
-        var nextAlarmTime: LocalTime? = null
-        for (alarmSchedule in alarmSchedules) {
-            val alarmTime = LocalTime.of(alarmSchedule.hour, alarmSchedule.minute)
-            if (alarmTime > now) break
-            nextAlarmTime = alarmTime
+            val calendar = Calendar.getInstance().apply {
+                timeZone = TimeZone.getDefault()
+                set(Calendar.HOUR_OF_DAY, schedule.hour)
+                set(Calendar.MINUTE, schedule.minute)
+                set(Calendar.SECOND, 0)
+                add(Calendar.DAY_OF_YEAR, 1)
+            }
+
+            Log.d("scheduleNextDayAlarm", "${calendar.time}")
+
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+            val intent = Intent(context, AlarmReceiver::class.java)
+            intent.putExtra("time", schedule.getTime())
+            val pendingIntent = PendingIntent.getBroadcast(
+                context, 0, intent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
         }
-
-        // If there are no future alarm times, schedule the first alarm for tomorrow
-        if (nextAlarmTime == null) {
-            nextAlarmTime = LocalTime.of(alarmSchedules.first().hour, alarmSchedules.first().minute)
-        }
-
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = System.currentTimeMillis()
-            set(Calendar.HOUR_OF_DAY, nextAlarmTime!!.hour)
-            set(Calendar.MINUTE, nextAlarmTime.minute)
-            add(Calendar.DAY_OF_YEAR, 1)
-        }
-
-        val intent = Intent(context, AlarmReceiver::class.java)
-        intent.putExtra(
-            "time",
-            String.format("%02d:%02d", nextAlarmTime!!.hour, nextAlarmTime.minute)
-        )
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            pendingIntent
-        )
     }
 
-    private fun getAlarmTimeFromDatabase(context: Context): List<Schedule>? {
+    private suspend fun getAlarmTimeFromDatabase(context: Context, hour: Int, minute: Int): Schedule? {
         val scheduleDatabase by lazy { ScheduleDatabase.getInstance(context) }
         val scheduleDao = scheduleDatabase.scheduleDao()
 
-        return scheduleDao.getSortedSchedules().asLiveData().value
+        return withContext(Dispatchers.IO) {
+            scheduleDao.getScheduleByTime(hour, minute)
+        }
     }
 }
