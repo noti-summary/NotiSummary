@@ -82,7 +82,9 @@ fun HomeScreen(
     )
 
     Column(
-        modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.TopCenter)
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.TopCenter)
     ) {
         Card(
             modifier = Modifier
@@ -91,11 +93,16 @@ fun HomeScreen(
                 .height(drawerCardHeight)
         ) {
             Column(Modifier.fillMaxSize()) {
-                Column(Modifier.fillMaxWidth().clickable {
-                    drawerCardState.value = if (!summaryCardState.value)
-                        drawerCardState.value else !drawerCardState.value
-                }) {
-                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            drawerCardState.value = if (!summaryCardState.value)
+                                drawerCardState.value else !drawerCardState.value
+                        }) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)) {
                         Text(
                             text = stringResource(R.string.my_notifications),
                             style = MaterialTheme.typography.headlineSmall,
@@ -106,13 +113,17 @@ fun HomeScreen(
                             Icon(
                                 painter = painterResource(id = R.drawable.expand_arrow),
                                 contentDescription = "",
-                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                                modifier = Modifier
+                                    .size(titleHeight)
+                                    .padding(4.dp)
                             )
                         else if (summaryCardState.value)
                             Icon(
                                 painter = painterResource(id = R.drawable.collapse_arrow),
                                 contentDescription = "",
-                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                                modifier = Modifier
+                                    .size(titleHeight)
+                                    .padding(4.dp)
                             )
                         Spacer(modifier = Modifier.width(16.dp))
                     }
@@ -128,12 +139,17 @@ fun HomeScreen(
                 .height(summaryCardHeight)
         ) {
             Column(Modifier.fillMaxSize()) {
-                Column(Modifier.fillMaxWidth().clickable {
-                    summaryCardState.value = if (!drawerCardState.value)
-                        summaryCardState.value else !summaryCardState.value
-                }) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            summaryCardState.value = if (!drawerCardState.value)
+                                summaryCardState.value else !summaryCardState.value
+                        }) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
@@ -150,13 +166,17 @@ fun HomeScreen(
                             Icon(
                                 painter = painterResource(id = R.drawable.expand_arrow),
                                 contentDescription = "",
-                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                                modifier = Modifier
+                                    .size(titleHeight)
+                                    .padding(4.dp)
                             )
                         else if (drawerCardState.value)
                             Icon(
                                 painter = painterResource(id = R.drawable.collapse_arrow),
                                 contentDescription = "",
-                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                                modifier = Modifier
+                                    .size(titleHeight)
+                                    .padding(4.dp)
                             )
                         Spacer(modifier = Modifier.width(16.dp))
                     }
@@ -184,7 +204,7 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
                 val res = result.snapshot.toObject<UserCredit>()!!
                 displayText = "${context.getString(R.string.daily_quota)}：${res.credit} / $maxCredit"
             } else {
-                displayText = "${SummaryResponse.NETWORK_ERROR.message}，並重新啟動 app"
+                displayText = stringResource(SummaryResponse.NETWORK_ERROR.message)
             }
         }
     } else {

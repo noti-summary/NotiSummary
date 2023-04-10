@@ -55,8 +55,8 @@
     <string name="clear_text">Clear Text</string>
     <string name="search_country">Search Country/Region</string>
     <string name="welcome">Welcome to NotiSummary!</string>
-    <string name="no_noti_permission">Notification permission is not yet enabled</string>
-    <string name="click_to_open_permission">Click OK to enable the permission</string>
+    <string name="no_noti_permission">Notification permission has not been enabled yet</string>
+    <string name="click_to_open_permission">Click OK to enable the permission.</string>
     <string name="noti_covered_dialog_title">Information Provided for a Summary</string>
     <string name="noti_covered_dialog_content">
         This app allows you to customize the following notification information to be sent to ChatGPT for summarization:&#10;
@@ -68,4 +68,5 @@
         \n
         If you wish to include notification details in the summary, adjust it by going to "⚙" > "Scope of Summary (Notification Info)".
     </string>
+    <string name="default_summary_prompt">Turn the smartphone notifications provided below into a summary.</string>
 </resources>

@@ -1,11 +1,13 @@
 package org.muilab.noti.summary.viewModel
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.model.Prompt
 
@@ -17,7 +19,10 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
 
     private val promptDao = promptDatabase.promptDao()
 
-    private val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
+    @SuppressLint("StaticFieldLeak")
+    private val context = getApplication<Application>().applicationContext
+
+    private val defaultPrompt = context.getString(R.string.default_summary_prompt)
     private val _promptSentence = MutableLiveData<String>()
     val promptSentence: LiveData<String> = _promptSentence
     val allPromptSentence: LiveData<List<String>> = promptDao.getAllPrompt().asLiveData()
@@ -45,7 +50,7 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
     }
 
     fun getCurPrompt(): String {
-        return promptSentence.value ?: "Summarize the notifications in a Traditional Chinese statement."
+        return promptSentence.value ?: context.getString(R.string.default_summary_prompt)
     }
 
     fun updatePrompt(oldPrompt: String, newPrompt: String) {

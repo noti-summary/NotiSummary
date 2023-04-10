@@ -41,7 +41,7 @@ fun PromptScreen(context: Context, promptViewModel: PromptViewModel) {
 fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
     val selectedOption = promptViewModel.promptSentence.observeAsState()
     val allPromptSentence = promptViewModel.allPromptSentence.observeAsState(listOf(""))
-    val defaultPrompt = "Summarize the notifications in a Traditional Chinese statement."
+    val defaultPrompt = stringResource(R.string.default_summary_prompt)
 
     val showDialog = remember { mutableStateOf(false) }
     val currentEditPrompt = remember { mutableStateOf("") }
@@ -82,7 +82,9 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                 shape = MaterialTheme.shapes.medium,
             ) {
                 Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -162,7 +164,9 @@ fun AddButton(promptViewModel: PromptViewModel) {
     val inputPrompt = remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
@@ -209,7 +213,9 @@ fun PromptEditor(
         },
         text = {
             OutlinedTextField(
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp)
+                    .fillMaxWidth(),
                 singleLine = true,
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },

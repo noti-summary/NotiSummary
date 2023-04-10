@@ -44,7 +44,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
 
-    private var prompt = "Summarize the notifications in a Traditional Chinese statement."
+    private var prompt = context.getString(R.string.default_summary_prompt)
 
     private val dotenv = dotenv {
         directory = "./assets"

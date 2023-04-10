@@ -112,6 +112,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
             onDismissRequest = { showDialog = false },
             confirmButton = {
                 TextButton(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         showDialog = false
                         val intent = Intent().apply {
@@ -120,8 +121,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
                         }
                         context.startActivity(intent)
                     }
-                )
-                {
+                ) {
                     Text(
                         text = stringResource(R.string.ok),
                         style = MaterialTheme.typography.bodyLarge,
@@ -129,15 +129,6 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
                     )
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(
-                        text = stringResource(R.string.cancel),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-                    )
-                }
-            }
         )
     }
 }
