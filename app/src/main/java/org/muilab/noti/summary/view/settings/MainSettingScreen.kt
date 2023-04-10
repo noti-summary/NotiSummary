@@ -42,11 +42,11 @@ fun MainSettingScreen(navController: NavHostController) {
                             .clip(RoundedCornerShape(12.dp))
                             .clickable {
                                 if (it.name == "Feedback") {
-                                    uriHandler.openUri("https://example.com")
+                                    uriHandler.openUri("https://forms.gle/LSe1fZP2sDnXUtC59")
                                 } else if (it.name == "About") {
                                     uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
                                 } else if (it.name == "Recruitment") {
-                                    uriHandler.openUri("https://example.com")
+                                    uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
                                 } else {
                                     navController.navigate(it.name)
                                 }
