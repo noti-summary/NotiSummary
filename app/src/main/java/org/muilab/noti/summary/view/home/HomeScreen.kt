@@ -91,35 +91,31 @@ fun HomeScreen(
                 .height(drawerCardHeight)
         ) {
             Column(Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            drawerCardState.value = if (!summaryCardState.value)
-                                drawerCardState.value else !drawerCardState.value
-                        },
-                ) {
-                    Text(
-                        text = stringResource(R.string.my_notifications),
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (!drawerCardState.value)
-                        Icon(
-                            painter = painterResource(id = R.drawable.expand_arrow),
-                            contentDescription = "",
-                            modifier = Modifier.size(titleHeight).padding(4.dp)
+                Column(Modifier.fillMaxWidth().clickable {
+                    drawerCardState.value = if (!summaryCardState.value)
+                        drawerCardState.value else !drawerCardState.value
+                }) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                        Text(
+                            text = stringResource(R.string.my_notifications),
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
-                    else if (summaryCardState.value)
-                        Icon(
-                            painter = painterResource(id = R.drawable.collapse_arrow),
-                            contentDescription = "",
-                            modifier = Modifier.size(titleHeight).padding(4.dp)
-                        )
-                    Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (!drawerCardState.value)
+                            Icon(
+                                painter = painterResource(id = R.drawable.expand_arrow),
+                                contentDescription = "",
+                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                            )
+                        else if (summaryCardState.value)
+                            Icon(
+                                painter = painterResource(id = R.drawable.collapse_arrow),
+                                contentDescription = "",
+                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                            )
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
                 }
                 NotiDrawer(sumViewModel)
             }
@@ -131,45 +127,40 @@ fun HomeScreen(
                 .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
                 .height(summaryCardHeight)
         ) {
-            Column(
-                Modifier.fillMaxSize()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            summaryCardState.value = if (!drawerCardState.value)
-                                summaryCardState.value else !summaryCardState.value
-                        },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.my_summary),
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                    if (summaryCardState.value) {
-                        Spacer(modifier = Modifier.padding(16.dp))
-                        Credit(context, lifecycleOwner, userId)
+            Column(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxWidth().clickable {
+                    summaryCardState.value = if (!drawerCardState.value)
+                        summaryCardState.value else !summaryCardState.value
+                }) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.my_summary),
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                        if (summaryCardState.value) {
+                            Spacer(modifier = Modifier.padding(16.dp))
+                            Credit(context, lifecycleOwner, userId)
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (!summaryCardState.value)
+                            Icon(
+                                painter = painterResource(id = R.drawable.expand_arrow),
+                                contentDescription = "",
+                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                            )
+                        else if (drawerCardState.value)
+                            Icon(
+                                painter = painterResource(id = R.drawable.collapse_arrow),
+                                contentDescription = "",
+                                modifier = Modifier.size(titleHeight).padding(4.dp)
+                            )
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (!summaryCardState.value)
-                        Icon(
-                            painter = painterResource(id = R.drawable.expand_arrow),
-                            contentDescription = "",
-                            modifier = Modifier.size(titleHeight).padding(4.dp)
-                        )
-                    else if (drawerCardState.value)
-                        Icon(
-                            painter = painterResource(id = R.drawable.collapse_arrow),
-                            contentDescription = "",
-                            modifier = Modifier.size(titleHeight).padding(4.dp)
-                        )
-                    Spacer(modifier = Modifier.width(16.dp))
                 }
-
                 SummaryCard(context, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
