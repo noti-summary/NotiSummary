@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -54,29 +55,34 @@ fun SummaryCard(
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
-        Box(modifier = Modifier
-            .padding(16.dp, 4.dp)
-            .verticalScroll(rememberScrollState())
-        ) {
-
+        Box(modifier = Modifier.padding(16.dp, 4.dp)) {
             Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
                 ) {
-                    DislikeButton(likeDislike, summaryPrefs)
-                    LikeButton(likeDislike, summaryPrefs)
+                    Text(
+                        text = result,
+                        style = TextStyle(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            lineHeight = 22.sp,
+                            letterSpacing = 0.sp
+                        ),
+                    )
                 }
-
-                Text(
-                    text = result,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp,
-                        lineHeight = 22.sp,
-                        letterSpacing = 0.sp
-                    ),
-                )
+                Box(
+                    modifier = Modifier.height(40.dp).fillMaxWidth(),
+                    contentAlignment = Alignment.BottomEnd // align Row to the bottom end
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        DislikeButton(likeDislike, summaryPrefs)
+                        LikeButton(likeDislike, summaryPrefs)
+                    }
+                }
             }
 
             if (result == stringResource(SummaryResponse.GENERATING.message)) {
