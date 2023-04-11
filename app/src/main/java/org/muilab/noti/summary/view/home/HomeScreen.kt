@@ -145,7 +145,8 @@ fun HomeScreen(
                         .clickable {
                             summaryCardState.value = if (!drawerCardState.value)
                                 summaryCardState.value else !summaryCardState.value
-                        }) {
+                        }
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

@@ -12,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.viewModel.PromptViewModel
@@ -43,8 +45,8 @@ fun SummaryCard(
     Card(modifier = Modifier.fillMaxSize()) {
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
 
-        val summaryPerfs = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
-        val likeDislike  = remember { mutableStateOf(summaryPerfs.getInt("rating", 0)) }
+        val summaryPrefs = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+        val likeDislike  = remember { mutableStateOf(summaryPrefs.getInt("rating", 0)) }
 
         Divider(
             thickness = 1.dp,
@@ -62,11 +64,19 @@ fun SummaryCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    DislikeButton(likeDislike, summaryPerfs)
-                    LikeButton(likeDislike, summaryPerfs)
+                    DislikeButton(likeDislike, summaryPrefs)
+                    LikeButton(likeDislike, summaryPrefs)
                 }
 
-                Text(text = result)
+                Text(
+                    text = result,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        lineHeight = 22.sp,
+                        letterSpacing = 0.sp
+                    ),
+                )
             }
 
             if (result == stringResource(SummaryResponse.GENERATING.message)) {
@@ -82,7 +92,7 @@ fun SummaryCard(
             } else if (submitButtonState == SSButtonState.LOADING){
                 setSubmitButtonState(SSButtonState.SUCCESS)
 
-                summaryPerfs.edit().putInt("rating", 0).apply()
+                summaryPrefs.edit().putInt("rating", 0).apply()
                 likeDislike.value = 0
             }
 
