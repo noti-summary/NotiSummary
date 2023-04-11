@@ -119,7 +119,7 @@ fun NavigateSetting(
 ) {
     NavHost(navController, startDestination = SettingScreenItem.Start.name, modifier = modifier) {
         composable(SettingScreenItem.Start.name) {
-            MainSettingScreen(navController)
+            MainSettingScreen(context, navController)
         }
         composable(SettingScreenItem.SettingPrompt.name) {
             PromptScreen(context, promptViewModel)

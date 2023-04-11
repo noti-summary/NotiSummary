@@ -1,5 +1,7 @@
 package org.muilab.noti.summary.view.settings
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,9 +25,13 @@ import androidx.navigation.NavHostController
 
 
 @Composable
-fun MainSettingScreen(navController: NavHostController) {
+fun MainSettingScreen(context: Context, navController: NavHostController) {
 
     val uriHandler = LocalUriHandler.current
+
+    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+    val country = sharedPref.getString("country", "Unknown")
+    val countryCode = country!!.substring(5, 7)
 
     MaterialTheme {
         Column {
@@ -34,47 +40,52 @@ fun MainSettingScreen(navController: NavHostController) {
                     items = SettingScreenItem.values()
                         .slice(1 until SettingScreenItem.values().size)
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .padding(start = 10.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                if (it.name == "Feedback") {
-                                    uriHandler.openUri("https://forms.gle/LSe1fZP2sDnXUtC59")
-                                } else if (it.name == "About") {
-                                    uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
-                                } else if (it.name == "Privacy") {
-                                    uriHandler.openUri("https://example.com")
-                                } else if (it.name == "Recruitment") {
-                                    uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
-                                } else {
-                                    navController.navigate(it.name)
-                                }
-                            },
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(18.dp).fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                    if (!(countryCode != "TW" && it.name == SettingScreenItem.Recruitment.name))
+                        Card(
+                            modifier = Modifier
+                                .padding(start = 10.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    if (it.name == SettingScreenItem.Feedback.name) {
+                                        uriHandler.openUri("https://forms.gle/LSe1fZP2sDnXUtC59")
+                                    } else if (it.name == SettingScreenItem.About.name) {
+                                        uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
+                                    } else if (it.name == SettingScreenItem.Privacy.name) {
+                                        uriHandler.openUri("https://example.com")
+                                    } else if (it.name == SettingScreenItem.Recruitment.name) {
+                                        uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
+                                    } else {
+                                        navController.navigate(it.name)
+                                    }
+                                },
+                            shape = MaterialTheme.shapes.medium,
                         ) {
-                            Icon(
-                                modifier = Modifier.padding(end = 12.dp).size(25.dp),
-                                painter = painterResource(id = it.iconId),
-                                contentDescription = stringResource(it.titleId),
-                            )
-                            Text(
+                            Row(
                                 modifier = Modifier
-                                    .fillMaxWidth(0.93f),
-                                text = stringResource(it.titleId),
-                            )
-                            Icon(
-                                imageVector = Icons.Outlined.KeyboardArrowRight,
-                                stringResource(it.titleId)
-                            )
+                                    .padding(18.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    modifier = Modifier
+                                        .padding(end = 12.dp)
+                                        .size(25.dp),
+                                    painter = painterResource(id = it.iconId),
+                                    contentDescription = stringResource(it.titleId),
+                                )
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.93f),
+                                    text = stringResource(it.titleId),
+                                )
+                                Icon(
+                                    imageVector = Icons.Outlined.KeyboardArrowRight,
+                                    stringResource(it.titleId)
+                                )
+                            }
                         }
-                    }
                 }
             }
         }
