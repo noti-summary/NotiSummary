@@ -2,6 +2,7 @@ package org.muilab.noti.summary.util
 
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
 import android.content.Intent
@@ -26,7 +27,9 @@ fun addAlarm(context: Context, schedule: Schedule) {
     intent.putExtra("hour", schedule.hour)
     intent.putExtra("minute", schedule.minute)
 
-    val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
+    val pendingIntent = PendingIntent.getBroadcast(
+        context, schedule.primaryKey, intent, FLAG_IMMUTABLE or FLAG_CANCEL_CURRENT
+    )
 
     alarmManager.setExactAndAllowWhileIdle(
         /* type = */ AlarmManager.RTC_WAKEUP,
@@ -43,7 +46,9 @@ fun deleteAlarm(context: Context, schedule: Schedule) {
     val intent = Intent(context, AlarmReceiver::class.java)
     intent.putExtra("hour", schedule.hour)
     intent.putExtra("minute", schedule.minute)
-    val pendingIntent = PendingIntent.getBroadcast(context, schedule.primaryKey, intent, FLAG_IMMUTABLE)
+    val pendingIntent = PendingIntent.getBroadcast(
+        context, schedule.primaryKey, intent, FLAG_IMMUTABLE or FLAG_CANCEL_CURRENT
+    )
 
     alarmManager.cancel(pendingIntent)
 }
