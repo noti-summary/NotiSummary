@@ -69,4 +69,5 @@
         If you wish to include notification details in the summary, adjust it by going to "⚙" > "Scope of Summary (Notification Info)".
     </string>
     <string name="default_summary_prompt">Turn the smartphone notifications provided below into a summary.</string>
+    <string name="search_app">Search</string>
 </resources>
