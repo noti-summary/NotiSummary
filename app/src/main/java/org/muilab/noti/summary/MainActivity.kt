@@ -141,7 +141,13 @@ class MainActivity : ComponentActivity() {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
                 if (activeNotifications != null) {
                     val curPrompt = promptViewModel.getCurPrompt()
-                    sumViewModel.updateSummaryText(curPrompt, activeNotifications)
+                    sumViewModel.updateSummaryText(curPrompt, activeNotifications, false)
+                }
+            } else if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED") {
+                val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
+                if (activeNotifications != null) {
+                    val curPrompt = promptViewModel.getCurPrompt()
+                    sumViewModel.updateSummaryText(curPrompt, activeNotifications, true)
                 }
             }
         }

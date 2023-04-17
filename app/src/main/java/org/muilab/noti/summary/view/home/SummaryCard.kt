@@ -79,8 +79,8 @@ fun SummaryCard(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        DislikeButton(likeDislike, summaryPrefs)
-                        LikeButton(likeDislike, summaryPrefs)
+                        DislikeButton(likeDislike, summaryPrefs, sumViewModel)
+                        LikeButton(likeDislike, summaryPrefs, sumViewModel)
                     }
                 }
             }
@@ -123,7 +123,11 @@ fun CurrentPrompt(curPrompt: String) {
 }
 
 @Composable
-fun LikeButton(likeDislike: MutableState<Int>, summaryPerfs: SharedPreferences) {
+fun LikeButton(
+    likeDislike: MutableState<Int>,
+    summaryPrefs: SharedPreferences,
+    sumViewModel: SummaryViewModel
+) {
     IconButton(
         onClick = {
             if (likeDislike.value == 1) {
@@ -131,7 +135,8 @@ fun LikeButton(likeDislike: MutableState<Int>, summaryPerfs: SharedPreferences) 
             } else {
                 likeDislike.value = 1
             }
-            summaryPerfs.edit().putInt("rating", likeDislike.value).apply()
+            summaryPrefs.edit().putInt("rating", likeDislike.value).apply()
+            sumViewModel.logSummary(likeDislike.value)
         }
     ) {
         Icon(
@@ -143,7 +148,11 @@ fun LikeButton(likeDislike: MutableState<Int>, summaryPerfs: SharedPreferences) 
 }
 
 @Composable
-fun DislikeButton(likeDislike: MutableState<Int>, summaryPerfs: SharedPreferences) {
+fun DislikeButton(
+    likeDislike: MutableState<Int>,
+    summaryPrefs: SharedPreferences,
+    sumViewModel: SummaryViewModel
+) {
     IconButton(
         onClick = {
             if (likeDislike.value == -1) {
@@ -151,7 +160,8 @@ fun DislikeButton(likeDislike: MutableState<Int>, summaryPerfs: SharedPreference
             } else {
                 likeDislike.value = -1
             }
-            summaryPerfs.edit().putInt("rating", likeDislike.value).apply()
+            summaryPrefs.edit().putInt("rating", likeDislike.value).apply()
+            sumViewModel.logSummary(likeDislike.value)
         }
     ) {
         Icon(

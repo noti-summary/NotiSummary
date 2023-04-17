@@ -41,6 +41,10 @@ class NotiListenerService: NotificationListenerService() {
                 val intent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
                 intent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
                 sendBroadcast(intent)
+            } else if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
+                val intent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
+                intent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
+                sendBroadcast(intent)
             }
         }
     }
@@ -152,6 +156,7 @@ class NotiListenerService: NotificationListenerService() {
             val time = replaceChars(notiItem.getTimeStr())
             val title = replaceChars(notiItem.getTitle())
             val content = replaceChars(notiItem.getContent())
+            val postTime = notiItem.getPostTime()
 
             if (appName == "null" || title == "null" || content == "null")
                 return@forEach
@@ -162,7 +167,7 @@ class NotiListenerService: NotificationListenerService() {
             if (!appFilterPrefs.getBoolean(notiItem.getPackageName(), true))
                 return@forEach
                 
-            notiUnits.add(NotiUnit(appName, time, title, content))
+            notiUnits.add(NotiUnit(appName, time, title, content, postTime))
         }
         return notiUnits
     }

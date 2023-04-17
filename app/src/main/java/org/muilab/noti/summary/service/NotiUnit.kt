@@ -3,14 +3,21 @@ package org.muilab.noti.summary.service
 import android.os.Parcel
 import android.os.Parcelable
 
-data class NotiUnit(val appName: String, val time: String, val title: String, val content: String):
+data class NotiUnit(
+    val appName: String,
+    val time: String,
+    val title: String,
+    val content: String,
+    val postTime: Long
+):
     Parcelable {
 
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
-        parcel.readString()!!
+        parcel.readString()!!,
+        parcel.readLong()!!
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -18,6 +25,7 @@ data class NotiUnit(val appName: String, val time: String, val title: String, va
         parcel.writeString(time)
         parcel.writeString(title)
         parcel.writeString(content)
+        parcel.writeLong(postTime)
     }
 
     override fun describeContents(): Int {

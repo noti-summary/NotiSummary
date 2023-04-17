@@ -31,7 +31,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "onReceive")
 
-        val refreshSummaryIntent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS")
+        val refreshSummaryIntent = Intent("edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED")
         LocalBroadcastManager.getInstance(context).sendBroadcast(refreshSummaryIntent)
 
         val hour = intent.getIntExtra("hour", -1)

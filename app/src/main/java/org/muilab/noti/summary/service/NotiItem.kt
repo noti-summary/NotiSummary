@@ -127,6 +127,10 @@ class NotiItem(context: Context,
         return simpleDateFormat.format(date)
     }
 
+    fun getPostTime(): Long {
+        return unixTime!!
+    }
+
     fun makeDrawerNoti(): CurrentDrawer {
         return this.postTime?.let {
             CurrentDrawer(

@@ -1,48 +1,54 @@
 package org.muilab.noti.summary.util
 
+import android.content.Context
 import android.util.Log
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.full.memberProperties
 
-data class Summary (
+data class SummaryNoti(
+    val appName: String,
+    val postTime: Long,
+    val wordCount: Map<String, Int>
+)
+
+data class Summary(
     val userId: String,
     val timestamp: Long,
     val scheduled: Boolean,
     val prompt: String,
-    val rating: Short,
-    val notiScope: NotiScope,
+    val rating: Int,
+    val notiScope: Map<String, Boolean>,
     val notifications: List<SummaryNoti>,
-    val summaryLength: WordCount
+    val summaryLength: Map<String, Int>
 ) {
     val dateTime: String
     init {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         dateTime = dateFormat.format(Date(timestamp))
     }
-    data class NotiScope (
-        val appName: Boolean,
-        val time: Boolean,
-        val title: Boolean,
-        val content: Boolean
-    )
-    data class WordCount (
-        val english: Int,
-        val chinese: Int,
-        val japanese: Int,
-    )
-    data class SummaryNoti (
-        val appName: String,
-        val postTime: Long,
-        val wordCount: WordCount
-    )
 }
 
-data class PromptAction (
+fun saveSummary(context: Context, summary: Summary) {
+    val gson = Gson()
+    val summaryJson = gson.toJson(summary)
+    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    sharedPref.edit().putString("summaryJson", summaryJson).apply()
+}
+
+fun loadSummary(context: Context): Summary? {
+    val gson = Gson()
+    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    val summaryJson = sharedPref.getString("summaryJson", null)
+    return gson.fromJson(summaryJson, Summary::class.java)
+}
+
+data class PromptAction(
     val userId: String,
     val timestamp: Long,
     val action: String,
@@ -58,7 +64,7 @@ data class Scheduler(
     // val dayOfWeek: Int
 )
 
-data class AppScope (val userId: String, val timestamp: Long, val apps: Map<String, Boolean>)
+data class AppScope(val userId: String, val timestamp: Long, val apps: Map<String, Boolean>)
 
 inline fun <reified T : Any> T.extractVariables(): Pair<String, String>? {
     val userId = T::class.memberProperties.find { it.name == "userId" }

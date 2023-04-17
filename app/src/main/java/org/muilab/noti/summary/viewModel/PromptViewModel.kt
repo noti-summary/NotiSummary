@@ -23,8 +23,6 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
 
     @SuppressLint("StaticFieldLeak")
     private val context = getApplication<Application>().applicationContext
-    private val userSharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-    private val userId = userSharedPref.getString("user_id", "000").toString()
 
 
     private val defaultPrompt = context.getString(R.string.default_summary_prompt)
@@ -78,6 +76,8 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
     }
 
     fun logPrompt(action: String, history: Map<String, String>, newPrompt: String) {
+        val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        val userId = sharedPref.getString("user_id", "000").toString()
         val timestamp = System.currentTimeMillis()
         val promptAction = PromptAction(userId, timestamp, action, history, newPrompt)
         uploadData("promptAction", promptAction)

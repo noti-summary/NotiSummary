@@ -11,6 +11,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
 import io.github.cdimascio.dotenv.dotenv
@@ -25,6 +26,9 @@ import okio.IOException
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.util.Summary
+import org.muilab.noti.summary.util.SummaryNoti
+import org.muilab.noti.summary.util.uploadData
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
@@ -61,7 +65,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         _result.value = resultValue!!
     }
 
-    private fun updateLiveDataValue(newValue: String?) {
+    private fun updateLiveDataValue(newValue: String?): Boolean {
         if (newValue != null) {
             _result.postValue(newValue!!)
             sharedPreferences.edit().putString("resultValue", newValue).apply()
@@ -70,9 +74,10 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             if (userAPIKey == context.getString(R.string.system_key)) {
                 subtractCredit(1)
             }
-
+            return true
         } else {
             _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+            return false
         }
     }
 
@@ -103,21 +108,20 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
-    fun updateSummaryText(curPrompt: String, activeNotifications: ArrayList<NotiUnit>) {
+    fun updateSummaryText(curPrompt: String, activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) {
         prompt = curPrompt
         if (activeNotifications.size > 0){
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
-            val postContent = getPostContent(activeNotifications)
             _notifications.postValue(activeNotifications.toList())
             viewModelScope.launch {
-                sendToServer(postContent)
+                sendToServer(activeNotifications, isScheduled)
             }
         } else {
             _result.postValue(context.getString(SummaryResponse.NO_NOTIFICATION.message))
         }
     }
 
-    private suspend fun sendToServer(content: String) = withContext(Dispatchers.IO) {
+    private suspend fun sendToServer(activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) = withContext(Dispatchers.IO) {
         val client = OkHttpClient.Builder()
             .connectTimeout(180, TimeUnit.SECONDS)
             .writeTimeout(180, TimeUnit.SECONDS)
@@ -137,12 +141,14 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             "$serverURL/key"
         }
 
+        val postContent = getPostContent(activeNotifications)
+
         @Suppress("IMPLICIT_CAST_TO_ANY")
         val gptRequest = if (userAPIKey == context.getString(R.string.system_key)) {
-            GPTRequest(prompt, content)
+            GPTRequest(prompt, postContent)
         } else {
             Log.d("sendToServer", "userAPIKey: $userAPIKey")
-            GPTRequestWithKey(prompt, content, userAPIKey)
+            GPTRequestWithKey(prompt, postContent, userAPIKey)
         }
 
         val postBody = Gson().toJson(gptRequest)
@@ -153,12 +159,45 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             .build()
 
         try {
+            val submitTime = System.currentTimeMillis()
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 val responseText =
                     response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")?.removeSurrounding("\"")
                 val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
-                updateLiveDataValue(summary)
+                if (updateLiveDataValue(summary)) {
+                    with (sharedPreferences.edit()) {
+                        putLong("prevSubmitTime", submitTime)
+                        putBoolean("prevIsScheduled", isScheduled)
+                        putString("prevPrompt", prompt)
+
+                        val gson = Gson()
+                        val notiData = activeNotifications.map {
+                            // TODO: Get length from server
+                            SummaryNoti(it.appName, it.postTime, mapOf("characters" to it.content.length))
+                        }
+                        val notiDataJson = gson.toJson(notiData)
+                        putString("prevNotiData", notiDataJson)
+
+                        val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+
+                        val notiScope = mutableMapOf<String, Boolean>()
+                        notiFilterPrefs.all.forEach { (attribute, state) ->
+                            if (state is Boolean)
+                                notiScope[attribute] = state
+                        }
+                        val notiScopeJson = Gson().toJson(notiScope)
+                        putString("prevNotiScope", notiScopeJson)
+
+                        // TODO: Get length from server
+                        val summaryLength = mapOf("characters" to summary.length)
+                        val summaryLengthJson = Gson().toJson(summaryLength)
+                        putString("prevSummaryLength", summaryLengthJson)
+
+                        apply()
+                    }
+                    logSummary(0)
+                }
             } else {
                 response.body?.let {
                     val responseBody = it.string()
@@ -201,5 +240,38 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                 docRef.update("credit", res.credit - number)
             }
         }
+    }
+
+    fun logSummary(rating: Int) {
+        val userSharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        val userId = userSharedPref.getString("user_id", "000").toString()
+
+        val submitTime = sharedPreferences.getLong("prevSubmitTime", 0)
+        val isScheduled = sharedPreferences.getBoolean("prevIsScheduled", false)
+        val prompt = sharedPreferences.getString("prevPrompt", "").toString()
+
+        val notiScopeJson = sharedPreferences.getString("prevNotiScope", "")
+        val notiScopeType = object : TypeToken<Map<String, Boolean>>() {}.type
+        val notiScope = Gson().fromJson<Map<String, Boolean>>(notiScopeJson, notiScopeType)
+
+        val notiDataJson = sharedPreferences.getString("prevNotiData", "")
+        val notiDataType = object : TypeToken<List<SummaryNoti>>() {}.type
+        val notiData = Gson().fromJson<List<SummaryNoti>>(notiDataJson, notiDataType)
+
+        val summaryLengthJson = sharedPreferences.getString("prevSummaryLength", "")
+        val summaryLengthType = object : TypeToken<Map<String, Int>>() {}.type
+        val summaryLength = Gson().fromJson<Map<String, Int>>(summaryLengthJson, summaryLengthType)
+
+        val summary = Summary(
+            userId,
+            submitTime,
+            isScheduled,
+            prompt,
+            rating,
+            notiScope,
+            notiData,
+            summaryLength
+        )
+        uploadData("summary", summary)
     }
 }
