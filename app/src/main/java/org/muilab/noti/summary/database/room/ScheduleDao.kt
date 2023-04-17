@@ -23,6 +23,9 @@ interface ScheduleDao {
         }
     }
 
+    @Query("UPDATE time_events SET week = :newWeek WHERE hour = :oldHour AND minute = :oldMinute AND week = :oldWeek")
+    fun updateWeekSchedule(oldHour: Int, oldMinute: Int, oldWeek :Int, newWeek: Int)
+
     @Query("DELETE FROM time_events WHERE hour = :hour AND minute = :minute")
     fun deleteByTime(hour: Int, minute: Int)
 }

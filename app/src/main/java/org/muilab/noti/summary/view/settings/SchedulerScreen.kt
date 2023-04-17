@@ -28,8 +28,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
@@ -46,6 +48,7 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
 fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
     val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf())
     var showDialog by remember { mutableStateOf(false) }
+    var editSchedule by remember { mutableStateOf(Schedule(0, -1, -1, -1)) }
 
     Column {
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
@@ -58,7 +61,9 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         .wrapContentHeight(),
                 ) {
                     Row(
-                        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -78,9 +83,12 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         }
                         IconButton(onClick = {
                             showDialog = true
+                            editSchedule = item
                         }) {
                             Icon(
-                                modifier = Modifier.padding(all = 11.dp).size(20.dp),
+                                modifier = Modifier
+                                    .padding(all = 11.dp)
+                                    .size(20.dp),
                                 painter = painterResource(R.drawable.calendar),
                                 contentDescription = "weekly schedule"
                             )
@@ -98,19 +106,26 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
         }
     }
 
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
     if (showDialog) {
-        val selectedWeeks = remember { mutableStateOf(List(7) { false }) }
-        SetDayOfWeekDialog(selectedWeeks, onDismissRequest = { showDialog = !showDialog })
+        val weekState = remember { mutableStateOf(editSchedule.week) }
+        val confirmAction = {
+            showDialog = !showDialog
+            coroutineScope.launch {
+                scheduleViewModel.updateWeekSchedule(editSchedule, weekState.value)
+            }
+        }
+        SetDayOfWeekDialog(weekState, onDismissRequest = { showDialog = !showDialog }, confirmAction)
     }
 }
 
 @Composable
 fun SetDayOfWeekDialog(
-//    weeks: List<String>,
-    selectedWeeks: MutableState<List<Boolean>>,
-    onDismissRequest: () -> Unit
+    weekState: MutableState<Int>,
+    onDismissRequest: () -> Unit,
+    confirmAction: () -> Job
 ) {
-    val daysOfWeek = DayOfWeek.values().map { it.name }
+    val daysOfWeek = DayOfWeek.values().map { it.name } // Mon. Tue. Wed. Thu. Fri. Sat. Sun.
     Dialog(
         onDismissRequest = onDismissRequest
     ) {
@@ -120,7 +135,9 @@ fun SetDayOfWeekDialog(
                 .height(450.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp).fillMaxSize(),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -130,7 +147,9 @@ fun SetDayOfWeekDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
                 ) {
                     itemsIndexed(daysOfWeek) { idx, week ->
                         Row(
@@ -147,13 +166,7 @@ fun SetDayOfWeekDialog(
                                     )
                                 )
                                 .clickable {
-                                    selectedWeeks.value
-                                        .toMutableList()
-                                        .also {
-                                            it[idx] = !it[idx]
-                                            selectedWeeks.value = it
-                                            Log.d("SetDayOfWeekDialog", "$week: ${it[idx]}")
-                                        }
+                                    weekState.value = weekState.value xor (1 shl (6 - idx))
                                 },
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
@@ -167,7 +180,7 @@ fun SetDayOfWeekDialog(
                                 style = MaterialTheme.typography.bodyLarge
                             )
 
-                            if (selectedWeeks.value[idx]) {
+                            if (weekState.value and (1 shl (6 - idx)) != 0) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = "Selected",
@@ -180,8 +193,10 @@ fun SetDayOfWeekDialog(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    modifier = Modifier.height(40.dp).fillMaxWidth(),
-                    onClick = { onDismissRequest() }
+                    modifier = Modifier
+                        .height(40.dp)
+                        .fillMaxWidth(),
+                    onClick = { confirmAction() }
                 ) {
                     Text(text = stringResource(R.string.ok))
                 }
@@ -208,7 +223,9 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(onClick = {

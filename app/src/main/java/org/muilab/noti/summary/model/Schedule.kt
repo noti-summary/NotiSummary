@@ -10,7 +10,7 @@ data class Schedule(
     var hour: Int,
     var minute: Int,
     var week: Int = 0b1111111
-    // 7-bit binary number for the week, with each bit representing a day from Sunday to Saturday.
+    // 7-bit binary number for the week, with each bit representing a day from Monday to Sunday.
 ) {
     fun getTime(): String {
         return String.format("%02d:%02d", hour, minute)
@@ -19,12 +19,13 @@ data class Schedule(
     fun getWeekString(): String {
         return when (week) {
             0b1111111 -> "every day"
-            0b1000001 -> "every week"
+            0b0000011 -> "every weekend"
+            0b1111100 -> "every weekday"
             else -> {
                 val days = mutableListOf<String>()
                 val weekdays = listOf("Mon.", "Tue.", "Wed.", "Thu.", "Fri.", "Sat.", "Sun.")
                 for (i in weekdays.indices) {
-                    if ((week and (1 shl i)) != 0) {
+                    if ((week and (1 shl (6 - i))) != 0) {
                         days.add(weekdays[i])
                     }
                 }
