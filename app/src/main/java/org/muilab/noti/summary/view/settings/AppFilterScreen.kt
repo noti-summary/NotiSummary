@@ -107,7 +107,11 @@ fun AppFilterScreen(context: Context) {
                                     putBoolean(packageInfo.packageName, newState)
                                     apply()
                                 }
-                                LogAppFilters(context, appFilterMap)
+                                val newFilterMap = mutableMapOf<String, Boolean>()
+                                packages.forEach { pkgInfo ->
+                                    newFilterMap[pm.getApplicationLabel(pkgInfo) as String] = appFilterMap[pkgInfo.packageName] as Boolean
+                                }
+                                LogAppFilters(context, newFilterMap)
                             }
                         )
                     }

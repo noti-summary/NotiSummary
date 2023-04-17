@@ -5,7 +5,6 @@ import android.util.Log
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -78,21 +77,18 @@ inline fun <reified T : Any> T.extractVariables(): Pair<String, String>? {
 
 inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
 
-    GlobalScope.launch {
+    val db = Firebase.firestore
+    val (userId, timestamp) = document.extractVariables() ?: Pair(String, String)
+    val documentId = "${userId}_$timestamp"
 
-        val db = Firebase.firestore
-        val (userId, timestamp) = document.extractVariables() ?: Pair(String, String)
-        val documentId = "${userId}_$timestamp"
+    db.collection(documentSet)
+        .document(documentId)
+        .set(document)
+        .addOnSuccessListener {
+            Log.d("Data Log", "Upload to set $documentSet with ID $documentId")
+        }
+        .addOnFailureListener { e ->
+            Log.w("Data Log", "Error adding context to Firestore", e)
+        }
 
-        db.collection(documentSet)
-            .document(documentId)
-            .set(document)
-            .addOnSuccessListener {
-                Log.d(TAG, "Upload to set $documentSet with ID $documentId")
-            }
-            .addOnFailureListener { e ->
-                Log.w(TAG, "Error adding context to Firestore", e)
-            }
-
-    }
 }
