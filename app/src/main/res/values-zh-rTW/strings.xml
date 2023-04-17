@@ -68,4 +68,5 @@
         若您希望納入更多詳細資訊進行摘要，可以進入「⚙️」>「摘要範圍 (通知資訊)」自行調整。
     </string>
     <string name="default_summary_prompt">請用一段文字摘要以下手機通知</string>
+    <string name="search_app">搜尋</string>
 </resources>
