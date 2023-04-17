@@ -4,7 +4,7 @@ import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_CANCEL_CURRENT
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -82,7 +82,7 @@ class AlarmReceiver : BroadcastReceiver() {
             intent.putExtra("minute", schedule.minute)
             val pendingIntent = PendingIntent.getBroadcast(
                 context, 0, intent,
-                FLAG_IMMUTABLE or FLAG_CANCEL_CURRENT
+                FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT
             )
 
             alarmManager.setExactAndAllowWhileIdle(

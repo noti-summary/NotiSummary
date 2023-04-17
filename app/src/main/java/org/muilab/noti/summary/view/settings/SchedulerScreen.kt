@@ -4,11 +4,16 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,8 +21,10 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +33,7 @@ import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
+import java.time.DayOfWeek
 import java.util.*
 
 @Composable
@@ -37,6 +45,7 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
 @Composable
 fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
     val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf())
+    var showDialog by remember { mutableStateOf(false) }
 
     Column {
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
@@ -53,11 +62,29 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = item.getTime(),
-                            style = MaterialTheme.typography.displaySmall
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            Text(
+                                text = item.getTime(),
+                                style = MaterialTheme.typography.displaySmall
+                            )
+                            Text(
+                                text = item.getWeekString(),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                        IconButton(onClick = {
+                            showDialog = true
+                        }) {
+                            Icon(
+                                modifier = Modifier.padding(all = 11.dp).size(20.dp),
+                                painter = painterResource(R.drawable.calendar),
+                                contentDescription = "weekly schedule"
+                            )
+                        }
                         IconButton(onClick = {
                             scheduleViewModel.deleteSchedule(item)
                             deleteAlarm(context, item)
@@ -66,7 +93,98 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         }
                     }
                 }
-                Divider(color = Color.DarkGray, thickness = 1.dp) // TODO: use color in material3 instead?
+                Divider(color = Color.DarkGray, thickness = 1.dp)
+            }
+        }
+    }
+
+    if (showDialog) {
+        val selectedWeeks = remember { mutableStateOf(List(7) { false }) }
+        SetDayOfWeekDialog(selectedWeeks, onDismissRequest = { showDialog = !showDialog })
+    }
+}
+
+@Composable
+fun SetDayOfWeekDialog(
+//    weeks: List<String>,
+    selectedWeeks: MutableState<List<Boolean>>,
+    onDismissRequest: () -> Unit
+) {
+    val daysOfWeek = DayOfWeek.values().map { it.name }
+    Dialog(
+        onDismissRequest = onDismissRequest
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(300.dp)
+                .height(450.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp).fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Select a Week",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)
+                ) {
+                    itemsIndexed(daysOfWeek) { idx, week ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.onPrimaryContainer,
+                                    RoundedCornerShape(
+                                        topStart = if (idx == 0) 8.dp else 0.dp,
+                                        topEnd = if (idx == 0) 8.dp else 0.dp,
+                                        bottomStart = if (idx == 6) 8.dp else 0.dp,
+                                        bottomEnd = if (idx == 6) 8.dp else 0.dp
+                                    )
+                                )
+                                .clickable {
+                                    selectedWeeks.value
+                                        .toMutableList()
+                                        .also {
+                                            it[idx] = !it[idx]
+                                            selectedWeeks.value = it
+                                            Log.d("SetDayOfWeekDialog", "$week: ${it[idx]}")
+                                        }
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .weight(1f),
+                                text = week,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+
+                            if (selectedWeeks.value[idx]) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Color.Black,
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    modifier = Modifier.height(40.dp).fillMaxWidth(),
+                    onClick = { onDismissRequest() }
+                ) {
+                    Text(text = stringResource(R.string.ok))
+                }
             }
         }
     }
