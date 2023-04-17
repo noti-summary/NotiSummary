@@ -42,15 +42,13 @@ data class Summary (
     )
 }
 
-data class Prompt (
+data class PromptAction (
     val userId: String,
     val timestamp: Long,
     val action: String,
-    val history: List<PromptEdit>,
+    val history: Map<String, String>,
     val newPrompt: String
-) {
-    data class PromptEdit (val timestamp: Long, val newText: String)
-}
+)
 
 data class Scheduler(
     val userId: String,
