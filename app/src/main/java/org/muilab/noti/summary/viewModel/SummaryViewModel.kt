@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.firebase.firestore.ktx.firestore
@@ -184,10 +185,10 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                         val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
 
                         val notiScope = mutableMapOf<String, Boolean>()
-                        notiFilterPrefs.all.forEach { (attribute, state) ->
-                            if (state is Boolean)
-                                notiScope[attribute] = state
-                        }
+                        notiScope["appName"] = notiFilterPrefs.getBoolean(context.getString(R.string.application_name), true)
+                        notiScope["time"] = notiFilterPrefs.getBoolean(context.getString(R.string.time), true)
+                        notiScope["title"] = notiFilterPrefs.getBoolean(context.getString(R.string.title), true)
+                        notiScope["content"] = notiFilterPrefs.getBoolean(context.getString(R.string.content), true)
                         val notiScopeJson = Gson().toJson(notiScope)
                         putString("prevNotiScope", notiScopeJson)
 
