@@ -130,8 +130,8 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             .build()
 
         Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
-        data class GPTRequest(val prompt: String, val content: String)
-        data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
+        data class GPTRequest(val prompt: String, val content: String, val notifications: String)
+        data class GPTRequestWithKey(val prompt: String, val content: String, val key: String, val notifications: String)
 
         val userAPIKey = apiPref.getString("userAPIKey", context.getString(R.string.system_key))!!
 
@@ -143,12 +143,14 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
 
         val postContent = getPostContent(activeNotifications)
 
+        val notiListJson = Gson().toJson(activeNotifications)
+
         @Suppress("IMPLICIT_CAST_TO_ANY")
         val gptRequest = if (userAPIKey == context.getString(R.string.system_key)) {
-            GPTRequest(prompt, postContent)
+            GPTRequest(prompt, postContent, notiListJson)
         } else {
             Log.d("sendToServer", "userAPIKey: $userAPIKey")
-            GPTRequestWithKey(prompt, postContent, userAPIKey)
+            GPTRequestWithKey(prompt, postContent, userAPIKey, notiListJson)
         }
 
         val postBody = Gson().toJson(gptRequest)
