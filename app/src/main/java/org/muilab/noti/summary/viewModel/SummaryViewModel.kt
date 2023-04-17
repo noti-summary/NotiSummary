@@ -236,7 +236,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         val userId = sharedPref.getString("user_id", "000").toString()
 
         val db = Firebase.firestore
-        val docRef = db.collection("user-free-credit").document(userId)
+        val docRef = db.collection("user").document(userId)
         docRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 val res = document.toObject<UserCredit>()!!

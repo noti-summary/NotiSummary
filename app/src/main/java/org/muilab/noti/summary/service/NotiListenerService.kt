@@ -57,7 +57,9 @@ class NotiListenerService: NotificationListenerService() {
         super.onCreate()
         Log.d(TAG, "onCreate")
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS")
+        val allNotiFilterScheduled = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED")
         LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilter)
+        LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilterScheduled)
     }
 
     override fun onDestroy() {

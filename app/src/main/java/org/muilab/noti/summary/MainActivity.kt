@@ -41,7 +41,9 @@ class MainActivity : ComponentActivity() {
         startService(notiListenerIntent)
 
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
+        val allNotiFilterScheduled = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
+        registerReceiver(allNotiReturnReceiver, allNotiFilterScheduled)
 
         val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
         if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
@@ -169,7 +171,7 @@ class MainActivity : ComponentActivity() {
                 val country = sharedPref.getString("country", "Unknown").toString()
 
                 val db = Firebase.firestore
-                val docRef = db.collection("user-free-credit").document(userId)
+                val docRef = db.collection("user").document(userId)
 
                 docRef.get()
                     .addOnSuccessListener { document ->
