@@ -22,6 +22,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import org.muilab.noti.summary.util.AppScope
+import org.muilab.noti.summary.util.uploadData
 
 @Composable
 fun AppFilterScreen(context: Context) {
@@ -105,6 +107,7 @@ fun AppFilterScreen(context: Context) {
                                     putBoolean(packageInfo.packageName, newState)
                                     apply()
                                 }
+                                LogAppFilters(context, appFilterMap)
                             }
                         )
                     }
@@ -112,5 +115,12 @@ fun AppFilterScreen(context: Context) {
             }
         }
     }
+}
 
+fun LogAppFilters(context: Context, appFilterMap: Map<String, Boolean>) {
+    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+    val userId = sharedPref.getString("user_id", "000").toString()
+    val timestamp = System.currentTimeMillis()
+    val appScope = AppScope(userId, timestamp, appFilterMap)
+    uploadData("appScope", appScope)
 }
