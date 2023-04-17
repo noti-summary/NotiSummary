@@ -43,7 +43,7 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
             promptDao.insertPromptIfNotExists(Prompt(0, updatePrompt))
         }
         choosePrompt(updatePrompt, false)
-        logPrompt("add", editHistory, newPromptText)
+        logPrompt("create", editHistory, newPromptText)
     }
 
     fun choosePrompt(updatePrompt: String, userDecision: Boolean) {

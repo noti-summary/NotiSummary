@@ -36,7 +36,7 @@ fun addAlarm(context: Context, schedule: Schedule) {
         /* triggerAtMillis = */ calendar.timeInMillis,
         /* operation = */ pendingIntent
     )
-    LogAlarm(context, "add", String.format("%02d:%02d", schedule.hour, schedule.minute))
+    LogAlarm(context, "create", String.format("%02d:%02d", schedule.hour, schedule.minute))
 }
 
 fun deleteAlarm(context: Context, schedule: Schedule) {
