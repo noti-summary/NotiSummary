@@ -19,6 +19,7 @@ import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.util.TAG
+import java.time.LocalTime
 import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
@@ -71,6 +72,14 @@ class AlarmReceiver : BroadcastReceiver() {
                 set(Calendar.MINUTE, schedule.minute)
                 set(Calendar.SECOND, 0)
                 add(Calendar.DAY_OF_YEAR, 1)
+            }
+
+            if (!schedule.isEveryDay()) {
+                val weekRepeating = schedule.calendarWeek()
+
+                while (!weekRepeating.contains(calendar.get(Calendar.DAY_OF_WEEK))) {
+                    calendar.add(Calendar.DAY_OF_YEAR, 1)
+                }
             }
 
             Log.d("scheduleNextDayAlarm", "${calendar.time}")

@@ -9,6 +9,7 @@ import android.content.Intent
 import android.util.Log
 import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.receiver.AlarmReceiver
+import java.time.LocalTime
 import java.util.*
 
 fun addAlarm(context: Context, schedule: Schedule) {
@@ -20,6 +21,20 @@ fun addAlarm(context: Context, schedule: Schedule) {
         set(Calendar.HOUR_OF_DAY, schedule.hour)
         set(Calendar.MINUTE, schedule.minute)
         set(Calendar.SECOND, 0)
+    }
+
+    val now = LocalTime.now()
+    val alarmTime = LocalTime.of(schedule.hour, schedule.minute)
+
+    if (alarmTime < now)
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
+
+    if (!schedule.isEveryDay()) {
+        val weekRepeating = schedule.calendarWeek()
+
+        while (!weekRepeating.contains(calendar.get(Calendar.DAY_OF_WEEK))) {
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+        }
     }
 
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -51,4 +66,5 @@ fun deleteAlarm(context: Context, schedule: Schedule) {
     )
 
     alarmManager.cancel(pendingIntent)
+    pendingIntent.cancel()
 }
