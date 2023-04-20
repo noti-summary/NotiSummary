@@ -18,7 +18,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.util.logSummary
-import org.muilab.noti.summary.util.uploadData
 
 class NotiListenerService: NotificationListenerService() {
 

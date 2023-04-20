@@ -10,6 +10,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
@@ -36,6 +38,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val settings = FirebaseFirestoreSettings.Builder()
+            .setPersistenceEnabled(true)
+            .build()
+        FirebaseFirestore.getInstance().firestoreSettings = settings
 
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
         startService(notiListenerIntent)

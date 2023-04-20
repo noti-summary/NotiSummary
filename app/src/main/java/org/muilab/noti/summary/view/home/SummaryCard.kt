@@ -2,6 +2,7 @@ package org.muilab.noti.summary.view.home
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -43,6 +44,7 @@ fun SummaryCard(
     setSubmitButtonState: (SSButtonState) -> Unit
 ) {
     val result by sumViewModel.result.observeAsState(stringResource(SummaryResponse.HINT.message))
+    val scrollState = rememberScrollState()
 
     Card(modifier = Modifier.fillMaxSize()) {
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
@@ -60,7 +62,7 @@ fun SummaryCard(
             Column {
                 Column(modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                 ) {
                     Text(
                         text = result,
@@ -105,6 +107,11 @@ fun SummaryCard(
 
         }
 
+    }
+
+    scrollState.apply {
+        Log.d("Scroll", "Scroll position: $value")
+        Log.d("Scroll","Scroll max: $maxValue")
     }
 }
 

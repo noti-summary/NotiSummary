@@ -1,9 +1,13 @@
 package org.muilab.noti.summary.view.home
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +31,8 @@ fun NotiDrawer(sumViewModel: SummaryViewModel) {
     val notifications by sumViewModel.notifications.observeAsState()
     var drawerHeight by remember { mutableStateOf(Float.POSITIVE_INFINITY) }
 
+    val state = rememberLazyListState()
+
     val padToPx = with(LocalDensity.current) {16.dp.toPx() / drawerHeight}
     val brush = Brush.verticalGradient(
         0.0f to MaterialTheme.colorScheme.surfaceVariant,
@@ -38,6 +44,7 @@ fun NotiDrawer(sumViewModel: SummaryViewModel) {
     Box {
 
         LazyColumn(
+            state = state,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp)
@@ -90,5 +97,10 @@ fun NotiDrawer(sumViewModel: SummaryViewModel) {
         }
 
         Canvas(modifier = Modifier.fillMaxSize().background(brush)) { }
+    }
+
+    state.apply {
+        Log.d("Drawer Scroll", "FirstVisible: $firstVisibleItemIndex")
+        Log.d("Drawer Scroll", "Last visible: ${layoutInfo.visibleItemsInfo.lastOrNull()?.index}")
     }
 }
