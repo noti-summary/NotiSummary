@@ -85,8 +85,8 @@ class NotiListenerService: NotificationListenerService() {
 
     fun getNotiUnits(): ArrayList<NotiUnit> {
 
-        val notiUnits = activeNotifications.map {
-            NotiUnit(applicationContext, it)
+        val notiUnits = activeNotifications.mapIndexed { idx, sbn ->
+            NotiUnit(applicationContext, sbn, idx)
         }.filter{ it.title != "null" && it.content != "null" }.toCollection(ArrayList())
         return notiUnits
     }

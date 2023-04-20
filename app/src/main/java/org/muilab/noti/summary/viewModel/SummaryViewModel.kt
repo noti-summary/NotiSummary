@@ -5,7 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.firebase.firestore.ktx.firestore
@@ -64,6 +63,18 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             application.getString(SummaryResponse.HINT.message)
         )
         _result.value = resultValue!!
+        resetNotiDrawer()
+    }
+
+    private fun resetNotiDrawer() {
+        val notiDrawerJson = sharedPreferences.getString("prevNotiDrawer", "")
+        if (notiDrawerJson!!.isNotEmpty()) {
+            val notiDrawerType = object : TypeToken<List<NotiUnit>>() {}.type
+            _notifications.value = Gson()
+                .fromJson<List<NotiUnit>>(notiDrawerJson, notiDrawerType)
+                .sortedBy { it.drawerIndex }
+        } else
+            _notifications.value = listOf()
     }
 
     private fun updateLiveDataValue(newValue: String?): Boolean {
@@ -114,12 +125,11 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         if (activeNotifications.size > 0){
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
             _notifications.postValue(activeNotifications.toList())
-            viewModelScope.launch {
-                sendToServer(activeNotifications, isScheduled)
-            }
+            viewModelScope.launch { sendToServer(activeNotifications, isScheduled) }
         } else {
             _result.postValue(context.getString(SummaryResponse.NO_NOTIFICATION.message))
         }
+        resetNotiDrawer()
     }
 
     private suspend fun sendToServer(activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) = withContext(Dispatchers.IO) {
@@ -174,12 +184,14 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                         putBoolean("prevIsScheduled", isScheduled)
                         putString("prevPrompt", prompt)
 
-                        val gson = Gson()
+                        val notiDrawerJson = Gson().toJson(activeNotifications)
+                        putString("prevNotiDrawer", notiDrawerJson)
+
                         val notiData = activeNotifications.map {
                             // TODO: Get length from server
                             SummaryNoti(it.appName, it.postTime, mapOf("characters" to it.content.length))
                         }
-                        val notiDataJson = gson.toJson(notiData)
+                        val notiDataJson = Gson().toJson(notiData)
                         putString("prevNotiData", notiDataJson)
 
                         val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
