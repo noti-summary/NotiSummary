@@ -5,16 +5,30 @@ import android.util.Log
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
+import org.muilab.noti.summary.service.NotiUnit
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.full.memberProperties
 
 data class SummaryNoti(
-    val appName: String,
+    val sbnKey: String,
     val postTime: Long,
-    val wordCount: Map<String, Int>
-)
+    val pkgName: String,
+    val category: String,
+    val titleWordCount: Map<String, Int>,
+    val contentWordCount: Map<String, Int>
+) {
+    constructor(notiUnit: NotiUnit): this (
+        sbnKey = notiUnit.sbnKey,
+        postTime = notiUnit.postTime,
+        pkgName = notiUnit.pkgName,
+        category = notiUnit.category,
+        titleWordCount = mapOf("totalChar" to notiUnit.title.length),
+        contentWordCount = mapOf("totalChar" to notiUnit.content.length)
+    )
+}
 
 data class Summary(
     val userId: String,
@@ -24,13 +38,57 @@ data class Summary(
     val rating: Int,
     val notiScope: Map<String, Boolean>,
     val notifications: List<SummaryNoti>,
-    val summaryLength: Map<String, Int>
+    val summaryLength: Map<String, Int>,
+    val removedNotis: Map<String, String>
 ) {
     val dateTime: String
     init {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         dateTime = dateFormat.format(Date(timestamp))
     }
+}
+
+fun logSummary(context: Context) {
+
+    val userSharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+    val summarySharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+
+    val userId = userSharedPref.getString("user_id", "000").toString()
+
+    val submitTime = summarySharedPref.getLong("submitTime", 0)
+    val isScheduled = summarySharedPref.getBoolean("isScheduled", false)
+    val prompt = summarySharedPref.getString("prompt", "").toString()
+
+    val notiScopeJson = summarySharedPref.getString("notiScope", "")
+    val notiScopeType = object : TypeToken<Map<String, Boolean>>() {}.type
+    val notiScope = Gson().fromJson<Map<String, Boolean>>(notiScopeJson, notiScopeType)
+
+    val notiDataJson = summarySharedPref.getString("notiData", "")
+    val notiDataType = object : TypeToken<List<SummaryNoti>>() {}.type
+    val notiData = Gson().fromJson<List<SummaryNoti>>(notiDataJson, notiDataType)
+
+    val summaryLengthJson = summarySharedPref.getString("summaryLength", "")
+    val summaryLengthType = object : TypeToken<Map<String, Int>>() {}.type
+    val summaryLength = Gson().fromJson<Map<String, Int>>(summaryLengthJson, summaryLengthType)
+
+    val removedNotisJson = summarySharedPref.getString("removedNotis", "{}")
+    val removedNotisType = object : TypeToken<MutableMap<String, String>>() {}.type
+    val removedNotis = Gson().fromJson<MutableMap<String, String>>(removedNotisJson, removedNotisType)
+
+    val rating = summarySharedPref.getInt("rating", 0)
+
+    val summary = Summary(
+        userId,
+        submitTime,
+        isScheduled,
+        prompt,
+        rating,
+        notiScope,
+        notiData,
+        summaryLength,
+        removedNotis
+    )
+    uploadData("summary", summary)
 }
 
 fun saveSummary(context: Context, summary: Summary) {

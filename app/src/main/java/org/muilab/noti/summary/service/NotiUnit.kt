@@ -9,6 +9,7 @@ import android.os.Build.VERSION_CODES.TIRAMISU
 import android.os.Parcel
 import android.os.Parcelable
 import android.service.notification.StatusBarNotification
+import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -18,8 +19,8 @@ import java.util.*
 data class NotiUnit(
     // For logging
     val drawerIndex: Int,
-    val sbnId: Int,
     val postTime: Long,
+    val sbnKey: String,
     val pkgName: String,
     val category: String,
     // For display
@@ -29,12 +30,12 @@ data class NotiUnit(
     var content: String = "Unknown Content"
 ): Parcelable {
 
-    val notiId: String = "${sbnId}_${postTime}"
+    val notiId: String = "${sbnKey}_${postTime}"
 
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
-        parcel.readInt(),
         parcel.readLong(),
+        parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
@@ -43,11 +44,12 @@ data class NotiUnit(
         parcel.readString()!!
     )
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     constructor(context: Context, sbn: StatusBarNotification, index: Int): this(
         drawerIndex = index,
-        sbnId = sbn.id,
         postTime = sbn.notification?.`when` as Long,
-        pkgName = sbn.packageName as String,
+        sbnKey = sbn.key,
+        pkgName = sbn.opPkg,
         category = sbn.notification?.category ?: "Unknown",
     ) {
         contentInit(context, sbn)
@@ -55,8 +57,8 @@ data class NotiUnit(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(drawerIndex)
-        parcel.writeInt(sbnId)
         parcel.writeLong(postTime)
+        parcel.writeString(sbnKey)
         parcel.writeString(pkgName)
         parcel.writeString(category)
         parcel.writeString(appName)

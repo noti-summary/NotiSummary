@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.util.logSummary
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
@@ -79,8 +80,8 @@ fun SummaryCard(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        DislikeButton(likeDislike, summaryPrefs, sumViewModel)
-                        LikeButton(likeDislike, summaryPrefs, sumViewModel)
+                        DislikeButton(context, likeDislike, summaryPrefs)
+                        LikeButton(context, likeDislike, summaryPrefs)
                     }
                 }
             }
@@ -124,9 +125,9 @@ fun CurrentPrompt(curPrompt: String) {
 
 @Composable
 fun LikeButton(
+    context: Context,
     likeDislike: MutableState<Int>,
-    summaryPrefs: SharedPreferences,
-    sumViewModel: SummaryViewModel
+    summaryPrefs: SharedPreferences
 ) {
     IconButton(
         onClick = {
@@ -136,7 +137,7 @@ fun LikeButton(
                 likeDislike.value = 1
             }
             summaryPrefs.edit().putInt("rating", likeDislike.value).apply()
-            sumViewModel.logSummary(likeDislike.value)
+            logSummary(context)
         }
     ) {
         Icon(
@@ -149,9 +150,9 @@ fun LikeButton(
 
 @Composable
 fun DislikeButton(
+    context: Context,
     likeDislike: MutableState<Int>,
-    summaryPrefs: SharedPreferences,
-    sumViewModel: SummaryViewModel
+    summaryPrefs: SharedPreferences
 ) {
     IconButton(
         onClick = {
@@ -161,7 +162,7 @@ fun DislikeButton(
                 likeDislike.value = -1
             }
             summaryPrefs.edit().putInt("rating", likeDislike.value).apply()
-            sumViewModel.logSummary(likeDislike.value)
+            logSummary(context)
         }
     ) {
         Icon(

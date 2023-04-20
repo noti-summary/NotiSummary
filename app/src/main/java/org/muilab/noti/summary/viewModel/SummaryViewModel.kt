@@ -28,6 +28,7 @@ import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.util.Summary
 import org.muilab.noti.summary.util.SummaryNoti
+import org.muilab.noti.summary.util.logSummary
 import org.muilab.noti.summary.util.uploadData
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
@@ -67,7 +68,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun resetNotiDrawer() {
-        val notiDrawerJson = sharedPreferences.getString("prevNotiDrawer", "")
+        val notiDrawerJson = sharedPreferences.getString("notiDrawer", "")
         if (notiDrawerJson!!.isNotEmpty()) {
             val notiDrawerType = object : TypeToken<List<NotiUnit>>() {}.type
             _notifications.value = Gson()
@@ -180,19 +181,19 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                 val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
                 if (updateLiveDataValue(summary)) {
                     with (sharedPreferences.edit()) {
-                        putLong("prevSubmitTime", submitTime)
-                        putBoolean("prevIsScheduled", isScheduled)
-                        putString("prevPrompt", prompt)
+                        putLong("submitTime", submitTime)
+                        putBoolean("isScheduled", isScheduled)
+                        putString("prompt", prompt)
 
                         val notiDrawerJson = Gson().toJson(activeNotifications)
-                        putString("prevNotiDrawer", notiDrawerJson)
+                        putString("notiDrawer", notiDrawerJson)
 
                         val notiData = activeNotifications.map {
                             // TODO: Get length from server
-                            SummaryNoti(it.appName, it.postTime, mapOf("characters" to it.content.length))
+                            SummaryNoti(it)
                         }
                         val notiDataJson = Gson().toJson(notiData)
-                        putString("prevNotiData", notiDataJson)
+                        putString("notiData", notiDataJson)
 
                         val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
 
@@ -202,16 +203,19 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                         notiScope["title"] = notiFilterPrefs.getBoolean(context.getString(R.string.title), true)
                         notiScope["content"] = notiFilterPrefs.getBoolean(context.getString(R.string.content), true)
                         val notiScopeJson = Gson().toJson(notiScope)
-                        putString("prevNotiScope", notiScopeJson)
+                        putString("notiScope", notiScopeJson)
 
                         // TODO: Get length from server
                         val summaryLength = mapOf("characters" to summary.length)
                         val summaryLengthJson = Gson().toJson(summaryLength)
-                        putString("prevSummaryLength", summaryLengthJson)
+                        putString("summaryLength", summaryLengthJson)
+
+                        putString("removedNotis", "{}")
+                        putInt("rating", 0)
 
                         apply()
                     }
-                    logSummary(0)
+                    logSummary(context)
                 }
             } else {
                 response.body?.let {
@@ -255,38 +259,5 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                 docRef.update("credit", res.credit - number)
             }
         }
-    }
-
-    fun logSummary(rating: Int) {
-        val userSharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-        val userId = userSharedPref.getString("user_id", "000").toString()
-
-        val submitTime = sharedPreferences.getLong("prevSubmitTime", 0)
-        val isScheduled = sharedPreferences.getBoolean("prevIsScheduled", false)
-        val prompt = sharedPreferences.getString("prevPrompt", "").toString()
-
-        val notiScopeJson = sharedPreferences.getString("prevNotiScope", "")
-        val notiScopeType = object : TypeToken<Map<String, Boolean>>() {}.type
-        val notiScope = Gson().fromJson<Map<String, Boolean>>(notiScopeJson, notiScopeType)
-
-        val notiDataJson = sharedPreferences.getString("prevNotiData", "")
-        val notiDataType = object : TypeToken<List<SummaryNoti>>() {}.type
-        val notiData = Gson().fromJson<List<SummaryNoti>>(notiDataJson, notiDataType)
-
-        val summaryLengthJson = sharedPreferences.getString("prevSummaryLength", "")
-        val summaryLengthType = object : TypeToken<Map<String, Int>>() {}.type
-        val summaryLength = Gson().fromJson<Map<String, Int>>(summaryLengthJson, summaryLengthType)
-
-        val summary = Summary(
-            userId,
-            submitTime,
-            isScheduled,
-            prompt,
-            rating,
-            notiScope,
-            notiData,
-            summaryLength
-        )
-        uploadData("summary", summary)
     }
 }
