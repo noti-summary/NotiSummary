@@ -30,8 +30,8 @@ data class SummaryNoti(
         postTime = notiUnit.postTime,
         pkgName = notiUnit.pkgName,
         category = notiUnit.category,
-        titleWordCount = mapOf("totalChar" to notiUnit.title.length),
-        contentWordCount = mapOf("totalChar" to notiUnit.content.length)
+        titleWordCount = getWordCount(notiUnit.title),
+        contentWordCount = getWordCount(notiUnit.content)
     )
 }
 
@@ -51,6 +51,82 @@ data class Summary(
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         dateTime = dateFormat.format(Date(timestamp))
     }
+}
+
+fun getWordCount(content: String): Map<String, Int> {
+    val latinRegex = "[\\p{IsLatin}\\p{Punct}]+".toRegex()
+    val chineseRegex = "[\\p{InCJKUnifiedIdeographs}\\p{Punct}]+".toRegex()
+    val japaneseRegex = "[\\p{InHiragana}\\p{InKatakana}\\p{InCJKUnifiedIdeographs}\\p{InHalfwidthAndFullwidthForms}\\p{Punct}]+".toRegex()
+
+    val latinStrings = mutableListOf<String>()
+    val chineseStrings = mutableListOf<String>()
+    val japaneseStrings = mutableListOf<String>()
+    val otherStrings = mutableListOf<String>()
+
+    var remainingContent = content
+    while (remainingContent.isNotEmpty()) {
+        // Find the first occurrence of each language category in the remaining input string
+        val latinMatch = latinRegex.find(remainingContent)
+        val chineseMatch = chineseRegex.find(remainingContent)
+        val japaneseMatch = japaneseRegex.find(remainingContent)
+
+        var nextMatch: MatchResult? = null
+        var nextLanguage: String? = null
+        if (latinMatch != null && (nextMatch == null || latinMatch.range.first < nextMatch.range.first)) {
+            nextMatch = latinMatch
+            nextLanguage = "Latin"
+        }
+        if (chineseMatch != null && (nextMatch == null || chineseMatch.range.first < nextMatch.range.first)) {
+            nextMatch = chineseMatch
+            nextLanguage = "Chinese"
+        }
+        if (japaneseMatch != null && (nextMatch == null || japaneseMatch.range.first < nextMatch.range.first)) {
+            nextMatch = japaneseMatch
+            nextLanguage = "Japanese"
+        }
+
+        if (nextMatch != null && nextLanguage != null) {
+            val currentPart = remainingContent.substring(0, nextMatch.range.last + 1)
+            when (nextLanguage) {
+                "Latin" -> latinStrings.add(currentPart)
+                "Chinese" -> chineseStrings.add(currentPart)
+                "Japanese" -> japaneseStrings.add(currentPart)
+                else -> otherStrings.add(currentPart)
+            }
+            remainingContent = remainingContent.substring(nextMatch.range.last + 1)
+        } else {
+            otherStrings.add(remainingContent)
+            break
+        }
+    }
+
+    val wordCount = mutableMapOf<String, Int>()
+    wordCount["latin"] = latinStrings.fold(0) { sum, str ->
+        val strWordCount = str.split(' ').fold(0) { sum, str ->
+            sum + if (str.isNotEmpty()) 1 else 0
+        }
+        sum + strWordCount
+    }
+    wordCount["chinese"] = chineseStrings.fold(0) { sum, str ->
+        val strWordCount = str.fold(0) { sum, ch ->
+            sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
+        }
+        sum + strWordCount
+    }
+    wordCount["japanese"] = japaneseStrings.fold(0) { sum, str ->
+        val strWordCount = str.fold(0) { sum, ch ->
+            sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
+        }
+        sum + strWordCount
+    }
+    wordCount["others"] = otherStrings.fold(0) { sum, str ->
+        val strWordCount = str.fold(0) { sum, ch ->
+            sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
+        }
+        sum + strWordCount
+    }
+    wordCount["totalCharacters"] = content.length
+    return wordCount
 }
 
 fun logSummary(context: Context) {

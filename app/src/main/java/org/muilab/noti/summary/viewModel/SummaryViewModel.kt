@@ -205,7 +205,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                         putString("notiScope", notiScopeJson)
 
                         // TODO: Get length from server
-                        val summaryLength = mapOf("characters" to summary.length)
+                        val summaryLength = getWordCount(summary)
                         val summaryLengthJson = Gson().toJson(summaryLength)
                         putString("summaryLength", summaryLengthJson)
 
