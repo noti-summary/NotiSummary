@@ -34,6 +34,7 @@ import org.muilab.noti.summary.database.firestore.documentStateOf
 import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
@@ -97,8 +98,15 @@ fun HomeScreen(
                     Modifier
                         .fillMaxWidth()
                         .clickable {
-                            drawerCardState.value = if (!summaryCardState.value)
-                                drawerCardState.value else !drawerCardState.value
+                            drawerCardState.value = if (!summaryCardState.value) {
+                                drawerCardState.value
+                            } else {
+                                if (!drawerCardState.value)
+                                    logUserAction("cardExpand", "both", context)
+                                else
+                                    logUserAction("cardExpand", "summary", context)
+                                !drawerCardState.value
+                            }
                         }) {
                     Row(modifier = Modifier
                         .fillMaxWidth()
@@ -128,7 +136,7 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                     }
                 }
-                NotiDrawer(sumViewModel)
+                NotiDrawer(context, sumViewModel)
             }
         }
 
@@ -143,8 +151,15 @@ fun HomeScreen(
                     Modifier
                         .fillMaxWidth()
                         .clickable {
-                            summaryCardState.value = if (!drawerCardState.value)
-                                summaryCardState.value else !summaryCardState.value
+                            summaryCardState.value = if (!drawerCardState.value) {
+                                summaryCardState.value
+                            } else {
+                                if (!summaryCardState.value)
+                                    logUserAction("cardExpand", "both", context)
+                                else
+                                    logUserAction("cardExpand", "drawer", context)
+                                !summaryCardState.value
+                            }
                         }
                 ) {
                     Row(
@@ -250,6 +265,7 @@ fun SubmitButton(
                                 if(document.exists()){
                                     val res = document.toObject<UserCredit>()!!
                                     if(res.credit > 0) {
+                                        logUserAction("genSummary", "Submit", context)
                                         sumViewModel.getSummaryText(prompt)
                                     } else {
                                         Toast.makeText(
@@ -257,6 +273,7 @@ fun SubmitButton(
                                             context.getString(R.string.reached_limit),
                                             Toast.LENGTH_LONG
                                         ).show()
+                                        logUserAction("genSummary", "NoQuota", context)
                                     }
                                 }
                             }

@@ -1,5 +1,6 @@
 package org.muilab.noti.summary.view.home
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -23,11 +24,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.ui.theme.DarkColorScheme
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 import java.lang.Float.max
 
 @Composable
-fun NotiDrawer(sumViewModel: SummaryViewModel) {
+fun NotiDrawer(context: Context, sumViewModel: SummaryViewModel) {
     val notifications by sumViewModel.notifications.observeAsState()
     var drawerHeight by remember { mutableStateOf(Float.POSITIVE_INFINITY) }
 
@@ -100,7 +102,8 @@ fun NotiDrawer(sumViewModel: SummaryViewModel) {
     }
 
     state.apply {
-        Log.d("Drawer Scroll", "FirstVisible: $firstVisibleItemIndex")
-        Log.d("Drawer Scroll", "Last visible: ${layoutInfo.visibleItemsInfo.lastOrNull()?.index}")
+        val notiCount = layoutInfo.visibleItemsInfo.lastOrNull()?.index
+        if (!isScrollInProgress)
+            logUserAction("scroll", "drawer", context, notiCount.toString())
     }
 }

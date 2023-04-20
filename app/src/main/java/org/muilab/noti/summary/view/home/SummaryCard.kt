@@ -12,6 +12,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -21,8 +22,10 @@ import androidx.compose.ui.unit.sp
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.logSummary
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
+import kotlin.math.round
 
 enum class SummaryResponse(val message: Int) {
     HINT(R.string.hint_msg),
@@ -45,6 +48,7 @@ fun SummaryCard(
 ) {
     val result by sumViewModel.result.observeAsState(stringResource(SummaryResponse.HINT.message))
     val scrollState = rememberScrollState()
+    var textHeight by remember { mutableStateOf(0) }
 
     Card(modifier = Modifier.fillMaxSize()) {
         promptViewModel.promptSentence.value?.let { CurrentPrompt(it) }
@@ -58,7 +62,7 @@ fun SummaryCard(
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
-        Box(modifier = Modifier.padding(16.dp, 4.dp)) {
+        BoxWithConstraints(modifier = Modifier.padding(16.dp, 4.dp)) {
             Column {
                 Column(modifier = Modifier
                     .weight(1f)
@@ -89,6 +93,7 @@ fun SummaryCard(
                     }
                 }
             }
+            textHeight = with(LocalDensity.current) { (maxHeight - 44.dp).roundToPx() }
 
             if (result == stringResource(SummaryResponse.GENERATING.message)) {
                 setSubmitButtonState(SSButtonState.LOADING)
@@ -112,8 +117,9 @@ fun SummaryCard(
     }
 
     scrollState.apply {
-        Log.d("Scroll", "Scroll position: $value")
-        Log.d("Scroll","Scroll max: $maxValue")
+        val scrollPercentage = round((value + textHeight).toDouble() * 10000 / (maxValue + textHeight)) / 100
+        if (!isScrollInProgress)
+            logUserAction("scroll", "summary", context, scrollPercentage.toString())
     }
 }
 

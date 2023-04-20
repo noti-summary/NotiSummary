@@ -26,10 +26,7 @@ import okio.IOException
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
-import org.muilab.noti.summary.util.Summary
-import org.muilab.noti.summary.util.SummaryNoti
-import org.muilab.noti.summary.util.logSummary
-import org.muilab.noti.summary.util.uploadData
+import org.muilab.noti.summary.util.*
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
@@ -87,9 +84,11 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             if (userAPIKey == context.getString(R.string.system_key)) {
                 subtractCredit(1)
             }
+            logUserAction("genSummary", "Success", context)
             return true
         } else {
             _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+            logUserAction("genSummary", "ServerError", context)
             return false
         }
     }
@@ -225,25 +224,32 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                         responseBody.contains("Incorrect API key provided")
                     ) {
                         _result.postValue(context.getString(SummaryResponse.APIKEY_ERROR.message))
+                        logUserAction("genSummary", "KeyError", context)
                     } else if (responseBody.contains("exceeded your current quota")) {
                         _result.postValue(context.getString(SummaryResponse.QUOTA_ERROR.message))
+                        logUserAction("genSummary", "NoQuota", context)
                     } else {
                         _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+                        logUserAction("genSummary", "ServerError", context)
                     }
                 } ?: let {
                     _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+                    logUserAction("genSummary", "ServerError", context)
                 }
             }
             response.close()
         } catch (e: InterruptedIOException) {
             Log.i("InterruptedIOException", e.toString())
             _result.postValue(context.getString(SummaryResponse.TIMEOUT_ERROR.message))
+            logUserAction("genSummary", "ServerTimeout", context)
         } catch (e: IOException) {
             Log.i("IOException", e.toString())
             _result.postValue(context.getString(SummaryResponse.NETWORK_ERROR.message))
+            logUserAction("genSummary", "NetworkError", context)
         } catch (e: Exception) {
             Log.i("Exception in sendToServer", e.toString())
             _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+            logUserAction("genSummary", "ServerError", context)
         }
     }
 
