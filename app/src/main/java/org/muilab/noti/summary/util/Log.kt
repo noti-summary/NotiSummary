@@ -6,7 +6,12 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.muilab.noti.summary.database.room.UserActionDao
+import org.muilab.noti.summary.database.room.UserActionDatabase
+import org.muilab.noti.summary.model.UserAction
 import org.muilab.noti.summary.service.NotiUnit
 import java.text.SimpleDateFormat
 import java.util.*
@@ -148,5 +153,46 @@ inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
         .addOnFailureListener { e ->
             Log.w("Data Log", "Error adding context to Firestore", e)
         }
+}
 
+fun insertUserAction(type: String, actionName: String, metadata: String, context: Context) {
+
+    Log.d("UserAction", "insert")
+
+    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+    val userId = sharedPref.getString("user_id", "000").toString()
+    val time = System.currentTimeMillis()
+    val userAction = UserAction(userId, time, type, actionName, metadata)
+
+    CoroutineScope(Dispatchers.IO).launch {
+        val userActionDatabase = UserActionDatabase.getInstance(context)
+        val userActionDao = userActionDatabase.userActionDao()
+        userActionDao.insertAction(userAction)
+        if (userActionDao.getActionsCount() >= 100 || type == "lifeCycle")
+            uploadUserAction(userActionDao)
+    }
+}
+
+fun uploadUserAction(userActionDao: UserActionDao) {
+
+    Log.d("UserAction", "upload")
+
+    val db = Firebase.firestore
+    val batch = db.batch()
+
+    val userActions = userActionDao.getAllActions()
+    userActions.forEach { userAction ->
+        val docRef = db.collection("user_action").document(userAction.primaryKey)
+        batch.set(docRef, userAction)
+    }
+    batch.commit()
+        .addOnSuccessListener {
+            Log.d("UserAction", "Uploaded user actions to Firestore")
+            CoroutineScope(Dispatchers.IO).launch {
+                userActionDao.deleteAll()
+            }
+        }
+        .addOnFailureListener {
+            Log.d("UserAction", "Failed to upload to Firestore")
+        }
 }
