@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.PromptAction
+import org.muilab.noti.summary.util.insertUserAction
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
@@ -34,7 +35,7 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 fun PromptScreen(context: Context, promptViewModel: PromptViewModel) {
     MaterialTheme {
         PromptHistory(context, promptViewModel = promptViewModel)
-        AddButton(promptViewModel = promptViewModel)
+        AddButton(context, promptViewModel = promptViewModel)
     }
 }
 
@@ -161,7 +162,7 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
 }
 
 @Composable
-fun AddButton(promptViewModel: PromptViewModel) {
+fun AddButton(context: Context, promptViewModel: PromptViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
     val inputPrompt = remember { mutableStateOf("") }
@@ -173,7 +174,10 @@ fun AddButton(promptViewModel: PromptViewModel) {
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
-            onClick = { showDialog.value = true },
+            onClick = {
+                showDialog.value = true
+                insertUserAction("promptDialog", "launch", "", context)
+            },
         ) {
             Icon(Icons.Filled.Add, "add new prompt")
         }
@@ -186,9 +190,13 @@ fun AddButton(promptViewModel: PromptViewModel) {
             inputPrompt.value = ""
             showDialog.value = false
         }
+        insertUserAction("promptDialog", "confirm", "", context)
     }
 
-    val dismissAction = { inputPrompt.value = "" }
+    val dismissAction = {
+        inputPrompt.value = ""
+        insertUserAction("promptDialog", "dismiss", "", context)
+    }
 
     if (showDialog.value) {
         PromptEditor(showDialog, inputPrompt, confirmAction, dismissAction)

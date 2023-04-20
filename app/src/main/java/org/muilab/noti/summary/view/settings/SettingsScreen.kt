@@ -125,7 +125,7 @@ fun NavigateSetting(
             PromptScreen(context, promptViewModel)
         }
         composable(SettingScreenItem.SettingAPI.name) {
-            APIKeyScreen(apiKeyViewModel)
+            APIKeyScreen(context, apiKeyViewModel)
         }
         composable(SettingScreenItem.SettingScheduler.name) {
             SchedulerScreen(context, scheduleViewModel)
