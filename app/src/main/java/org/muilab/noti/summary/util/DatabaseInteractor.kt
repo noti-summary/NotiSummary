@@ -9,14 +9,14 @@ import org.muilab.noti.summary.database.room.UserActionDao
 import org.muilab.noti.summary.database.room.UserActionDatabase
 import org.muilab.noti.summary.model.UserAction
 
-fun insertUserAction(type: String, actionName: String, metaData: String, context: Context) {
+fun insertUserAction(type: String, actionName: String, metadata: String, context: Context) {
 
     Log.d("UserAction", "insert")
 
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
     val time = System.currentTimeMillis()
-    val userAction = UserAction(userId, time, type, actionName, metaData)
+    val userAction = UserAction(userId, time, type, actionName, metadata)
 
     CoroutineScope(Dispatchers.IO).launch {
         val userActionDatabase = UserActionDatabase.getInstance(context)

@@ -9,7 +9,7 @@ data class UserAction(
     var time: Long,
     var type: String,
     var actionName: String,
-    var metaData: String
+    var metadata: String
 ) {
     @PrimaryKey(autoGenerate = false)
     var primaryKey: String = "${userId}_${time}"
