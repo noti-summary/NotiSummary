@@ -76,14 +76,16 @@ fun SummaryCard(
                 }
                 Box(
                     modifier = Modifier.height(40.dp).fillMaxWidth(),
-                    contentAlignment = Alignment.BottomEnd // align Row to the bottom end
+                    contentAlignment = Alignment.BottomEnd
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        DislikeButton(context, likeDislike, summaryPrefs)
-                        LikeButton(context, likeDislike, summaryPrefs)
+                        if (submitButtonState != SSButtonState.LOADING) {
+                            DislikeButton(context, likeDislike, summaryPrefs)
+                            LikeButton(context, likeDislike, summaryPrefs)
+                        }
                     }
                 }
             }
