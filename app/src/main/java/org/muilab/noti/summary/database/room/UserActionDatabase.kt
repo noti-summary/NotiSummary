@@ -4,18 +4,18 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import org.muilab.noti.summary.model.Interaction
+import org.muilab.noti.summary.model.UserAction
 
-@Database(entities = [Interaction::class], version = 1)
-abstract class InteractionDatabase : RoomDatabase() {
+@Database(entities = [UserAction::class], version = 1)
+abstract class UserActionDatabase : RoomDatabase() {
 
-    abstract fun interactionDao(): InteractionDao
+    abstract fun userActionDao(): UserActionDao
 
     companion object {
         @Volatile
-        private var INSTANCE: InteractionDatabase? = null
+        private var INSTANCE: UserActionDatabase? = null
 
-        fun getInstance(context: Context): InteractionDatabase =
+        fun getInstance(context: Context): UserActionDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
             }
@@ -23,8 +23,8 @@ abstract class InteractionDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context) =
             Room.databaseBuilder(
                 context.applicationContext,
-                InteractionDatabase::class.java,
-                "time_events"
+                UserActionDatabase::class.java,
+                "user_actions"
             ).build()
     }
 }
