@@ -21,7 +21,7 @@ import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.ui.theme.NotiappTheme
-import org.muilab.noti.summary.util.insertUserAction
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.view.userInit.FilterNotify
 import org.muilab.noti.summary.view.userInit.NetworkCheckDialog
@@ -118,13 +118,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        insertUserAction("lifeCycle", "appResume", applicationContext)
+        logUserAction("lifeCycle", "appResume", applicationContext)
         if (!isNotiListenerEnabled())
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
     }
 
     override fun onPause() {
-        insertUserAction("lifeCycle", "appPause", applicationContext)
+        logUserAction("lifeCycle", "appPause", applicationContext)
         super.onPause()
     }
 

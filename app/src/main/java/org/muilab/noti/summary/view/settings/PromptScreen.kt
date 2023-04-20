@@ -26,8 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.util.PromptAction
-import org.muilab.noti.summary.util.insertUserAction
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
@@ -176,7 +175,7 @@ fun AddButton(context: Context, promptViewModel: PromptViewModel) {
         FloatingActionButton(
             onClick = {
                 showDialog.value = true
-                insertUserAction("promptDialog", "launch", context)
+                logUserAction("promptDialog", "launch", context)
             },
         ) {
             Icon(Icons.Filled.Add, "add new prompt")
@@ -190,12 +189,12 @@ fun AddButton(context: Context, promptViewModel: PromptViewModel) {
             inputPrompt.value = ""
             showDialog.value = false
         }
-        insertUserAction("promptDialog", "confirm", context)
+        logUserAction("promptDialog", "confirm", context)
     }
 
     val dismissAction = {
         inputPrompt.value = ""
-        insertUserAction("promptDialog", "dismiss", context)
+        logUserAction("promptDialog", "dismiss", context)
     }
 
     if (showDialog.value) {

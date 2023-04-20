@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.util.insertUserAction
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 
@@ -118,7 +118,7 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
         FloatingActionButton(
             onClick = {
                 showDialog.value = true
-                insertUserAction("keyDialog", "launch", context)
+                logUserAction("keyDialog", "launch", context)
             },
         ) {
             Icon(Icons.Filled.Add, "add new key")
@@ -128,7 +128,7 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
     val confirmAction = {
         if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
             apiKeyViewModel.addAPI(inputKey.value)
-            insertUserAction("keyDialog", "confirm", context)
+            logUserAction("keyDialog", "confirm", context)
             inputKey.value = ""
             showDialog.value = false
         }
@@ -136,7 +136,7 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
 
     val dismissAction = {
         inputKey.value = ""
-        insertUserAction("keyDialog", "dismiss", context)
+        logUserAction("keyDialog", "dismiss", context)
     }
 
     if (showDialog.value) {

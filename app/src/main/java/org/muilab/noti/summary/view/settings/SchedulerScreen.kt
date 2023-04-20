@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
-import org.muilab.noti.summary.util.insertUserAction
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.util.*
 
@@ -82,7 +82,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
             val newSchedule = scheduleViewModel.addNewSchedule(hour, minute)
             if (newSchedule != null) {
                 addAlarm(context, newSchedule)
-                insertUserAction("schedulerDialog", "confirm", context)
+                logUserAction("schedulerDialog", "confirm", context)
             }
         }
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
@@ -96,7 +96,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(onClick = {
-            insertUserAction("schedulerDialog", "launch", context)
+            logUserAction("schedulerDialog", "launch", context)
             val calendar = Calendar.getInstance()
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
             val minute = calendar.get(Calendar.MINUTE)
