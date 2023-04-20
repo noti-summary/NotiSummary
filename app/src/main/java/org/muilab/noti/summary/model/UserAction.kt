@@ -5,12 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "user_actions")
 data class UserAction(
-    val userId: String,
-    val time: Long,
-    val type: String,
-    val action: String,
-    val metaData: String
+    var userId: String,
+    var time: Long,
+    var type: String,
+    var actionName: String,
+    var metaData: String
 ) {
     @PrimaryKey(autoGenerate = false)
-    val primaryKey: String = "${userId}_${time}"
+    var primaryKey: String = "${userId}_${time}"
 }
