@@ -118,13 +118,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        insertUserAction("lifeCycle", "appResume", "", applicationContext)
+        insertUserAction("lifeCycle", "appResume", applicationContext)
         if (!isNotiListenerEnabled())
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
     }
 
     override fun onPause() {
-        insertUserAction("lifeCycle", "appPause", "", applicationContext)
+        insertUserAction("lifeCycle", "appPause", applicationContext)
         super.onPause()
     }
 

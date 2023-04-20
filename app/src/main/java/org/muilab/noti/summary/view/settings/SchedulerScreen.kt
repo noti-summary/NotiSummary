@@ -82,7 +82,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
             val newSchedule = scheduleViewModel.addNewSchedule(hour, minute)
             if (newSchedule != null) {
                 addAlarm(context, newSchedule)
-                insertUserAction("schedulerDialog", "confirm", "", context)
+                insertUserAction("schedulerDialog", "confirm", context)
             }
         }
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
@@ -96,7 +96,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(onClick = {
-            insertUserAction("schedulerDialog", "launch", "", context)
+            insertUserAction("schedulerDialog", "launch", context)
             val calendar = Calendar.getInstance()
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
             val minute = calendar.get(Calendar.MINUTE)

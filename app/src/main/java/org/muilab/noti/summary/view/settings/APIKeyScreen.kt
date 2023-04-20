@@ -118,7 +118,7 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
         FloatingActionButton(
             onClick = {
                 showDialog.value = true
-                insertUserAction("keyDialog", "launch", "", context)
+                insertUserAction("keyDialog", "launch", context)
             },
         ) {
             Icon(Icons.Filled.Add, "add new key")
@@ -128,7 +128,7 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
     val confirmAction = {
         if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
             apiKeyViewModel.addAPI(inputKey.value)
-            insertUserAction("keyDialog", "confirm", "", context)
+            insertUserAction("keyDialog", "confirm", context)
             inputKey.value = ""
             showDialog.value = false
         }
@@ -136,7 +136,7 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
 
     val dismissAction = {
         inputKey.value = ""
-        insertUserAction("keyDialog", "dismiss", "", context)
+        insertUserAction("keyDialog", "dismiss", context)
     }
 
     if (showDialog.value) {

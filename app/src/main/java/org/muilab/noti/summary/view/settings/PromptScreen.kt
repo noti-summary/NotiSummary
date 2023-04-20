@@ -176,7 +176,7 @@ fun AddButton(context: Context, promptViewModel: PromptViewModel) {
         FloatingActionButton(
             onClick = {
                 showDialog.value = true
-                insertUserAction("promptDialog", "launch", "", context)
+                insertUserAction("promptDialog", "launch", context)
             },
         ) {
             Icon(Icons.Filled.Add, "add new prompt")
@@ -190,12 +190,12 @@ fun AddButton(context: Context, promptViewModel: PromptViewModel) {
             inputPrompt.value = ""
             showDialog.value = false
         }
-        insertUserAction("promptDialog", "confirm", "", context)
+        insertUserAction("promptDialog", "confirm", context)
     }
 
     val dismissAction = {
         inputPrompt.value = ""
-        insertUserAction("promptDialog", "dismiss", "", context)
+        insertUserAction("promptDialog", "dismiss", context)
     }
 
     if (showDialog.value) {

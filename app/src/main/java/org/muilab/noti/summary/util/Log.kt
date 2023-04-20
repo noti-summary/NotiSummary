@@ -155,7 +155,7 @@ inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
         }
 }
 
-fun insertUserAction(type: String, actionName: String, metadata: String, context: Context) {
+fun insertUserAction(type: String, actionName: String, context: Context, metadata: String = "") {
 
     Log.d("UserAction", "insert")
 
