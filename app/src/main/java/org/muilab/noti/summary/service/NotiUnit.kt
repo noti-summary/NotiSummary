@@ -1,31 +1,64 @@
 package org.muilab.noti.summary.service
 
+import android.app.Notification
+import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Build.VERSION_CODES.TIRAMISU
 import android.os.Parcel
 import android.os.Parcelable
+import android.service.notification.StatusBarNotification
+import java.text.SimpleDateFormat
+import java.util.*
+
+
+// val appName: String, val time: String, val title: String, val content: String
 
 data class NotiUnit(
-    val appName: String,
-    val time: String,
-    val title: String,
-    val content: String,
-    val postTime: Long
-):
-    Parcelable {
+    // For logging
+    val sbnId: Int,
+    val postTime: Long,
+    val pkgName: String,
+    val category: String,
+    // For display
+    var appName: String = "Unknown App",
+    var time: String = "??:??",
+    var title: String = "Unknown Title",
+    var content: String = "Unknown Content"
+): Parcelable {
+
+    val notiId: String = "${sbnId}_${postTime}"
 
     constructor(parcel: Parcel) : this(
+        parcel.readInt(),
+        parcel.readLong(),
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
-        parcel.readLong()!!
+        parcel.readString()!!,
+        parcel.readString()!!
     )
 
+    constructor(context: Context, sbn: StatusBarNotification): this(
+        sbnId = sbn.id,
+        postTime = sbn.postTime,
+        pkgName = sbn.packageName as String,
+        category = sbn.notification?.category ?: "Unknown",
+    ) {
+        contentInit(context, sbn)
+    }
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(sbnId)
+        parcel.writeLong(postTime)
+        parcel.writeString(pkgName)
+        parcel.writeString(category)
         parcel.writeString(appName)
         parcel.writeString(time)
         parcel.writeString(title)
         parcel.writeString(content)
-        parcel.writeLong(postTime)
     }
 
     override fun describeContents(): Int {
@@ -40,5 +73,44 @@ data class NotiUnit(
         override fun newArray(size: Int): Array<NotiUnit?> {
             return arrayOfNulls(size)
         }
+    }
+
+    private fun contentInit(context: Context, sbn: StatusBarNotification) {
+
+        fun replaceChars(str: String): String {
+            return str.replace("\n", " ")
+                .replace(",", " ")
+        }
+
+        // appName
+        val pm = context.packageManager
+        val applicationInfo: ApplicationInfo? =
+            sbn.packageName?.let {
+                if (Build.VERSION.SDK_INT >= TIRAMISU) {
+                    pm.getApplicationInfo(it, PackageManager.ApplicationInfoFlags.of(0))
+                } else {
+                    pm.getApplicationInfo(it, 0)
+                }
+            }
+        appName = (if (applicationInfo != null) {
+            pm.getApplicationLabel(applicationInfo).toString()
+        } else {
+            "Unknown App"
+        })
+
+        // time
+        val simpleDateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val date = Date(postTime)
+        time = simpleDateFormat.format(date)
+
+        // title
+        title = sbn.notification?.extras?.getCharSequence(Notification.EXTRA_TITLE).toString()
+        title = replaceChars(title)
+
+        // content
+        content = sbn.notification?.extras?.getCharSequence(Notification.EXTRA_TEXT).toString()
+        if (content.isBlank())
+            content = sbn.notification?.extras?.getCharSequence(Notification.EXTRA_BIG_TEXT).toString()
+        content = replaceChars(content)
     }
 }
