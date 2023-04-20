@@ -36,6 +36,7 @@ import androidx.core.graphics.drawable.toBitmap
 import org.muilab.noti.summary.util.AppScope
 import org.muilab.noti.summary.util.uploadData
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.util.logUserAction
 
 
 @SuppressLint("ServiceCast")
@@ -101,7 +102,10 @@ fun AppFilterScreen(context: Context) {
                 .padding(horizontal = 15.dp)) {
                 OutlinedTextField(
                     value = query,
-                    onValueChange = { query = it },
+                    onValueChange = {
+                        query = it
+                        logUserAction("filter", "searchApp", context, metadata = query)
+                    },
                     label = { Text(stringResource(R.string.search_app)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
