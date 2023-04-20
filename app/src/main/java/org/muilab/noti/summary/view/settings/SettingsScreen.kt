@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -19,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
@@ -59,7 +61,10 @@ fun SettingsScreen(
             SettingTopBar(
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() }
+                navigateUp = {
+                    logUserAction("switchScreen", "Settings", context, metadata = "back")
+                    navController.navigateUp()
+                }
             )
         }
     ) { innerPadding ->
@@ -122,18 +127,23 @@ fun NavigateSetting(
             MainSettingScreen(context, navController)
         }
         composable(SettingScreenItem.SettingPrompt.name) {
+            LaunchedEffect(Unit) { logUserAction("switchScreen", "Prompt", context) }
             PromptScreen(context, promptViewModel)
         }
         composable(SettingScreenItem.SettingAPI.name) {
+            LaunchedEffect(Unit) { logUserAction("switchScreen", "Key", context) }
             APIKeyScreen(context, apiKeyViewModel)
         }
         composable(SettingScreenItem.SettingScheduler.name) {
+            LaunchedEffect(Unit) { logUserAction("switchScreen", "Scheduler", context) }
             SchedulerScreen(context, scheduleViewModel)
         }
         composable(SettingScreenItem.SettingAppFilter.name) {
+            LaunchedEffect(Unit) { logUserAction("switchScreen", "AppFilter", context) }
             AppFilterScreen(context)
         }
         composable(SettingScreenItem.SettingNotiFilter.name) {
+            LaunchedEffect(Unit) { logUserAction("switchScreen", "NotiFilter", context) }
             NotiFilterScreen(context)
         }
         composable(SettingScreenItem.Feedback.name) {
