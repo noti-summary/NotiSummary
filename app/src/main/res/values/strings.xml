@@ -70,4 +70,5 @@
     </string>
     <string name="default_summary_prompt">Turn the smartphone notifications provided below into a summary.</string>
     <string name="search_app">Search</string>
+    <string name="push_notification">Open Push Notification</string>
 </resources>

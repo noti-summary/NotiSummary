@@ -4,7 +4,6 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,7 +39,34 @@ import java.util.*
 
 @Composable
 fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
-    TimeList(context, scheduleViewModel)
+    val sharedPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
+    var checkedState by remember { mutableStateOf(sharedPref.getBoolean("send_or_not", true)) }
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(id = R.string.push_notification),
+                modifier = Modifier
+                    .padding(horizontal = 30.dp)
+                    .weight(1f),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Switch(
+                modifier = Modifier.padding(horizontal = 30.dp),
+                checked = checkedState,
+                onCheckedChange = { newState ->
+                    checkedState = newState
+                    with(sharedPref.edit()) {
+                        putBoolean("send_or_not", newState)
+                        apply()
+                    }
+                }
+            )
+        }
+        TimeList(context, scheduleViewModel)
+    }
     AddScheduleButton(context, scheduleViewModel)
 }
 
@@ -53,7 +79,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
     Column {
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
             itemsIndexed(allSchedule.value) { index, item ->
-                if (index == 0) Divider(color = Color.DarkGray, thickness = 1.dp) // TODO: use color in material3 instead?
+                if (index == 0) Divider(color = Color.DarkGray, thickness = 1.dp)
                 Box(
                     modifier = Modifier
                         .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)

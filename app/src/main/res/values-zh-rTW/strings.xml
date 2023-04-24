@@ -69,4 +69,5 @@
     </string>
     <string name="default_summary_prompt">請用一段文字摘要以下手機通知</string>
     <string name="search_app">搜尋</string>
+    <string name="push_notification">開啟通知提醒</string>
 </resources>

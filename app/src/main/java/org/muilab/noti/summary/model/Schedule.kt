@@ -4,6 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.Calendar
 
+private const val everyDay = 0b1111111
+private const val everyWeekend = 0b0000011
+private const val everyWeekday = 0b1111100
+
 @Entity(tableName = "time_events")
 data class Schedule(
     @PrimaryKey(autoGenerate = true)
@@ -13,9 +17,6 @@ data class Schedule(
     var week: Int = 0b1111111
     // 7-bit binary number for the week, with each bit representing a day from Monday to Sunday.
 ) {
-    private val everyDay = 0b1111111
-    private val everyWeekend = 0b0000011
-    private val everyWeekday = 0b1111100
     fun getTime(): String {
         return String.format("%02d:%02d", hour, minute)
     }

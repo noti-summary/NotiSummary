@@ -40,6 +40,12 @@ class AlarmReceiver : BroadcastReceiver() {
         if (hour != -1 && minute != -1)
             scheduleNextDayAlarm(context, hour, minute)
 
+        val sharedPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
+        val sendNotiOrNot = sharedPref.getBoolean("send_or_not", true)
+        if (!sendNotiOrNot)
+            return
+        // If user don't want to send the notification, return directly
+
         val notiContentIntent = Intent(context, MainActivity::class.java)
         val pendingIntent =
             PendingIntent.getActivity(context, 0, notiContentIntent, PendingIntent.FLAG_IMMUTABLE)

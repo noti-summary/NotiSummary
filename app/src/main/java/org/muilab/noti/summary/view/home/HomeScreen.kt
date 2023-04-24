@@ -9,13 +9,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CutCornerShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -201,22 +197,19 @@ fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
 
     if (userAPIKey == stringResource(R.string.system_key)) {
         if (result is FirestoreDocument.Snapshot) {
-            if (result.snapshot.exists()) {
+            displayText = if (result.snapshot.exists()) {
                 val res = result.snapshot.toObject<UserCredit>()!!
-                displayText = "${context.getString(R.string.daily_quota)}：${res.credit} / $maxCredit"
+                "${context.getString(R.string.daily_quota)}：${res.credit} / $maxCredit"
             } else {
-                displayText = stringResource(SummaryResponse.NETWORK_ERROR.message)
+                stringResource(SummaryResponse.NETWORK_ERROR.message)
             }
         }
-    } else {
-        displayText = "${context.getString(R.string.using_ur_apikey)}\nsk-****" + userAPIKey.takeLast(4)
+
+        Text(
+            text = displayText,
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
-
-    Text(
-        text = displayText,
-        style = MaterialTheme.typography.labelMedium,
-    )
-
 }
 
 @Composable
