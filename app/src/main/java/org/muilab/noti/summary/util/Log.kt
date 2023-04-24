@@ -260,7 +260,7 @@ fun uploadUserAction(userActionDao: UserActionDao) {
 
     val userActions = userActionDao.getAllActions()
     userActions.forEach { userAction ->
-        val docRef = db.collection("user_action").document(userAction.primaryKey)
+        val docRef = db.collection("userAction").document(userAction.primaryKey)
         batch.set(docRef, userAction)
     }
     batch.commit()
