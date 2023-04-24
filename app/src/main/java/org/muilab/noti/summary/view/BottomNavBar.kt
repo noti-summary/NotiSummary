@@ -7,8 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -19,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.home.HomeScreen
 import org.muilab.noti.summary.view.settings.SettingsScreen
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
@@ -27,8 +27,8 @@ import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 sealed class BottomNavItem(var title: String, var icon: ImageVector, var screen_route: String) {
-    object Home : BottomNavItem("首頁", Icons.Filled.Home,"home")
-    object Settings: BottomNavItem("設定", Icons.Filled.Settings,"settings")
+    object Home : BottomNavItem("Home", Icons.Filled.Home,"home")
+    object Settings: BottomNavItem("Settings", Icons.Filled.Settings,"settings")
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -44,7 +44,7 @@ fun MainScreenView(
 ) {
     val navController = rememberNavController()
     Scaffold(
-        bottomBar = { AppBottomNavigation(navController = navController) }
+        bottomBar = { AppBottomNavigation(context, navController = navController) }
     ) { innerPadding ->
         // Apply the padding globally to the whole navController
         Box(modifier = Modifier.padding(innerPadding)) {
@@ -61,11 +61,13 @@ fun MainScreenView(
 }
 
 @Composable
-fun AppBottomNavigation(navController: NavController) {
+fun AppBottomNavigation(context: Context, navController: NavController) {
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Settings
     )
+
+    var currentScreen by remember { mutableStateOf(BottomNavItem.Home.title) }
 
     NavigationBar(
         contentColor = Color.Black
@@ -78,6 +80,10 @@ fun AppBottomNavigation(navController: NavController) {
                 icon = { Icon(item.icon, contentDescription = item.title, modifier = Modifier.size(30.dp)) },
                 selected = currentRoute == item.screen_route,
                 onClick = {
+                    if (currentScreen != item.title) {
+                        currentScreen = item.title
+                        logUserAction("switchScreen", currentScreen, context)
+                    }
                     navController.popBackStack()
                     navController.navigate(item.screen_route) {
                         navController.graph.startDestinationRoute?.let { screen_route ->

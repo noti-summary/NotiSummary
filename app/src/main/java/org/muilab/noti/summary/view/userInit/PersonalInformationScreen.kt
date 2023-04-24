@@ -25,8 +25,12 @@ import java.util.*
 fun PersonalInformationScreen(
     onContinue: (Int, String, String) -> Unit
 ) {
-    var age by remember { mutableStateOf("") }
-    var ageIsError by rememberSaveable { mutableStateOf(false) }
+    var birthYear by remember { mutableStateOf("") }
+    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+    val years = (1900..currentYear).toList().reversed()
+    var birthYearExpanded by remember { mutableStateOf(false) }
+    val birthYearInteractionSource = remember { MutableInteractionSource() }
+    val birthYearPressed: Boolean by birthYearInteractionSource.collectIsPressedAsState()
 
     var gender by remember { mutableStateOf("") }
     val genderOptions = listOf(
@@ -36,8 +40,8 @@ fun PersonalInformationScreen(
         stringResource(R.string.not_to_state)
     )
     var genderExpanded by remember { mutableStateOf(false) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed: Boolean by interactionSource.collectIsPressedAsState()
+    val genderInteractionSource = remember { MutableInteractionSource() }
+    val genderPressed: Boolean by genderInteractionSource.collectIsPressedAsState()
 
     val countries = getListOfCountries()
     var query by remember { mutableStateOf("") }
@@ -50,15 +54,6 @@ fun PersonalInformationScreen(
         textColor = MaterialTheme.colorScheme.onSurfaceVariant,
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     )
-
-    fun validateAge(age: String) {
-        val ageInt = age.toIntOrNull()
-        ageIsError = if (ageInt == null) {
-            true
-        } else {
-            ageInt <= 0
-        }
-    }
 
     Box (Modifier.background(MaterialTheme.colorScheme.surface)) {
         Column(
@@ -73,26 +68,44 @@ fun PersonalInformationScreen(
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
-            OutlinedTextField(
-                value = age,
-                onValueChange = { age = it; validateAge(age) },
-                label = { Text(stringResource(R.string.age)) },
-                colors = customTextFieldColors,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                isError = ageIsError,
-                supportingText = {
-                    if (ageIsError) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.age_error),
-                            color = MaterialTheme.colorScheme.error
-                        )
+            ExposedDropdownMenuBox(
+                expanded = birthYearExpanded, {}
+            ) {
+
+                OutlinedTextField(
+                    value = birthYear,
+                    onValueChange = { birthYear = it },
+                    label = { Text(stringResource(R.string.birth_year)) },
+                    colors = customTextFieldColors,
+                    readOnly = true,
+                    interactionSource = birthYearInteractionSource,
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .clickable(onClick = { birthYearExpanded = true }),
+                    trailingIcon = {
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = stringResource(R.string.birth_year))
                     }
-                },
-            )
+                )
+
+                LaunchedEffect(birthYearPressed){
+                    if (birthYearPressed)
+                        birthYearExpanded = true
+                }
+
+                ExposedDropdownMenu(
+                    expanded = birthYearExpanded,
+                    onDismissRequest = {birthYearExpanded = false},
+                ) {
+                    years.forEach { b ->
+                        DropdownMenuItem(onClick = {
+                            birthYear = b.toString()
+                            birthYearExpanded = false
+                        }, text = { Text(b.toString()) })
+                    }
+                }
+            }
 
             ExposedDropdownMenuBox(
                 expanded = genderExpanded, {}
@@ -104,7 +117,7 @@ fun PersonalInformationScreen(
                     label = { Text(stringResource(R.string.gender)) },
                     colors = customTextFieldColors,
                     readOnly = true,
-                    interactionSource = interactionSource,
+                    interactionSource = genderInteractionSource,
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth()
@@ -115,8 +128,8 @@ fun PersonalInformationScreen(
                     }
                 )
 
-                LaunchedEffect(isPressed){
-                    if (isPressed)
+                LaunchedEffect(genderPressed){
+                    if (genderPressed)
                         genderExpanded = true
                 }
 
@@ -184,8 +197,8 @@ fun PersonalInformationScreen(
             }
 
             Button(
-                    enabled = !ageIsError && gender.isNotEmpty() && country.isNotEmpty(),
-                    onClick = { onContinue(age.toInt(), gender, country) },
+                    enabled = birthYear.isNotEmpty() && gender.isNotEmpty() && country.isNotEmpty(),
+                    onClick = { onContinue(birthYear.toInt(), gender, country) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 32.dp)
