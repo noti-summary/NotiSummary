@@ -118,13 +118,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        logUserAction("lifeCycle", "appResume", applicationContext)
+        val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
+        if (sharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
+            logUserAction("lifeCycle", "appResume", applicationContext)
         if (!isNotiListenerEnabled())
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
     }
 
     override fun onPause() {
-        logUserAction("lifeCycle", "appPause", applicationContext)
+        val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
+        if (sharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
+            logUserAction("lifeCycle", "appPause", applicationContext)
         super.onPause()
     }
 
