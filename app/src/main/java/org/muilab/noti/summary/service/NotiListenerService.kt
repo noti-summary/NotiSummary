@@ -128,7 +128,9 @@ class NotiListenerService: NotificationListenerService() {
         val newRemovedNotisJson = Gson().toJson(removedNotis)
         summarySharedPref.edit().putString("removedNotis", newRemovedNotisJson).apply()
 
-        logSummary(applicationContext)
+        val userSharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
+        if (userSharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
+            logSummary(applicationContext)
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)

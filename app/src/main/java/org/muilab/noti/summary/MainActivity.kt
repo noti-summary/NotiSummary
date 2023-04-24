@@ -85,9 +85,9 @@ class MainActivity : ComponentActivity() {
                     }
                     "AGREED" -> {
                         PersonalInformationScreen(
-                            onContinue = { age, gender, country ->
+                            onContinue = { birthYear, gender, country ->
                                 with(sharedPref.edit()) {
-                                    putInt("age", age)
+                                    putInt("birthYear", birthYear)
                                     putString("gender", gender)
                                     putString("country", country)
                                     putString("initStatus", "USER_INFO_FILLED")
@@ -180,7 +180,7 @@ class MainActivity : ComponentActivity() {
                 Log.v("userId", userId)
 
                 val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-                val age = sharedPref.getInt("age", 0)
+                val birthYear = sharedPref.getInt("birthYear", 0)
                 val gender = sharedPref.getString("gender", "Unknown").toString()
                 val country = sharedPref.getString("country", "Unknown").toString()
 
@@ -194,7 +194,7 @@ class MainActivity : ComponentActivity() {
                                 val userInfo = hashMapOf<String, Any>(
                                     "userId" to userId,
                                     "credit" to maxCredit,
-                                    "age" to age,
+                                    "birthYear" to birthYear,
                                     "gender" to gender,
                                     "country" to country
                                 )
