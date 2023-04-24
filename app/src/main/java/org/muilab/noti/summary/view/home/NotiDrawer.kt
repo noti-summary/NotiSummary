@@ -1,14 +1,11 @@
 package org.muilab.noti.summary.view.home
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +20,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.ui.theme.DarkColorScheme
 import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.SummaryViewModel
@@ -43,6 +41,27 @@ fun NotiDrawer(context: Context, sumViewModel: SummaryViewModel) {
         1.0f to MaterialTheme.colorScheme.surfaceVariant
     )
 
+    remember {
+        mutableStateMapOf(
+            context.getString(R.string.application_name) to true,
+            context.getString(R.string.time) to true,
+            context.getString(R.string.title) to true,
+            context.getString(R.string.content) to false
+        )
+    }
+    val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+    var showAppName by remember { mutableStateOf(true) }
+    var showTime by remember { mutableStateOf(true) }
+    var showTitle by remember { mutableStateOf(true) }
+    var showContent by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        showAppName = notiFilterPrefs.getBoolean(context.getString(R.string.application_name), true)
+        showTime = notiFilterPrefs.getBoolean(context.getString(R.string.time), true)
+        showTitle = notiFilterPrefs.getBoolean(context.getString(R.string.title), true)
+        showContent = notiFilterPrefs.getBoolean(context.getString(R.string.content), true)
+    }
+
     Box {
 
         LazyColumn(
@@ -62,36 +81,45 @@ fun NotiDrawer(context: Context, sumViewModel: SummaryViewModel) {
                         shape = MaterialTheme.shapes.medium,
                     ) {
                         Column(modifier = Modifier.background(DarkColorScheme.secondary)) {
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp),
-                                text = "${it.appName} / ${it.time}",
-                                style = TextStyle(color = DarkColorScheme.onSecondary)
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp)
-                                    .background(Color.Transparent),
-                                text = it.title,
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Bold,
-                                    color = DarkColorScheme.onSecondary
-                                ),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp)
-                                    .background(Color.Transparent),
-                                text = it.content,
-                                style = TextStyle(color = DarkColorScheme.onSecondary),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            if (showAppName || showTime)
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 10.dp),
+                                    text = if (showAppName && showTime) {
+                                        "${it.appName} / ${it.time}"
+                                    } else if (showAppName) {
+                                        it.appName
+                                    } else {
+                                        it.time
+                                    },
+                                    style = TextStyle(color = DarkColorScheme.onSecondary)
+                                )
+                            if (showTitle)
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 10.dp)
+                                        .background(Color.Transparent),
+                                    text = it.title,
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        color = DarkColorScheme.onSecondary
+                                    ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            if (showContent)
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 10.dp)
+                                        .background(Color.Transparent),
+                                    text = it.content,
+                                    style = TextStyle(color = DarkColorScheme.onSecondary),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                         }
                     }
                 }
