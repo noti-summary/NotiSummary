@@ -19,6 +19,7 @@ import kotlin.reflect.full.memberProperties
 
 data class SummaryNoti(
     val sbnKey: String,
+    val `when`: Long,
     val postTime: Long,
     val pkgName: String,
     val category: String,
@@ -27,6 +28,7 @@ data class SummaryNoti(
 ) {
     constructor(notiUnit: NotiUnit): this (
         sbnKey = notiUnit.sbnKey,
+        `when` = notiUnit.`when`,
         postTime = notiUnit.postTime,
         pkgName = notiUnit.pkgName,
         category = notiUnit.category,

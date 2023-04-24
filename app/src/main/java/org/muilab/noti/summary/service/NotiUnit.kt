@@ -19,6 +19,7 @@ import java.util.*
 data class NotiUnit(
     // For logging
     val drawerIndex: Int,
+    val `when`: Long,
     val postTime: Long,
     val sbnKey: String,
     val pkgName: String,
@@ -35,6 +36,7 @@ data class NotiUnit(
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readLong(),
+        parcel.readLong(),
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
@@ -47,7 +49,8 @@ data class NotiUnit(
     @RequiresApi(Build.VERSION_CODES.Q)
     constructor(context: Context, sbn: StatusBarNotification, index: Int): this(
         drawerIndex = index,
-        postTime = sbn.notification?.`when` as Long,
+        `when` = sbn.notification?.`when` as Long,
+        postTime = sbn.postTime,
         sbnKey = sbn.key,
         pkgName = sbn.opPkg,
         category = sbn.notification?.category ?: "Unknown",
@@ -57,6 +60,7 @@ data class NotiUnit(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(drawerIndex)
+        parcel.writeLong(`when`)
         parcel.writeLong(postTime)
         parcel.writeString(sbnKey)
         parcel.writeString(pkgName)
