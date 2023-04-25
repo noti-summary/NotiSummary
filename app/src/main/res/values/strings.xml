@@ -63,6 +63,12 @@
     </string>
     <string name="default_summary_prompt">Turn the smartphone notifications provided below into a summary.</string>
     <string name="search_app">Search</string>
+    <string name="push_notification">Open Push Notification</string>
     <string name="privacy_URL">https://hackmd.io/@noti-summary/privacy-policy</string>
     <string name="feedback_URL">https://forms.gle/3BK34CGo4eNTszE16</string>
+    <string name="every">"every "</string>
+    <string name="everyDay">every day</string>
+    <string name="everyWeekend">every weekend</string>
+    <string name="everyWeekday">every weekday</string>
+    <string name="save">save</string>
 </resources>

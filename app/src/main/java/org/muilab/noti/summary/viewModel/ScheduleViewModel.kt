@@ -21,6 +21,14 @@ class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleData
         }
     }
 
+    fun updateWeekSchedule(schedule: Schedule, newWeekState: Int) {
+        scope.launch {
+            scheduleDao.updateWeekSchedule(
+                schedule.hour, schedule.minute, schedule.week, newWeekState
+            )
+        }
+    }
+
     fun deleteSchedule(schedule: Schedule) {
         scope.launch {
             scheduleDao.deleteByTime(schedule.hour, schedule.minute)

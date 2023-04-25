@@ -4,7 +4,7 @@ import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_CANCEL_CURRENT
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -19,6 +19,7 @@ import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.util.TAG
+import java.time.LocalTime
 import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
@@ -38,6 +39,12 @@ class AlarmReceiver : BroadcastReceiver() {
         val minute = intent.getIntExtra("minute", -1)
         if (hour != -1 && minute != -1)
             scheduleNextDayAlarm(context, hour, minute)
+
+        val sharedPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
+        val sendNotiOrNot = sharedPref.getBoolean("send_or_not", true)
+        if (!sendNotiOrNot)
+            return
+        // If user don't want to send the notification, return directly
 
         val notiContentIntent = Intent(context, MainActivity::class.java)
         val pendingIntent =
@@ -73,6 +80,14 @@ class AlarmReceiver : BroadcastReceiver() {
                 add(Calendar.DAY_OF_YEAR, 1)
             }
 
+            if (!schedule.isEveryDay()) {
+                val weekRepeating = schedule.calendarWeek()
+
+                while (!weekRepeating.contains(calendar.get(Calendar.DAY_OF_WEEK))) {
+                    calendar.add(Calendar.DAY_OF_YEAR, 1)
+                }
+            }
+
             Log.d("scheduleNextDayAlarm", "${calendar.time}")
 
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -82,7 +97,7 @@ class AlarmReceiver : BroadcastReceiver() {
             intent.putExtra("minute", schedule.minute)
             val pendingIntent = PendingIntent.getBroadcast(
                 context, 0, intent,
-                FLAG_IMMUTABLE or FLAG_CANCEL_CURRENT
+                FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT
             )
 
             alarmManager.setExactAndAllowWhileIdle(

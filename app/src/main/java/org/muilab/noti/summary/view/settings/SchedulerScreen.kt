@@ -4,11 +4,15 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,33 +20,68 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
+import java.time.DayOfWeek
+import java.time.format.TextStyle
 import java.util.*
 
 @Composable
 fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
-    TimeList(context, scheduleViewModel)
+    val sharedPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
+    var checkedState by remember { mutableStateOf(sharedPref.getBoolean("send_or_not", true)) }
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(id = R.string.push_notification),
+                modifier = Modifier
+                    .padding(horizontal = 30.dp)
+                    .weight(1f),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Switch(
+                modifier = Modifier.padding(horizontal = 30.dp),
+                checked = checkedState,
+                onCheckedChange = { newState ->
+                    checkedState = newState
+                    with(sharedPref.edit()) {
+                        putBoolean("send_or_not", newState)
+                        apply()
+                    }
+                }
+            )
+        }
+        TimeList(context, scheduleViewModel)
+    }
     AddScheduleButton(context, scheduleViewModel)
 }
 
 @Composable
 fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
     val allSchedule = scheduleViewModel.allSchedule.observeAsState(listOf())
+    var showDialog by remember { mutableStateOf(false) }
+    var editSchedule by remember { mutableStateOf(Schedule(0, -1, -1, -1)) }
 
     Column {
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
             itemsIndexed(allSchedule.value) { index, item ->
-                if (index == 0) Divider(color = Color.DarkGray, thickness = 1.dp) // TODO: use color in material3 instead?
+                if (index == 0) Divider(color = Color.DarkGray, thickness = 1.dp)
                 Box(
                     modifier = Modifier
                         .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
@@ -50,15 +89,38 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         .wrapContentHeight(),
                 ) {
                     Row(
-                        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = item.getTime(),
-                            style = MaterialTheme.typography.displaySmall
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        ) {
+                            Text(
+                                text = item.getTime(),
+                                style = MaterialTheme.typography.displaySmall
+                            )
+                            Text(
+                                text = item.getWeekString(context),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                        IconButton(onClick = {
+                            showDialog = true
+                            editSchedule = item
+                        }) {
+                            Icon(
+                                modifier = Modifier
+                                    .padding(all = 11.dp)
+                                    .size(20.dp),
+                                painter = painterResource(R.drawable.calendar),
+                                contentDescription = "weekly schedule"
+                            )
+                        }
                         IconButton(onClick = {
                             scheduleViewModel.deleteSchedule(item)
                             deleteAlarm(context, item)
@@ -67,7 +129,108 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         }
                     }
                 }
-                Divider(color = Color.DarkGray, thickness = 1.dp) // TODO: use color in material3 instead?
+                Divider(color = Color.DarkGray, thickness = 1.dp)
+            }
+        }
+    }
+
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
+    if (showDialog) {
+        val weekState = remember { mutableStateOf(editSchedule.week) }
+        val confirmAction = {
+            showDialog = !showDialog
+            coroutineScope.launch {
+                scheduleViewModel.updateWeekSchedule(editSchedule, weekState.value)
+            }
+        }
+        SetDayOfWeekDialog(weekState, onDismissRequest = { showDialog = !showDialog }, confirmAction)
+    }
+}
+
+@Composable
+fun SetDayOfWeekDialog(
+    weekState: MutableState<Int>,
+    onDismissRequest: () -> Unit,
+    confirmAction: () -> Job
+) {
+    val daysOfWeek = DayOfWeek.values().map {
+        it.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    }
+    Dialog(
+        onDismissRequest = onDismissRequest
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(300.dp)
+                .height(500.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Select a Week",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
+                ) {
+                    itemsIndexed(daysOfWeek) { idx, week ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(
+                                        topStart = if (idx == 0) 8.dp else 0.dp,
+                                        topEnd = if (idx == 0) 8.dp else 0.dp,
+                                        bottomStart = if (idx == 6) 8.dp else 0.dp,
+                                        bottomEnd = if (idx == 6) 8.dp else 0.dp
+                                    )
+                                )
+                                .clickable {
+                                    weekState.value = weekState.value xor (1 shl (6 - idx))
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .weight(1f),
+                                text = week,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+
+                            if (weekState.value and (1 shl (6 - idx)) != 0) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(modifier = Modifier.padding(8.dp))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .fillMaxWidth(),
+                    onClick = { confirmAction() }
+                ) {
+                    Text(text = stringResource(R.string.save))
+                }
             }
         }
     }
@@ -92,7 +255,9 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(onClick = {
