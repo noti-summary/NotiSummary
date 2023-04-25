@@ -64,12 +64,16 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
                                 )
                                 .clickable {
                                     if (item.name == SettingScreenItem.Feedback.name) {
-                                        uriHandler.openUri("https://forms.gle/LSe1fZP2sDnXUtC59")
+                                        logUserAction("externalLink", "Feedback", context)
+                                        uriHandler.openUri(context.getString(R.string.feedback_URL))
                                     } else if (item.name == SettingScreenItem.About.name) {
+                                        logUserAction("externalLink", "About", context)
                                         uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
                                     } else if (item.name == SettingScreenItem.Privacy.name) {
-                                        uriHandler.openUri("https://example.com")
+                                        logUserAction("externalLink", "Privacy", context)
+                                        uriHandler.openUri(context.getString(R.string.privacy_URL))
                                     } else if (item.name == SettingScreenItem.Recruitment.name) {
+                                        logUserAction("externalLink", "Recruitment", context)
                                         uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
                                     } else {
                                         navController.navigate(item.name)
