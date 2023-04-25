@@ -105,7 +105,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                                 style = MaterialTheme.typography.displaySmall
                             )
                             Text(
-                                text = item.getWeekString(),
+                                text = item.getWeekString(context),
                                 style = MaterialTheme.typography.labelMedium
                             )
                         }
@@ -155,7 +155,7 @@ fun SetDayOfWeekDialog(
 ) {
     val daysOfWeek = DayOfWeek.values().map {
         it.getDisplayName(TextStyle.FULL, Locale.getDefault())
-    } // Mon. Tue. Wed. Thu. Fri. Sat. Sun.
+    }
     Dialog(
         onDismissRequest = onDismissRequest
     ) {
@@ -229,7 +229,7 @@ fun SetDayOfWeekDialog(
                         .fillMaxWidth(),
                     onClick = { confirmAction() }
                 ) {
-                    Text(text = stringResource(R.string.ok))
+                    Text(text = stringResource(R.string.save))
                 }
             }
         }

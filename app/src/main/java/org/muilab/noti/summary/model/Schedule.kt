@@ -1,8 +1,12 @@
 package org.muilab.noti.summary.model
 
+import android.content.Context
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Calendar
+import org.muilab.noti.summary.R
+import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.*
 
 private const val everyDay = 0b1111111
 private const val everyWeekend = 0b0000011
@@ -21,20 +25,31 @@ data class Schedule(
         return String.format("%02d:%02d", hour, minute)
     }
 
-    fun getWeekString(): String {
+    fun getWeekString(context: Context): String {
         return when (week) {
-            everyDay -> "every day"
-            everyWeekend -> "every weekend"
-            everyWeekday -> "every weekday"
+            everyDay -> context.getString(R.string.everyDay)
+            everyWeekend -> context.getString(R.string.everyWeekend)
+            everyWeekday -> context.getString(R.string.everyWeekday)
             else -> {
-                val days = mutableListOf<String>()
-                val weekdays = listOf("Mon.", "Tue.", "Wed.", "Thu.", "Fri.", "Sat.", "Sun.")
-                for (i in weekdays.indices) {
+                val days = mutableListOf<Int>()
+                val weekdaysShort = DayOfWeek.values().map {
+                    var weekText = it.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    if (weekText[weekText.length - 1] in 'a'..'z')
+                        weekText += '.'
+                    weekText
+                }
+                val weekdaysLong = DayOfWeek.values().map {
+                    it.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                }
+                for (i in weekdaysShort.indices) {
                     if ((week and (1 shl (6 - i))) != 0) {
-                        days.add(weekdays[i])
+                        days.add(i)
                     }
                 }
-                if (days.size == 1) "every ${days[0]}" else days.joinToString(" ")
+                if (week.countOneBits() == 1)
+                    "${context.getString(R.string.every)}${weekdaysLong[days[0]]}"
+                else
+                    days.joinToString(" ") { weekdaysShort[it] }
             }
         }
     }
