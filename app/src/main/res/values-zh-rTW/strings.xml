@@ -55,16 +55,9 @@
     <string name="welcome">歡迎使用 NotiSummary !</string>
     <string name="no_noti_permission">您的通知權限尚未開啟</string>
     <string name="click_to_open_permission">點擊確認前往開啟</string>
-    <string name="noti_covered_dialog_title">通知摘要取用之資訊</string>
+    <string name="noti_covered_dialog_title">通知隱私保護與設定</string>
     <string name="noti_covered_dialog_content">
-        本App可自訂將通知的下列資訊傳送予ChatGPT進行文字摘要。\n
-        \n
-        • APP名稱(預設為「傳送️」)\n
-        • 發送時間(預設為「傳送️」)\n
-        • 通知標題(預設為「傳送️」)\n
-        • 通知內容(預設為「不傳送️」)\n
-        \n
-        若您希望納入更多詳細資訊進行摘要，可以進入「⚙️」>「摘要範圍 (通知資訊)」自行調整。
+        為保障使用者隱私權，本 App 預設不會將通知的內容納入摘要。如欲調整此設定，可前往「⚙️」>「摘要範圍 (通知資訊)」
     </string>
     <string name="default_summary_prompt">請用一段文字摘要以下手機通知</string>
     <string name="search_app">搜尋</string>
