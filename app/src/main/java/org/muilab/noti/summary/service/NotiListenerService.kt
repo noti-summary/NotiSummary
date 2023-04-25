@@ -69,8 +69,8 @@ class NotiListenerService: NotificationListenerService() {
             it.setPackage(packageName)
         }
         val restartServicePendingIntent: PendingIntent = PendingIntent.getService(this, 1, restartServiceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT)
-        applicationContext.getSystemService(Context.ALARM_SERVICE)
-        val alarmService: AlarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        getSystemService(Context.ALARM_SERVICE)
+        val alarmService: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmService.set(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis() + 10000, restartServicePendingIntent)
         unregisterReceiver(allNotiRequestReceiver)
         Log.d(TAG, "onDestroy")

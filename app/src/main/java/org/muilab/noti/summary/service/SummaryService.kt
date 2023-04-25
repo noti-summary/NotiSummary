@@ -1,10 +1,15 @@
 package org.muilab.noti.summary.service
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.*
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -20,6 +25,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.*
@@ -56,14 +62,13 @@ class SummaryService : Service(), LifecycleOwner {
         activeNotifications.forEach { noti ->
 
             val filterMap = mutableMapOf<String, String>()
-            filterMap[applicationContext.getString(R.string.application_name)] =
+            filterMap[getString(R.string.application_name)] =
                 "App: ${noti.appName}"
-            filterMap[applicationContext.getString(R.string.time)] = "Time: ${noti.time}"
-            filterMap[applicationContext.getString(R.string.title)] = "Title: ${noti.title}"
-            filterMap[applicationContext.getString(R.string.content)] = "Content: ${noti.content}"
+            filterMap[getString(R.string.time)] = "Time: ${noti.time}"
+            filterMap[getString(R.string.title)] = "Title: ${noti.title}"
+            filterMap[getString(R.string.content)] = "Content: ${noti.content}"
 
-            val notiFilterPrefs =
-                applicationContext.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+            val notiFilterPrefs = getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
             val input =
                 filterMap.filter { attribute -> notiFilterPrefs.getBoolean(attribute.key, true) }
                     .values
@@ -81,7 +86,7 @@ class SummaryService : Service(), LifecycleOwner {
         return withContext(Dispatchers.IO) {
 
             notiInProcess = activeNotifications
-            updateStatusText(applicationContext.getString(SummaryResponse.GENERATING.message))
+            updateStatusText(getString(SummaryResponse.GENERATING.message))
 
             var responseStr = ""
 
@@ -96,9 +101,9 @@ class SummaryService : Service(), LifecycleOwner {
             data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
             val userAPIKey =
-                apiPref.getString("userAPIKey", applicationContext.getString(R.string.system_key))!!
+                apiPref.getString("userAPIKey", getString(R.string.system_key))!!
 
-            val requestURL = if (userAPIKey == applicationContext.getString(R.string.system_key)) {
+            val requestURL = if (userAPIKey == getString(R.string.system_key)) {
                 serverURL
             } else {
                 "$serverURL/key"
@@ -107,12 +112,12 @@ class SummaryService : Service(), LifecycleOwner {
             val postContent = getPostContent(activeNotifications)
             val prompt = promptPref.getString(
                 "curPrompt",
-                applicationContext.getString(R.string.default_summary_prompt)
+                getString(R.string.default_summary_prompt)
             ) as String
             Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
 
             @Suppress("IMPLICIT_CAST_TO_ANY")
-            val gptRequest = if (userAPIKey == applicationContext.getString(R.string.system_key)) {
+            val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
                 GPTRequest(prompt, postContent)
             } else {
                 Log.d("sendToServer", "userAPIKey: $userAPIKey")
@@ -141,7 +146,7 @@ class SummaryService : Service(), LifecycleOwner {
                     if (summary != null) {
 
                         summaryPref.edit().putString("resultValue", summary).apply()
-                        if (userAPIKey == applicationContext.getString(R.string.system_key))
+                        if (userAPIKey == getString(R.string.system_key))
                             subtractCredit()
                         logUserAction("genSummary", "Success", applicationContext)
 
@@ -160,25 +165,23 @@ class SummaryService : Service(), LifecycleOwner {
                             val notiDataJson = Gson().toJson(notiData)
                             putString("notiData", notiDataJson)
 
-                            val notiFilterPrefs = applicationContext.getSharedPreferences(
-                                "noti_filter",Context.MODE_PRIVATE
-                            )
+                            val notiFilterPrefs = getSharedPreferences("noti_filter",Context.MODE_PRIVATE)
 
                             val notiScope = mutableMapOf<String, Boolean>()
                             notiScope["appName"] = notiFilterPrefs.getBoolean(
-                                applicationContext.getString(R.string.application_name),
+                                getString(R.string.application_name),
                                 true
                             )
                             notiScope["time"] = notiFilterPrefs.getBoolean(
-                                applicationContext.getString(R.string.time),
+                                getString(R.string.time),
                                 true
                             )
                             notiScope["title"] = notiFilterPrefs.getBoolean(
-                                applicationContext.getString(R.string.title),
+                                getString(R.string.title),
                                 true
                             )
                             notiScope["content"] = notiFilterPrefs.getBoolean(
-                                applicationContext.getString(R.string.content),
+                                getString(R.string.content),
                                 true
                             )
                             val notiScopeJson = Gson().toJson(notiScope)
@@ -195,11 +198,10 @@ class SummaryService : Service(), LifecycleOwner {
                             apply()
                         }
                         logSummary(applicationContext)
-
                         responseStr = summary
                     } else {
                         logUserAction("genSummary", "ServerError", applicationContext)
-                        responseStr = applicationContext.getString(SummaryResponse.SERVER_ERROR.message)
+                        responseStr = getString(SummaryResponse.SERVER_ERROR.message)
                     }
                 } else {
                     response.body?.let {
@@ -209,43 +211,44 @@ class SummaryService : Service(), LifecycleOwner {
                             responseBody.contains("Incorrect API key provided")
                         ) {
                             logUserAction("genSummary", "KeyError", applicationContext)
-                            applicationContext.getString(SummaryResponse.APIKEY_ERROR.message)
+                            getString(SummaryResponse.APIKEY_ERROR.message)
                         } else if (responseBody.contains("exceeded your current quota")) {
                             logUserAction("genSummary", "NoQuota", applicationContext)
-                            applicationContext.getString(SummaryResponse.QUOTA_ERROR.message)
+                            getString(SummaryResponse.QUOTA_ERROR.message)
                         } else {
                             logUserAction("genSummary", "ServerError", applicationContext)
-                            applicationContext.getString(SummaryResponse.SERVER_ERROR.message)
+                            getString(SummaryResponse.SERVER_ERROR.message)
                         }
                     } ?: let {
                         logUserAction("genSummary", "ServerError", applicationContext)
-                        responseStr = applicationContext.getString(SummaryResponse.SERVER_ERROR.message)
+                        responseStr = getString(SummaryResponse.SERVER_ERROR.message)
                     }
                 }
                 response.close()
             } catch (e: InterruptedIOException) {
                 Log.i("InterruptedIOException", e.toString())
                 logUserAction("genSummary", "ServerTimeout", applicationContext)
-                responseStr = applicationContext.getString(SummaryResponse.TIMEOUT_ERROR.message)
+                responseStr = getString(SummaryResponse.TIMEOUT_ERROR.message)
             } catch (e: IOException) {
                 Log.i("IOException", e.toString())
                 logUserAction("genSummary", "NetworkError", applicationContext)
-                responseStr = applicationContext.getString(SummaryResponse.NETWORK_ERROR.message)
+                responseStr = getString(SummaryResponse.NETWORK_ERROR.message)
             } catch (e: Exception) {
                 Log.i("Exception in sendToServer", e.toString())
                 logUserAction("genSummary", "ServerError", applicationContext)
-                responseStr = applicationContext.getString(SummaryResponse.SERVER_ERROR.message)
+                responseStr = getString(SummaryResponse.SERVER_ERROR.message)
             }
 
             updateStatusText(responseStr)
             statusText = ""
             notiInProcess = arrayListOf()
+            notifySummary(responseStr)
             responseStr
         }
     }
 
     private fun subtractCredit() {
-        val sharedPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("user", Context.MODE_PRIVATE)
         val userId = sharedPref.getString("user_id", "000").toString()
 
         val db = Firebase.firestore
@@ -268,9 +271,9 @@ class SummaryService : Service(), LifecycleOwner {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        summaryPref = applicationContext.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
-        promptPref = applicationContext.getSharedPreferences("PromptPref", Context.MODE_PRIVATE)
-        apiPref = applicationContext.getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
+        summaryPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+        promptPref = getSharedPreferences("PromptPref", Context.MODE_PRIVATE)
+        apiPref = getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
 
         return START_STICKY
     }
@@ -308,6 +311,35 @@ class SummaryService : Service(), LifecycleOwner {
         updateIntent.putExtra("newStatus", newStatus)
         updateIntent.putParcelableArrayListExtra("activeNotis", notiInProcess)
         sendBroadcast(updateIntent)
+    }
+
+    fun notifySummary(responseStr: String) {
+        val sharedPref = getSharedPreferences("noti-send", Context.MODE_PRIVATE)
+        val sendNotiOrNot = sharedPref.getBoolean("send_or_not", true)
+        if (!sendNotiOrNot)
+            return
+        // If user don't want to send the notification, return directly
+
+        val notiContentIntent = Intent(applicationContext, MainActivity::class.java)
+        val pendingIntent =
+            PendingIntent.getActivity(applicationContext, 0, notiContentIntent, PendingIntent.FLAG_IMMUTABLE)
+
+        val builder = NotificationCompat.Builder(applicationContext, "Alarm")
+            .setSmallIcon(R.drawable.quotation)
+            .setContentTitle(getString(R.string.noti_content))
+            .setContentText(responseStr)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel("Alarm", "Remind", importance)
+
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.createNotificationChannel(channel)
+
+        val notificationManagerCompat = NotificationManagerCompat.from(applicationContext)
+        notificationManagerCompat.notify(0, builder.build())
     }
 
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
