@@ -93,7 +93,11 @@ fun NotiDrawer(context: Context, sumViewModel: SummaryViewModel) {
                                 )
                                 Text(
                                     text = " / ",
-                                    style = TextStyle(color = DarkColorScheme.onSecondary)
+                                    style = TextStyle(color = if (showAppName && showTime) {
+                                        DarkColorScheme.onSecondary
+                                    } else {
+                                        Color.Gray
+                                    })
                                 )
                                 Text(
                                     text = it.time,
