@@ -162,7 +162,7 @@ fun SetDayOfWeekDialog(
         Surface(
             modifier = Modifier
                 .width(300.dp)
-                .height(450.dp)
+                .height(500.dp)
         ) {
             Column(
                 modifier = Modifier
