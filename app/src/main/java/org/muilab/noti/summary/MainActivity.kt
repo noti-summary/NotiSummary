@@ -1,9 +1,11 @@
 package org.muilab.noti.summary
 
+import android.app.ActivityManager
 import android.content.*
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -20,6 +22,7 @@ import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
@@ -48,10 +51,17 @@ class MainActivity : ComponentActivity() {
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
         startService(notiListenerIntent)
 
+        val summaryServiceIntent = Intent(this, SummaryService::class.java)
+        if (!isServiceRunning(SummaryService::class.java)) {
+            Log.d("SummaryService", "Start service")
+            startService(summaryServiceIntent)
+        }
+        bindService(summaryServiceIntent, summaryServiceConnection, Context.BIND_AUTO_CREATE)
+
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
-        val allNotiFilterScheduled = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
-        registerReceiver(allNotiReturnReceiver, allNotiFilterScheduled)
+        val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
+        registerReceiver(newStatusReceiver, newStatusFilter)
 
         val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
         if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
@@ -134,8 +144,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         unregisterReceiver(allNotiReturnReceiver)
+        unregisterReceiver(newStatusReceiver)
+        unbindService(summaryServiceConnection)
         super.onDestroy()
     }
+
+    private lateinit var summaryService: SummaryService
 
     private val sumViewModel by viewModels<SummaryViewModel>()
 
@@ -155,19 +169,38 @@ class MainActivity : ComponentActivity() {
         return cn.flattenToString() in flat
     }
 
+    private val summaryServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            Log.d("SummaryService", "Bind service")
+            val binder = service as SummaryService.SummaryBinder
+            summaryService = binder.getService()
+            sumViewModel.setService(summaryService)
+            Log.d("SummaryService", "Bind service")
+        }
+
+        override fun onServiceDisconnected(className: ComponentName) {
+
+        }
+    }
+
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
                 if (activeNotifications != null) {
-                    val curPrompt = promptViewModel.getCurPrompt()
-                    sumViewModel.updateSummaryText(curPrompt, activeNotifications, false)
+                    sumViewModel.updateSummaryText(activeNotifications, false)
                 }
-            } else if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED") {
+            }
+        }
+    }
+
+    private val newStatusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "edu.mui.noti.summary.UPDATE_STATUS") {
+                val newStatus = intent.getStringExtra("newStatus")
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
-                if (activeNotifications != null) {
-                    val curPrompt = promptViewModel.getCurPrompt()
-                    sumViewModel.updateSummaryText(curPrompt, activeNotifications, true)
+                if (newStatus != null && activeNotifications != null) {
+                    sumViewModel.updateStatusText(newStatus, activeNotifications)
                 }
             }
         }
@@ -243,5 +276,13 @@ class MainActivity : ComponentActivity() {
             activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
             else -> false
         }
+    }
+
+    private fun isServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE))
+            if (serviceClass.name == service.service.className)
+                return true
+        return false
     }
 }

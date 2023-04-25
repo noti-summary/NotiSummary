@@ -4,7 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.ReScheduleService
+import org.muilab.noti.summary.service.SummaryService
 
 class BootUpReceiver : BroadcastReceiver() {
 
@@ -14,8 +16,12 @@ class BootUpReceiver : BroadcastReceiver() {
 
         if (intent.action.equals("android.intent.action.BOOT_COMPLETED")) {
             Log.d("BootUpReceiver", "onReceive: intent.action=BOOT_COMPLETED")
-            val serviceIntent = Intent(context, ReScheduleService::class.java)
-            context.startService(serviceIntent)
+            val rescheduleServiceIntent = Intent(context, ReScheduleService::class.java)
+            context.startService(rescheduleServiceIntent)
+            val notiServiceIntent = Intent(context, NotiListenerService::class.java)
+            context.startService(notiServiceIntent)
+            val summaryServiceIntent = Intent(context, SummaryService::class.java)
+            context.startService(summaryServiceIntent)
         }
     }
 }
