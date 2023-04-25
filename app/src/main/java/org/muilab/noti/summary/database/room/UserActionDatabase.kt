@@ -4,18 +4,18 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import org.muilab.noti.summary.model.Prompt
+import org.muilab.noti.summary.model.UserAction
 
-@Database(entities = [Prompt::class], version = 1)
-abstract class PromptDatabase : RoomDatabase() {
+@Database(entities = [UserAction::class], version = 1)
+abstract class UserActionDatabase : RoomDatabase() {
 
-    abstract fun promptDao(): PromptDao
+    abstract fun userActionDao(): UserActionDao
 
     companion object {
         @Volatile
-        private var INSTANCE: PromptDatabase? = null
+        private var INSTANCE: UserActionDatabase? = null
 
-        fun getInstance(context: Context): PromptDatabase =
+        fun getInstance(context: Context): UserActionDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
             }
@@ -23,9 +23,8 @@ abstract class PromptDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context) =
             Room.databaseBuilder(
                 context.applicationContext,
-                PromptDatabase::class.java,
-                "prompt_history"
-            )
-                .build()
+                UserActionDatabase::class.java,
+                "user_actions"
+            ).build()
     }
 }

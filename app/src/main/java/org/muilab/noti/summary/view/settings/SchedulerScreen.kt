@@ -33,6 +33,7 @@ import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -243,6 +244,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
             val newSchedule = scheduleViewModel.addNewSchedule(hour, minute)
             if (newSchedule != null) {
                 addAlarm(context, newSchedule)
+                logUserAction("schedulerDialog", "confirm", context)
             }
         }
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
@@ -258,6 +260,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(onClick = {
+            logUserAction("schedulerDialog", "launch", context)
             val calendar = Calendar.getInstance()
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
             val minute = calendar.get(Calendar.MINUTE)

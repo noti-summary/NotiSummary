@@ -11,6 +11,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
 import io.github.cdimascio.dotenv.dotenv
@@ -25,6 +26,7 @@ import okio.IOException
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.util.*
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
@@ -59,9 +61,21 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             application.getString(SummaryResponse.HINT.message)
         )
         _result.value = resultValue!!
+        resetNotiDrawer()
     }
 
-    private fun updateLiveDataValue(newValue: String?) {
+    private fun resetNotiDrawer() {
+        val notiDrawerJson = sharedPreferences.getString("notiDrawer", "")
+        if (notiDrawerJson!!.isNotEmpty()) {
+            val notiDrawerType = object : TypeToken<List<NotiUnit>>() {}.type
+            _notifications.value = Gson()
+                .fromJson<List<NotiUnit>>(notiDrawerJson, notiDrawerType)
+                .sortedBy { it.drawerIndex }
+        } else
+            _notifications.value = listOf()
+    }
+
+    private fun updateLiveDataValue(newValue: String?): Boolean {
         if (newValue != null) {
             _result.postValue(newValue!!)
             sharedPreferences.edit().putString("resultValue", newValue).apply()
@@ -70,9 +84,12 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             if (userAPIKey == context.getString(R.string.system_key)) {
                 subtractCredit(1)
             }
-
+            logUserAction("genSummary", "Success", context)
+            return true
         } else {
             _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+            logUserAction("genSummary", "ServerError", context)
+            return false
         }
     }
 
@@ -103,21 +120,19 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
-    fun updateSummaryText(curPrompt: String, activeNotifications: ArrayList<NotiUnit>) {
+    fun updateSummaryText(curPrompt: String, activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) {
         prompt = curPrompt
         if (activeNotifications.size > 0){
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
-            val postContent = getPostContent(activeNotifications)
             _notifications.postValue(activeNotifications.toList())
-            viewModelScope.launch {
-                sendToServer(postContent)
-            }
+            viewModelScope.launch { sendToServer(activeNotifications, isScheduled) }
         } else {
             _result.postValue(context.getString(SummaryResponse.NO_NOTIFICATION.message))
         }
+        resetNotiDrawer()
     }
 
-    private suspend fun sendToServer(content: String) = withContext(Dispatchers.IO) {
+    private suspend fun sendToServer(activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) = withContext(Dispatchers.IO) {
         val client = OkHttpClient.Builder()
             .connectTimeout(180, TimeUnit.SECONDS)
             .writeTimeout(180, TimeUnit.SECONDS)
@@ -126,8 +141,8 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             .build()
 
         Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
-        data class GPTRequest(val prompt: String, val content: String)
-        data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
+        data class GPTRequest(val prompt: String, val content: String, val notifications: String)
+        data class GPTRequestWithKey(val prompt: String, val content: String, val key: String, val notifications: String)
 
         val userAPIKey = apiPref.getString("userAPIKey", context.getString(R.string.system_key))!!
 
@@ -137,12 +152,16 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             "$serverURL/key"
         }
 
+        val postContent = getPostContent(activeNotifications)
+
+        val notiListJson = Gson().toJson(activeNotifications)
+
         @Suppress("IMPLICIT_CAST_TO_ANY")
         val gptRequest = if (userAPIKey == context.getString(R.string.system_key)) {
-            GPTRequest(prompt, content)
+            GPTRequest(prompt, postContent, notiListJson)
         } else {
             Log.d("sendToServer", "userAPIKey: $userAPIKey")
-            GPTRequestWithKey(prompt, content, userAPIKey)
+            GPTRequestWithKey(prompt, postContent, userAPIKey, notiListJson)
         }
 
         val postBody = Gson().toJson(gptRequest)
@@ -153,12 +172,50 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             .build()
 
         try {
+            val submitTime = System.currentTimeMillis()
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
                 val responseText =
                     response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")?.removeSurrounding("\"")
                 val summary = ChineseConverter.convert(responseText, ConversionType.S2TWP, context)
-                updateLiveDataValue(summary)
+                if (updateLiveDataValue(summary)) {
+                    with (sharedPreferences.edit()) {
+                        putLong("submitTime", submitTime)
+                        putBoolean("isScheduled", isScheduled)
+                        putString("prompt", prompt)
+
+                        val notiDrawerJson = Gson().toJson(activeNotifications)
+                        putString("notiDrawer", notiDrawerJson)
+
+                        val notiData = activeNotifications.map {
+                            // TODO: Get length from server
+                            SummaryNoti(it)
+                        }
+                        val notiDataJson = Gson().toJson(notiData)
+                        putString("notiData", notiDataJson)
+
+                        val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+
+                        val notiScope = mutableMapOf<String, Boolean>()
+                        notiScope["appName"] = notiFilterPrefs.getBoolean(context.getString(R.string.application_name), true)
+                        notiScope["time"] = notiFilterPrefs.getBoolean(context.getString(R.string.time), true)
+                        notiScope["title"] = notiFilterPrefs.getBoolean(context.getString(R.string.title), true)
+                        notiScope["content"] = notiFilterPrefs.getBoolean(context.getString(R.string.content), true)
+                        val notiScopeJson = Gson().toJson(notiScope)
+                        putString("notiScope", notiScopeJson)
+
+                        // TODO: Get length from server
+                        val summaryLength = getWordCount(summary)
+                        val summaryLengthJson = Gson().toJson(summaryLength)
+                        putString("summaryLength", summaryLengthJson)
+
+                        putString("removedNotis", "{}")
+                        putInt("rating", 0)
+
+                        apply()
+                    }
+                    logSummary(context)
+                }
             } else {
                 response.body?.let {
                     val responseBody = it.string()
@@ -167,25 +224,32 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                         responseBody.contains("Incorrect API key provided")
                     ) {
                         _result.postValue(context.getString(SummaryResponse.APIKEY_ERROR.message))
+                        logUserAction("genSummary", "KeyError", context)
                     } else if (responseBody.contains("exceeded your current quota")) {
                         _result.postValue(context.getString(SummaryResponse.QUOTA_ERROR.message))
+                        logUserAction("genSummary", "NoQuota", context)
                     } else {
                         _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+                        logUserAction("genSummary", "ServerError", context)
                     }
                 } ?: let {
                     _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+                    logUserAction("genSummary", "ServerError", context)
                 }
             }
             response.close()
         } catch (e: InterruptedIOException) {
             Log.i("InterruptedIOException", e.toString())
             _result.postValue(context.getString(SummaryResponse.TIMEOUT_ERROR.message))
+            logUserAction("genSummary", "ServerTimeout", context)
         } catch (e: IOException) {
             Log.i("IOException", e.toString())
             _result.postValue(context.getString(SummaryResponse.NETWORK_ERROR.message))
+            logUserAction("genSummary", "NetworkError", context)
         } catch (e: Exception) {
             Log.i("Exception in sendToServer", e.toString())
             _result.postValue(context.getString(SummaryResponse.SERVER_ERROR.message))
+            logUserAction("genSummary", "ServerError", context)
         }
     }
 
@@ -194,7 +258,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         val userId = sharedPref.getString("user_id", "000").toString()
 
         val db = Firebase.firestore
-        val docRef = db.collection("user-free-credit").document(userId)
+        val docRef = db.collection("user").document(userId)
         docRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 val res = document.toObject<UserCredit>()!!
