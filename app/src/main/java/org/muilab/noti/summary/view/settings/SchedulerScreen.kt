@@ -187,7 +187,7 @@ fun SetDayOfWeekDialog(
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
                                 .background(
-                                    MaterialTheme.colorScheme.onPrimaryContainer,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
                                     RoundedCornerShape(
                                         topStart = if (idx == 0) 8.dp else 0.dp,
                                         topEnd = if (idx == 0) 8.dp else 0.dp,
@@ -206,7 +206,7 @@ fun SetDayOfWeekDialog(
                                     .padding(12.dp)
                                     .weight(1f),
                                 text = week,
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyLarge
                             )
 
@@ -214,8 +214,9 @@ fun SetDayOfWeekDialog(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = "Selected",
-                                    tint = Color.Black,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                Spacer(modifier = Modifier.padding(8.dp))
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
