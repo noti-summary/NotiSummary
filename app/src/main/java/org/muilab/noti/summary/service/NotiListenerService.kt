@@ -128,7 +128,7 @@ class NotiListenerService: NotificationListenerService() {
         val newRemovedNotisJson = Gson().toJson(removedNotis)
         summarySharedPref.edit().putString("removedNotis", newRemovedNotisJson).apply()
 
-        if (summarySharedPref.getLong("submitTime", 0) == 0L)
+        if (summarySharedPref.getLong("submitTime", 0) != 0L)
             logSummary(applicationContext)
     }
 
