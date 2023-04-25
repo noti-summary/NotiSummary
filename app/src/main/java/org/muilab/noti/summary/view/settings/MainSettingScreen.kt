@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.logUserAction
 
 
@@ -57,7 +58,7 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
                                         uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
                                     } else if (it.name == SettingScreenItem.Privacy.name) {
                                         logUserAction("externalLink", "Privacy", context)
-                                        uriHandler.openUri("https://example.com")
+                                        uriHandler.openUri(context.getString(R.string.privacy_URL))
                                     } else if (it.name == SettingScreenItem.Recruitment.name) {
                                         logUserAction("externalLink", "Recruitment", context)
                                         uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
