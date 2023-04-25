@@ -4,7 +4,10 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.util.addAlarm

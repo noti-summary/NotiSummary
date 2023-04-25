@@ -104,26 +104,26 @@ fun getWordCount(content: String): Map<String, Int> {
 
     val wordCount = mutableMapOf<String, Int>()
     val latinWordCount = latinStrings.fold(0) { sum, str ->
-        val strWordCount = str.split(' ').fold(0) { sum, str ->
-            sum + if (str.isNotEmpty()) 1 else 0
+        val strWordCount = str.split(' ').fold(0) { wordSum, wordStr ->
+            wordSum + if (wordStr.isNotEmpty()) 1 else 0
         }
         sum + strWordCount
     }
     val chineseWordCount = chineseStrings.fold(0) { sum, str ->
-        val strWordCount = str.fold(0) { sum, ch ->
-            sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
+        val strWordCount = str.fold(0) { wordSum, ch ->
+            wordSum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
         }
         sum + strWordCount
     }
     val japaneseWordCount = japaneseStrings.fold(0) { sum, str ->
-        val strWordCount = str.fold(0) { sum, ch ->
-            sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
+        val strWordCount = str.fold(0) { wordSum, ch ->
+            wordSum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
         }
         sum + strWordCount
     }
     val otherWordCount = otherStrings.fold(0) { sum, str ->
-        val strWordCount = str.fold(0) { sum, ch ->
-            sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
+        val strWordCount = str.fold(0) { wordSum, ch ->
+            wordSum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
         }
         sum + strWordCount
     }
@@ -235,8 +235,6 @@ inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
 }
 
 fun logUserAction(type: String, actionName: String, context: Context, metadata: String = "") {
-
-    Log.d("UserAction", "insert")
 
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
