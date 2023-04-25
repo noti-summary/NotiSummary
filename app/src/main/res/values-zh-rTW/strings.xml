@@ -68,4 +68,5 @@
     </string>
     <string name="default_summary_prompt">請用一段文字摘要以下手機通知</string>
     <string name="search_app">搜尋</string>
+    <string name="privacy_URL">https://hackmd.io/@noti-summary/privacy-policy-zh</string>
 </resources>
