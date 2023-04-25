@@ -103,31 +103,32 @@ fun getWordCount(content: String): Map<String, Int> {
     }
 
     val wordCount = mutableMapOf<String, Int>()
-    wordCount["latin"] = latinStrings.fold(0) { sum, str ->
+    val latinWordCount = latinStrings.fold(0) { sum, str ->
         val strWordCount = str.split(' ').fold(0) { sum, str ->
             sum + if (str.isNotEmpty()) 1 else 0
         }
         sum + strWordCount
     }
-    wordCount["chinese"] = chineseStrings.fold(0) { sum, str ->
+    val chineseWordCount = chineseStrings.fold(0) { sum, str ->
         val strWordCount = str.fold(0) { sum, ch ->
             sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
         }
         sum + strWordCount
     }
-    wordCount["japanese"] = japaneseStrings.fold(0) { sum, str ->
+    val japaneseWordCount = japaneseStrings.fold(0) { sum, str ->
         val strWordCount = str.fold(0) { sum, ch ->
             sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
         }
         sum + strWordCount
     }
-    wordCount["others"] = otherStrings.fold(0) { sum, str ->
+    val otherWordCount = otherStrings.fold(0) { sum, str ->
         val strWordCount = str.fold(0) { sum, ch ->
             sum + if (!ch.equals("") && !ch.equals(" ")) 1 else 0
         }
         sum + strWordCount
     }
-    wordCount["totalCharacters"] = content.length
+    wordCount["wordCount"] = latinWordCount + chineseWordCount + japaneseWordCount + otherWordCount
+    wordCount["characters"] = content.length
     return wordCount
 }
 
