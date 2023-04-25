@@ -35,6 +35,7 @@ import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.time.DayOfWeek
+import java.time.format.TextStyle
 import java.util.*
 
 @Composable
@@ -151,7 +152,9 @@ fun SetDayOfWeekDialog(
     onDismissRequest: () -> Unit,
     confirmAction: () -> Job
 ) {
-    val daysOfWeek = DayOfWeek.values().map { it.name } // Mon. Tue. Wed. Thu. Fri. Sat. Sun.
+    val daysOfWeek = DayOfWeek.values().map {
+        it.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    } // Mon. Tue. Wed. Thu. Fri. Sat. Sun.
     Dialog(
         onDismissRequest = onDismissRequest
     ) {
