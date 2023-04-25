@@ -59,7 +59,7 @@
     <string name="noti_covered_dialog_title">Notification Privacy Protection and Settings</string>
     <string name="noti_covered_dialog_content">To protect users\' privacy,
         this App does not include the content of notifications in the summary by default.
-        If you want to adjust this setting, you can go to "⚙️" > "Summary Scope (Notification Info)".
+        If you want to adjust this setting, you can go to "⚙️" > "Summary Scope (Notification Info)" and make changes..
     </string>
     <string name="default_summary_prompt">Turn the smartphone notifications provided below into a summary.</string>
     <string name="search_app">Search</string>
