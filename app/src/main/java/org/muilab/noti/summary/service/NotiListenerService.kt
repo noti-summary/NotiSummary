@@ -6,15 +6,18 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
+import android.service.notification.NotificationListenerService.*
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import org.muilab.noti.summary.database.room.CurrentDrawerDatabase
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import org.muilab.noti.summary.util.TAG
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import org.muilab.noti.summary.util.logSummary
 
 class NotiListenerService: NotificationListenerService() {
 
@@ -35,27 +38,32 @@ class NotiListenerService: NotificationListenerService() {
         return super.onBind(intent)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private val allNotiRequestReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
-                val intent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
-                intent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
-                sendBroadcast(intent)
+                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
+                broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
+                sendBroadcast(broadcastIntent)
+            } else if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
+                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
+                broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
+                sendBroadcast(broadcastIntent)
             }
         }
     }
 
-    fun isConnected(): Boolean {
-        return connected
-    }
-
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "onCreate")
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS")
+        val allNotiFilterScheduled = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED")
         LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilter)
+        LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilterScheduled)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onDestroy() {
         val restartServiceIntent = Intent(applicationContext, NotiListenerService::class.java).also {
             it.setPackage(packageName)
@@ -72,56 +80,8 @@ class NotiListenerService: NotificationListenerService() {
         return START_STICKY
     }
 
-    private fun adHocRemove(notiItem: NotiItem): Boolean {
-        val title = notiItem.getTitle()
-        val content = notiItem.getContent()
-        val flags = notiItem.getFlags()
-        val packageName = notiItem.getPackageName()
-        val notiId = notiItem.getSbnId()
-
-        if (title == "null" && content == "null")
-            return true
-        if (packageName == "jp.naver.line.android" && notiId == 16880000)
-            return true
-        if (packageName == "com.google.android.gm" && flags?.and(512) != 0)
-            return true
-        if (packageName == "com.Slack" && flags != 16)
-            return true
-        return false
-    }
-
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
-        Log.d(TAG, "onNotificationPosted")
-        try {
-//            Log.d(TAG, "TAG: ${sbn?.tag}") // charging_state, ...
 
-            if (sbn?.tag == null)
-                return
-
-            if (sbn.isOngoing) {
-                Log.d(TAG, "posted ongoing noti")
-                return
-            }
-
-            val sharedPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
-            val userId = sharedPref.getString("user_id", "000").toString()
-            val notiItem = NotiItem(this, sbn, userId)
-
-            if (adHocRemove(notiItem))
-                return
-
-            notiItem.logProperty()
-            val currentDrawerDao = CurrentDrawerDatabase.getInstance(applicationContext).currentDrawerDao()
-            val drawerNoti = notiItem.makeDrawerNoti()
-            GlobalScope.launch {
-                if (drawerNoti.sortKey != "null")
-                    currentDrawerDao.deleteByPackageSortKey(drawerNoti.packageName, drawerNoti.groupKey, drawerNoti.sortKey)
-                currentDrawerDao.insert(drawerNoti)
-                Log.d(TAG, "finish inserting the noti")
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     override fun onNotificationRemoved(
@@ -129,41 +89,55 @@ class NotiListenerService: NotificationListenerService() {
         rankingMap: RankingMap?,
         reason: Int
     ) {
-        val sharedPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
-        val userId = sharedPref.getString("user_id", "000").toString()
-        val notiItem = NotiItem(this, sbn, userId)
+        fun getNotificationReasonString(reason: Int): String {
+            return when(reason) {
+                REASON_APP_CANCEL -> "REASON_APP_CANCEL"
+                REASON_APP_CANCEL_ALL -> "REASON_APP_CANCEL_ALL"
+                REASON_ASSISTANT_CANCEL -> "REASON_ASSISTANT_CANCEL"
+                REASON_CANCEL -> "REASON_CANCEL"
+                REASON_CANCEL_ALL -> "REASON_CANCEL_ALL"
+                REASON_CHANNEL_BANNED -> "REASON_CHANNEL_BANNED"
+                REASON_CHANNEL_REMOVED -> "REASON_CHANNEL_REMOVED"
+                REASON_CLEAR_DATA -> "REASON_CLEAR_DATA"
+                REASON_CLICK -> "REASON_CLICK"
+                REASON_ERROR -> "REASON_ERROR"
+                REASON_GROUP_OPTIMIZATION -> "REASON_GROUP_OPTIMIZATION"
+                REASON_GROUP_SUMMARY_CANCELED -> "REASON_GROUP_SUMMARY_CANCELED"
+                REASON_LISTENER_CANCEL -> "REASON_LISTENER_CANCEL"
+                REASON_LISTENER_CANCEL_ALL -> "REASON_LISTENER_CANCEL_ALL"
+                REASON_PACKAGE_BANNED -> "REASON_PACKAGE_BANNED"
+                REASON_PACKAGE_CHANGED -> "REASON_PACKAGE_CHANGED"
+                REASON_PACKAGE_SUSPENDED -> "REASON_PACKAGE_SUSPENDED"
+                REASON_PROFILE_TURNED_OFF -> "REASON_PROFILE_TURNED_OFF"
+                REASON_SNOOZED -> "REASON_SNOOZED"
+                REASON_TIMEOUT -> "REASON_TIMEOUT"
+                REASON_UNAUTOBUNDLED -> "REASON_UNAUTOBUNDLED"
+                REASON_USER_STOPPED -> "REASON_USER_STOPPED"
+                else -> "UNKNOWN_REASON"
+            }
+        }
+
+        val notiKey = sbn?.key as String
+        val reasonStr = getNotificationReasonString(reason)
+
+        val summarySharedPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+        val prevRemovedNotisJson = summarySharedPref.getString("removedNotis", "{}")
+        val removedNotisType = object : TypeToken<MutableMap<String, String>>() {}.type
+        val removedNotis = Gson().fromJson<MutableMap<String, String>>(prevRemovedNotisJson, removedNotisType)
+        removedNotis[notiKey] = reasonStr
+        val newRemovedNotisJson = Gson().toJson(removedNotis)
+        summarySharedPref.edit().putString("removedNotis", newRemovedNotisJson).apply()
+
+        if (summarySharedPref.getLong("submitTime", 0) == 0L)
+            logSummary(applicationContext)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun getNotiUnits(): ArrayList<NotiUnit> {
-        val notiUnits = ArrayList<NotiUnit>()
 
-        fun replaceChars(str: String): String {
-            return str.replace("\n", " ")
-                .replace(",", " ")
-        }
-
-        val appFilterPrefs = applicationContext.getSharedPreferences("app_filter", Context.MODE_PRIVATE)
-        val userPref = applicationContext.getSharedPreferences("user", Context.MODE_PRIVATE)
-
-        activeNotifications.forEach {
-            val userId = userPref.getString("user_id", "000").toString()
-            val notiItem = NotiItem(this, it, userId)
-            val appName = replaceChars(notiItem.getAppName())
-            val time = replaceChars(notiItem.getTimeStr())
-            val title = replaceChars(notiItem.getTitle())
-            val content = replaceChars(notiItem.getContent())
-
-            if (appName == "null" || title == "null" || content == "null")
-                return@forEach
-
-            if (notiItem.getPackageName() == "org.muilab.noti.summary")
-                return@forEach
-
-            if (!appFilterPrefs.getBoolean(notiItem.getPackageName(), true))
-                return@forEach
-                
-            notiUnits.add(NotiUnit(appName, time, title, content))
-        }
+        val notiUnits = activeNotifications.mapIndexed { idx, sbn ->
+            NotiUnit(applicationContext, sbn, idx)
+        }.filter{ it.title != "null" && it.content != "null" }.toCollection(ArrayList())
         return notiUnits
     }
 }

@@ -10,6 +10,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.ktx.Firebase
@@ -19,6 +21,7 @@ import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.ui.theme.NotiappTheme
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.view.userInit.FilterNotify
 import org.muilab.noti.summary.view.userInit.NetworkCheckDialog
@@ -37,11 +40,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val settings = FirebaseFirestoreSettings.Builder()
+            .setPersistenceEnabled(true)
+            .build()
+        FirebaseFirestore.getInstance().firestoreSettings = settings
+
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
         startService(notiListenerIntent)
 
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
+        val allNotiFilterScheduled = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
+        registerReceiver(allNotiReturnReceiver, allNotiFilterScheduled)
 
         val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
         if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
@@ -75,9 +85,9 @@ class MainActivity : ComponentActivity() {
                     }
                     "AGREED" -> {
                         PersonalInformationScreen(
-                            onContinue = { age, gender, country ->
+                            onContinue = { birthYear, gender, country ->
                                 with(sharedPref.edit()) {
-                                    putInt("age", age)
+                                    putInt("birthYear", birthYear)
                                     putString("gender", gender)
                                     putString("country", country)
                                     putString("initStatus", "USER_INFO_FILLED")
@@ -108,8 +118,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
+        if (sharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
+            logUserAction("lifeCycle", "appResume", applicationContext)
         if (!isNotiListenerEnabled())
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+    }
+
+    override fun onPause() {
+        val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
+        if (sharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
+            logUserAction("lifeCycle", "appPause", applicationContext)
+        super.onPause()
     }
 
     override fun onDestroy() {
@@ -141,7 +161,13 @@ class MainActivity : ComponentActivity() {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
                 if (activeNotifications != null) {
                     val curPrompt = promptViewModel.getCurPrompt()
-                    sumViewModel.updateSummaryText(curPrompt, activeNotifications)
+                    sumViewModel.updateSummaryText(curPrompt, activeNotifications, false)
+                }
+            } else if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED") {
+                val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
+                if (activeNotifications != null) {
+                    val curPrompt = promptViewModel.getCurPrompt()
+                    sumViewModel.updateSummaryText(curPrompt, activeNotifications, true)
                 }
             }
         }
@@ -158,12 +184,12 @@ class MainActivity : ComponentActivity() {
                 Log.v("userId", userId)
 
                 val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-                val age = sharedPref.getInt("age", 0)
+                val birthYear = sharedPref.getInt("birthYear", 0)
                 val gender = sharedPref.getString("gender", "Unknown").toString()
                 val country = sharedPref.getString("country", "Unknown").toString()
 
                 val db = Firebase.firestore
-                val docRef = db.collection("user-free-credit").document(userId)
+                val docRef = db.collection("user").document(userId)
 
                 docRef.get()
                     .addOnSuccessListener { document ->
@@ -172,7 +198,7 @@ class MainActivity : ComponentActivity() {
                                 val userInfo = hashMapOf<String, Any>(
                                     "userId" to userId,
                                     "credit" to maxCredit,
-                                    "age" to age,
+                                    "birthYear" to birthYear,
                                     "gender" to gender,
                                     "country" to country
                                 )
@@ -206,7 +232,7 @@ class MainActivity : ComponentActivity() {
         return initSuccess == 1
     }
 
-    fun isNetworkConnected(): Boolean {
+    private fun isNetworkConnected(): Boolean {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkCapabilities = connectivityManager.activeNetwork ?: return false
         val activeNetwork = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false

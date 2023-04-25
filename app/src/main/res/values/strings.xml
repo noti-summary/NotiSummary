@@ -47,8 +47,7 @@
     <string name="non_binary">Non-binary</string>
     <string name="not_to_state">Prefer not to state</string>
     <string name="fill_background">Your Basic Information</string>
-    <string name="age">Age</string>
-    <string name="age_error">Age invalid</string>
+    <string name="birth_year">Year of Birth</string>
     <string name="gender">Gender</string>
     <string name="select_gender">Select Gender</string>
     <string name="country">Country/Region of Residence</string>
@@ -57,18 +56,14 @@
     <string name="welcome">Welcome to NotiSummary!</string>
     <string name="no_noti_permission">Notification permission has not been enabled yet</string>
     <string name="click_to_open_permission">Click OK to enable the permission.</string>
-    <string name="noti_covered_dialog_title">Information Provided for a Summary</string>
-    <string name="noti_covered_dialog_content">
-        This app allows you to customize the following notification information to be sent to ChatGPT for summarization:&#10;
-        \n
-        • App Name (Default: "Send")\n
-        • Post Time (Default: "Send")\n
-        • Title (Default: "Send")\n
-        • Content (Default: "Don't Send")\n
-        \n
-        If you wish to include notification details in the summary, adjust it by going to "⚙" > "Scope of Summary (Notification Info)".
+    <string name="noti_covered_dialog_title">Notification Privacy Protection and Settings</string>
+    <string name="noti_covered_dialog_content">To protect users\' privacy,
+        this App does not include the content of notifications in the summary by default.
+        If you want to adjust this setting, you can go to "⚙️" > "Summary Scope (Notification Info)".
     </string>
     <string name="default_summary_prompt">Turn the smartphone notifications provided below into a summary.</string>
     <string name="search_app">Search</string>
     <string name="push_notification">Open Push Notification</string>
+    <string name="privacy_URL">https://hackmd.io/@noti-summary/privacy-policy</string>
+    <string name="feedback_URL">https://forms.gle/3BK34CGo4eNTszE16</string>
 </resources>

@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.PromptViewModel
 
@@ -33,7 +34,7 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 fun PromptScreen(context: Context, promptViewModel: PromptViewModel) {
     MaterialTheme {
         PromptHistory(context, promptViewModel = promptViewModel)
-        AddButton(promptViewModel = promptViewModel)
+        AddButton(context, promptViewModel = promptViewModel)
     }
 }
 
@@ -69,7 +70,7 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                     .wrapContentHeight()
                     .clip(RoundedCornerShape(12.dp))
                     .clickable {
-                        promptViewModel.choosePrompt(item)
+                        promptViewModel.choosePrompt(item, true)
                     },
                 colors = CardDefaults.cardColors(
                     containerColor =
@@ -108,6 +109,7 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                                 context.getString(R.string.copied_to_clipboard),
                                 Toast.LENGTH_SHORT
                             ).show()
+                            promptViewModel.logPrompt("copy", mapOf(), item)
                         }
                     ) {
                         Icon(
@@ -141,11 +143,12 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
         }
     }
 
-    val confirmAction = {
+    val confirmAction: (Map<String, String>) -> Unit = { editHistory ->
         if (currentEditPrompt.value != "") {
             promptViewModel.updatePrompt(
                 currentEditPromptOriginalValue,
-                currentEditPrompt.value
+                currentEditPrompt.value,
+                editHistory
             )
             currentEditPrompt.value = ""
             showDialog.value = false
@@ -158,7 +161,7 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
 }
 
 @Composable
-fun AddButton(promptViewModel: PromptViewModel) {
+fun AddButton(context: Context, promptViewModel: PromptViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
     val inputPrompt = remember { mutableStateOf("") }
@@ -170,22 +173,29 @@ fun AddButton(promptViewModel: PromptViewModel) {
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
-            onClick = { showDialog.value = true },
+            onClick = {
+                showDialog.value = true
+                logUserAction("promptDialog", "launch", context)
+            },
         ) {
             Icon(Icons.Filled.Add, "add new prompt")
         }
     }
 
-    val confirmAction = {
+    val confirmAction: (Map<String, String>) -> Unit = { editHistory ->
         if (inputPrompt.value != "") {
             Log.d("currentEditPrompt", inputPrompt.value)
-            promptViewModel.addPrompt(inputPrompt.value)
+            promptViewModel.addPrompt(inputPrompt.value, editHistory)
             inputPrompt.value = ""
             showDialog.value = false
         }
+        logUserAction("promptDialog", "confirm", context)
     }
 
-    val dismissAction = { inputPrompt.value = "" }
+    val dismissAction = {
+        inputPrompt.value = ""
+        logUserAction("promptDialog", "dismiss", context)
+    }
 
     if (showDialog.value) {
         PromptEditor(showDialog, inputPrompt, confirmAction, dismissAction)
@@ -197,9 +207,10 @@ fun AddButton(promptViewModel: PromptViewModel) {
 fun PromptEditor(
     showDialog: MutableState<Boolean>,
     defaultPromptInTextBox: MutableState<String>,
-    confirmAction: () -> Unit,
+    confirmAction: (Map<String, String>) -> Unit,
     dismissAction: () -> Unit = {},
 ) {
+    val editHistory = mutableMapOf<String, String>()
     NoPaddingAlertDialog(
         title = {
             Image(
@@ -218,7 +229,11 @@ fun PromptEditor(
                     .fillMaxWidth(),
                 singleLine = true,
                 value = defaultPromptInTextBox.value,
-                onValueChange = { defaultPromptInTextBox.value = it },
+                onValueChange = {
+                    val timestamp = System.currentTimeMillis().toString()
+                    editHistory[timestamp] = it
+                    defaultPromptInTextBox.value = it
+                },
                 label = { Text(stringResource(R.string.prompt)) },
                 textStyle = MaterialTheme.typography.bodyLarge
             )
@@ -227,7 +242,7 @@ fun PromptEditor(
             TextButton(
                 modifier = Modifier.padding(all = 3.dp),
                 onClick = {
-                    confirmAction()
+                    confirmAction(editHistory)
                 }
             )
             {

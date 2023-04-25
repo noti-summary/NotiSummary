@@ -24,8 +24,7 @@ abstract class ScheduleDatabase : RoomDatabase() {
             Room.databaseBuilder(
                 context.applicationContext,
                 ScheduleDatabase::class.java,
-                "time_events"
-            )
-                .build()
+                "app_interactions"
+            ).build()
     }
 }

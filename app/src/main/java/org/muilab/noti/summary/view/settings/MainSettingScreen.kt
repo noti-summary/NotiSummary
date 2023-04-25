@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
@@ -22,6 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import org.muilab.noti.summary.R
+import org.muilab.noti.summary.util.logUserAction
 
 
 @Composable
@@ -36,31 +39,52 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
     MaterialTheme {
         Column {
             LazyColumn(modifier = Modifier.fillMaxHeight()) {
-                items(
+                itemsIndexed(
                     items = SettingScreenItem.values()
                         .slice(1 until SettingScreenItem.values().size)
-                ) {
-                    if (!(countryCode != "TW" && it.name == SettingScreenItem.Recruitment.name))
+                ) { idx, item ->
+                    if (!(countryCode != "TW" && item.name == SettingScreenItem.Recruitment.name))
                         Card(
                             modifier = Modifier
-                                .padding(start = 10.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
+                                .padding(
+                                    start = 10.dp,
+                                    end = 10.dp,
+                                    top = if (idx == 0 || idx == 5) 6.dp else 1.dp,
+                                    bottom = if (idx == 4 || idx == 8) 6.dp else 1.dp
+                                )
                                 .fillMaxWidth()
                                 .wrapContentHeight()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
+                                        topEnd = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
+                                        bottomStart = if (idx  == 4 || idx == 8) 12.dp else 0.dp,
+                                        bottomEnd = if (idx  == 4 || idx == 8) 12.dp else 0.dp
+                                    )
+                                )
                                 .clickable {
-                                    if (it.name == SettingScreenItem.Feedback.name) {
-                                        uriHandler.openUri("https://forms.gle/LSe1fZP2sDnXUtC59")
-                                    } else if (it.name == SettingScreenItem.About.name) {
+                                    if (item.name == SettingScreenItem.Feedback.name) {
+                                        logUserAction("externalLink", "Feedback", context)
+                                        uriHandler.openUri(context.getString(R.string.feedback_URL))
+                                    } else if (item.name == SettingScreenItem.About.name) {
+                                        logUserAction("externalLink", "About", context)
                                         uriHandler.openUri("https://github.com/noti-summary/NotiSummary")
-                                    } else if (it.name == SettingScreenItem.Privacy.name) {
-                                        uriHandler.openUri("https://example.com")
-                                    } else if (it.name == SettingScreenItem.Recruitment.name) {
+                                    } else if (item.name == SettingScreenItem.Privacy.name) {
+                                        logUserAction("externalLink", "Privacy", context)
+                                        uriHandler.openUri(context.getString(R.string.privacy_URL))
+                                    } else if (item.name == SettingScreenItem.Recruitment.name) {
+                                        logUserAction("externalLink", "Recruitment", context)
                                         uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
                                     } else {
-                                        navController.navigate(it.name)
+                                        navController.navigate(item.name)
                                     }
                                 },
-                            shape = MaterialTheme.shapes.medium,
+                            shape = RoundedCornerShape(
+                                topStart = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
+                                topEnd = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
+                                bottomStart = if (idx  == 4 || idx == 8) 12.dp else 0.dp,
+                                bottomEnd = if (idx  == 4 || idx == 8) 12.dp else 0.dp
+                            ),
                         ) {
                             Row(
                                 modifier = Modifier
@@ -72,17 +96,17 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
                                     modifier = Modifier
                                         .padding(end = 12.dp)
                                         .size(25.dp),
-                                    painter = painterResource(id = it.iconId),
-                                    contentDescription = stringResource(it.titleId),
+                                    painter = painterResource(id = item.iconId),
+                                    contentDescription = stringResource(item.titleId),
                                 )
                                 Text(
                                     modifier = Modifier
                                         .fillMaxWidth(0.93f),
-                                    text = stringResource(it.titleId),
+                                    text = stringResource(item.titleId),
                                 )
                                 Icon(
                                     imageVector = Icons.Outlined.KeyboardArrowRight,
-                                    stringResource(it.titleId)
+                                    stringResource(item.titleId)
                                 )
                             }
                         }
