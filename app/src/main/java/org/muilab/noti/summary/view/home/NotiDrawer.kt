@@ -81,45 +81,61 @@ fun NotiDrawer(context: Context, sumViewModel: SummaryViewModel) {
                         shape = MaterialTheme.shapes.medium,
                     ) {
                         Column(modifier = Modifier.background(DarkColorScheme.secondary)) {
-                            if (showAppName || showTime)
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Spacer(modifier = Modifier.padding(horizontal = 5.dp))
                                 Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 10.dp),
-                                    text = if (showAppName && showTime) {
-                                        "${it.appName} / ${it.time}"
-                                    } else if (showAppName) {
-                                        it.appName
+                                    text = it.appName,
+                                    style = TextStyle(color = if (showAppName) {
+                                        DarkColorScheme.onSecondary
                                     } else {
-                                        it.time
-                                    },
+                                        Color.Gray
+                                    })
+                                )
+                                Text(
+                                    text = " / ",
                                     style = TextStyle(color = DarkColorScheme.onSecondary)
                                 )
-                            if (showTitle)
                                 Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 10.dp)
-                                        .background(Color.Transparent),
-                                    text = it.title,
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        color = DarkColorScheme.onSecondary
-                                    ),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    text = it.time,
+                                    style = TextStyle(color = if (showTime) {
+                                        DarkColorScheme.onSecondary
+                                    } else {
+                                        Color.Gray
+                                    })
                                 )
-                            if (showContent)
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 10.dp)
-                                        .background(Color.Transparent),
-                                    text = it.content,
-                                    style = TextStyle(color = DarkColorScheme.onSecondary),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                Spacer(modifier = Modifier.weight(1F))
+                            }
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                                    .background(Color.Transparent),
+                                text = it.title,
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (showTitle) {
+                                        DarkColorScheme.onSecondary
+                                    } else {
+                                        Color.Gray
+                                    }
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                                    .background(Color.Transparent),
+                                text = it.content,
+                                style = TextStyle(color = if (showContent) {
+                                    DarkColorScheme.onSecondary
+                                } else {
+                                    Color.Gray
+                                }),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
                 }
