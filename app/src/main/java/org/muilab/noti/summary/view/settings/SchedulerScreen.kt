@@ -31,6 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.Schedule
+import org.muilab.noti.summary.util.LogAlarm
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.util.logUserAction
@@ -110,8 +111,8 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                             )
                         }
                         IconButton(onClick = {
-                            showDialog = true
                             editSchedule = item
+                            showDialog = true
                         }) {
                             Icon(
                                 modifier = Modifier
@@ -139,6 +140,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
         val weekState = remember { mutableStateOf(editSchedule.week) }
         val confirmAction = {
             showDialog = !showDialog
+            LogAlarm(context, "update", editSchedule.getTime(), weekState.value)
             coroutineScope.launch {
                 scheduleViewModel.updateWeekSchedule(editSchedule, weekState.value)
             }

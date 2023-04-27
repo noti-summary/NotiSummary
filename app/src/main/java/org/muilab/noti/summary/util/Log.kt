@@ -202,6 +202,7 @@ data class Scheduler(
     val timestamp: Long,
     val action: String,
     val scheduleTime: String,
+    val daysOfWeek: Int,
     // val dayOfWeek: Int
 )
 

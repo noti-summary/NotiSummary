@@ -51,7 +51,7 @@ fun addAlarm(context: Context, schedule: Schedule) {
         /* triggerAtMillis = */ calendar.timeInMillis,
         /* operation = */ pendingIntent
     )
-    LogAlarm(context, "create", String.format("%02d:%02d", schedule.hour, schedule.minute))
+    LogAlarm(context, "create", schedule.getTime(), schedule.week)
 }
 
 fun deleteAlarm(context: Context, schedule: Schedule) {
@@ -68,13 +68,13 @@ fun deleteAlarm(context: Context, schedule: Schedule) {
 
     alarmManager.cancel(pendingIntent)
     pendingIntent.cancel()
-    LogAlarm(context, "delete", String.format("%02d:%02d", schedule.hour, schedule.minute))
+    LogAlarm(context, "delete", schedule.getTime(), schedule.week)
 }
 
-fun LogAlarm(context: Context, action: String, scheduleTime: String) {
+fun LogAlarm(context: Context, action: String, scheduleTime: String, dayOfWeek: Int) {
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
     val timestamp = System.currentTimeMillis()
-    val scheduler = Scheduler(userId, timestamp, action, scheduleTime)
+    val scheduler = Scheduler(userId, timestamp, action, scheduleTime, dayOfWeek)
     uploadData("scheduler", scheduler)
 }
