@@ -129,7 +129,7 @@ fun AppFilterScreen(context: Context) {
 
         items(packages.filter {
             pm.getApplicationLabel(it).toString().contains(query, ignoreCase = true) && it.packageName in packagesWithLauncher
-        }) { packageInfo ->
+        }.sortedBy { pm.getApplicationLabel(it).toString() }) { packageInfo ->
                 val appIcon = pm.getApplicationIcon(packageInfo.packageName)
                 val appBitmap = appIcon.toBitmap()
                 val scaledBitmap = Bitmap.createScaledBitmap(
