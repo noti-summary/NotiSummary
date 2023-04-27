@@ -162,7 +162,7 @@ fun SetDayOfWeekDialog(
         Surface(
             modifier = Modifier
                 .width(300.dp)
-                .height(500.dp)
+                .height(450.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -170,12 +170,6 @@ fun SetDayOfWeekDialog(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Select a Week",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
