@@ -36,30 +36,39 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
     val country = sharedPref.getString("country", "Unknown")
     val countryCode = country!!.substring(5, 7)
 
+    val isGroupTop = {item: SettingScreenItem ->
+        item in listOf(SettingScreenItem.SettingPrompt, SettingScreenItem.SettingAPI)}
+    val isGroupBottom = {item: SettingScreenItem ->
+        item in listOf(
+            SettingScreenItem.SettingNotiFilter,
+            if (countryCode == "TW") SettingScreenItem.Recruitment else SettingScreenItem.Privacy
+        )
+    }
+
     MaterialTheme {
         Column {
             LazyColumn(modifier = Modifier.fillMaxHeight()) {
-                itemsIndexed(
+                items(
                     items = SettingScreenItem.values()
                         .slice(1 until SettingScreenItem.values().size)
-                ) { idx, item ->
+                ) { item ->
                     if (!(countryCode != "TW" && item.name == SettingScreenItem.Recruitment.name))
                         Card(
                             modifier = Modifier
                                 .padding(
                                     start = 10.dp,
                                     end = 10.dp,
-                                    top = if (idx == 0 || idx == 5) 6.dp else 1.dp,
-                                    bottom = if (idx == 4 || idx == 8) 6.dp else 1.dp
+                                    top = if (isGroupTop(item)) 6.dp else 1.dp,
+                                    bottom = if (isGroupBottom(item)) 6.dp else 1.dp
                                 )
                                 .fillMaxWidth()
                                 .wrapContentHeight()
                                 .clip(
                                     RoundedCornerShape(
-                                        topStart = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
-                                        topEnd = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
-                                        bottomStart = if (idx  == 4 || idx == 8) 12.dp else 0.dp,
-                                        bottomEnd = if (idx  == 4 || idx == 8) 12.dp else 0.dp
+                                        topStart = if(isGroupTop(item)) 12.dp else 0.dp,
+                                        topEnd = if (isGroupTop(item)) 12.dp else 0.dp,
+                                        bottomStart = if (isGroupBottom(item)) 12.dp else 0.dp,
+                                        bottomEnd = if (isGroupBottom(item)) 12.dp else 0.dp
                                     )
                                 )
                                 .clickable {
@@ -80,10 +89,10 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
                                     }
                                 },
                             shape = RoundedCornerShape(
-                                topStart = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
-                                topEnd = if (idx  == 0 || idx == 5) 12.dp else 0.dp,
-                                bottomStart = if (idx  == 4 || idx == 8) 12.dp else 0.dp,
-                                bottomEnd = if (idx  == 4 || idx == 8) 12.dp else 0.dp
+                                topStart = if(isGroupTop(item)) 12.dp else 0.dp,
+                                topEnd = if (isGroupTop(item)) 12.dp else 0.dp,
+                                bottomStart = if (isGroupBottom(item)) 12.dp else 0.dp,
+                                bottomEnd = if (isGroupBottom(item)) 12.dp else 0.dp
                             ),
                         ) {
                             Row(
