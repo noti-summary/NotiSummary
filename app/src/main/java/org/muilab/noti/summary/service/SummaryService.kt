@@ -5,9 +5,13 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.*
+import android.content.pm.PackageManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.*
@@ -52,6 +56,7 @@ class SummaryService : Service(), LifecycleOwner {
     private lateinit var summaryPref: SharedPreferences
     private lateinit var promptPref: SharedPreferences
     private lateinit var apiPref: SharedPreferences
+    private lateinit var appFilterPref: SharedPreferences
     private var statusText = ""
     private var notiInProcess = arrayListOf<NotiUnit>()
 
@@ -85,7 +90,12 @@ class SummaryService : Service(), LifecycleOwner {
     ): String {
         return withContext(Dispatchers.IO) {
 
-            notiInProcess = activeNotifications
+            val appFilterMap = getAppFilter()
+            val summarizedNotifications = activeNotifications.filter {
+                noti -> appFilterMap[noti.pkgName] == true
+            }.toCollection(ArrayList())
+
+            notiInProcess = summarizedNotifications
             updateStatusText(getString(SummaryResponse.GENERATING.message))
 
             var responseStr = ""
@@ -109,7 +119,7 @@ class SummaryService : Service(), LifecycleOwner {
                 "$serverURL/key"
             }
 
-            val postContent = getPostContent(activeNotifications)
+            val postContent = getPostContent(summarizedNotifications)
             val prompt = promptPref.getString(
                 "curPrompt",
                 getString(R.string.default_summary_prompt)
@@ -120,7 +130,6 @@ class SummaryService : Service(), LifecycleOwner {
             val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
                 GPTRequest(prompt, postContent)
             } else {
-                Log.d("sendToServer", "userAPIKey: $userAPIKey")
                 GPTRequestWithKey(prompt, postContent, userAPIKey)
             }
 
@@ -155,10 +164,10 @@ class SummaryService : Service(), LifecycleOwner {
                             putBoolean("isScheduled", isScheduled)
                             putString("prompt", prompt)
 
-                            val notiDrawerJson = Gson().toJson(activeNotifications)
+                            val notiDrawerJson = Gson().toJson(summarizedNotifications)
                             putString("notiDrawer", notiDrawerJson)
 
-                            val notiData = activeNotifications.map {
+                            val notiData = summarizedNotifications.map {
                                 // TODO: Get length from server
                                 SummaryNoti(it)
                             }
@@ -274,6 +283,7 @@ class SummaryService : Service(), LifecycleOwner {
         summaryPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
         promptPref = getSharedPreferences("PromptPref", Context.MODE_PRIVATE)
         apiPref = getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
+        appFilterPref = getSharedPreferences("app_filter", Context.MODE_PRIVATE)
 
         return START_STICKY
     }
@@ -295,6 +305,47 @@ class SummaryService : Service(), LifecycleOwner {
     override fun onDestroy() {
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         super.onDestroy()
+    }
+
+    private fun getAppFilter(): Map<String, Boolean> {
+
+        val mainIntent = Intent(Intent.ACTION_MAIN, null)
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+
+        val packages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
+        } else {
+            packageManager.getInstalledApplications(0)
+        }
+
+        val launcherActivities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.queryIntentActivities(mainIntent, PackageManager.ResolveInfoFlags.of(0))
+        } else {
+            packageManager.queryIntentActivities(mainIntent, 0)
+        }
+
+        val packagesWithLauncher = mutableListOf<String>()
+        for (activity in launcherActivities) {
+            packagesWithLauncher.add(activity.activityInfo.packageName)
+        }
+        packagesWithLauncher.remove("org.muilab.noti.summary")
+        packagesWithLauncher.add("android")
+
+        val appFilterMap = mutableStateMapOf<String, Boolean>()
+        // Initialize all package names with true as the default state
+        packages.forEach { packageInfo ->
+            if (packageInfo.packageName in packagesWithLauncher) {
+                appFilterMap[packageInfo.packageName] = true
+            }
+        }
+
+        appFilterPref.all.forEach { (packageName, state) ->
+            if (state is Boolean) {
+                appFilterMap[packageName] = state
+            }
+        }
+
+        return appFilterMap
     }
 
     fun getStatusText(): String {
