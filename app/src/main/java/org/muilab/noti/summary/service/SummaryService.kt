@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.*
@@ -93,7 +92,7 @@ class SummaryService : Service(), LifecycleOwner {
             val appFilterMap = getAppFilter()
             val summarizedNotifications = activeNotifications.filter {
                 noti -> appFilterMap[noti.pkgName] == true
-            }.toCollection(ArrayList())
+            }.sortedBy { it.drawerIndex }.toCollection(ArrayList())
 
             notiInProcess = summarizedNotifications
             updateStatusText(getString(SummaryResponse.GENERATING.message))
@@ -154,12 +153,12 @@ class SummaryService : Service(), LifecycleOwner {
                     )
                     if (summary != null) {
 
-                        summaryPref.edit().putString("resultValue", summary).apply()
                         if (userAPIKey == getString(R.string.system_key))
                             subtractCredit()
                         logUserAction("genSummary", "Success", applicationContext)
 
                         with(summaryPref.edit()) {
+                            putString("resultValue", summary)
                             putLong("submitTime", submitTime)
                             putBoolean("isScheduled", isScheduled)
                             putString("prompt", prompt)
@@ -251,7 +250,8 @@ class SummaryService : Service(), LifecycleOwner {
             updateStatusText(responseStr)
             statusText = ""
             notiInProcess = arrayListOf()
-            notifySummary(responseStr)
+            if (isScheduled)
+                notifySummary(responseStr)
             responseStr
         }
     }
@@ -375,7 +375,7 @@ class SummaryService : Service(), LifecycleOwner {
         val pendingIntent =
             PendingIntent.getActivity(applicationContext, 0, notiContentIntent, PendingIntent.FLAG_IMMUTABLE)
 
-        val builder = NotificationCompat.Builder(applicationContext, "Alarm")
+        val builder = NotificationCompat.Builder(applicationContext, "Notify")
             .setSmallIcon(R.drawable.quotation)
             .setContentTitle(getString(R.string.noti_content))
             .setContentText(responseStr)
@@ -384,7 +384,7 @@ class SummaryService : Service(), LifecycleOwner {
             .setAutoCancel(true)
 
         val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel("Alarm", "Remind", importance)
+        val channel = NotificationChannel("Notify", "Notify", importance)
 
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)

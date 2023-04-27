@@ -64,7 +64,10 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     fun updateStatusText(newStatus: String, activeNotifications: ArrayList<NotiUnit>) {
         if (newStatus.isNotEmpty()) {
             _result.postValue(newStatus)
-            _notifications.postValue(activeNotifications)
+            if (newStatus.equals(SummaryResponse.GENERATING.message))
+                _notifications.postValue(activeNotifications)
+            else
+                resetNotiDrawer()
         }
     }
 
