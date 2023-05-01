@@ -196,7 +196,7 @@ fun HomeScreen(
                 SummaryCard(context, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
-        SubmitButton(context, userId, sumViewModel, promptViewModel, submitButtonState)
+        SubmitButton(context, userId, sumViewModel, submitButtonState)
     }
 }
 
@@ -232,11 +232,8 @@ fun SubmitButton(
     context: Context,
     userId: String,
     sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel,
     submitButtonState: SSButtonState
 ) {
-
-    val prompt = promptViewModel.getCurPrompt()
 
     Box(
         modifier = Modifier
@@ -255,11 +252,11 @@ fun SubmitButton(
                     docRef.get()
                         .addOnSuccessListener { document ->
                             if (document != null) {
-                                if(document.exists()){
+                                if (document.exists()) {
                                     val res = document.toObject<UserCredit>()!!
-                                    if(res.credit > 0) {
+                                    if (res.credit > 0) {
                                         logUserAction("genSummary", "Submit", context)
-                                        sumViewModel.getSummaryText(prompt)
+                                        sumViewModel.getSummaryText()
                                     } else {
                                         Toast.makeText(
                                             context,

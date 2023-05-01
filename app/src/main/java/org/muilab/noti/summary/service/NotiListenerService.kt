@@ -9,7 +9,6 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
-import android.service.notification.NotificationListenerService.*
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -69,8 +68,8 @@ class NotiListenerService: NotificationListenerService() {
             it.setPackage(packageName)
         }
         val restartServicePendingIntent: PendingIntent = PendingIntent.getService(this, 1, restartServiceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT)
-        applicationContext.getSystemService(Context.ALARM_SERVICE)
-        val alarmService: AlarmManager = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        getSystemService(Context.ALARM_SERVICE)
+        val alarmService: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmService.set(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis() + 10000, restartServicePendingIntent)
         unregisterReceiver(allNotiRequestReceiver)
         Log.d(TAG, "onDestroy")
@@ -134,7 +133,6 @@ class NotiListenerService: NotificationListenerService() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun getNotiUnits(): ArrayList<NotiUnit> {
-
         val notiUnits = activeNotifications.mapIndexed { idx, sbn ->
             NotiUnit(applicationContext, sbn, idx)
         }.filter{ it.title != "null" && it.content != "null" }.toCollection(ArrayList())

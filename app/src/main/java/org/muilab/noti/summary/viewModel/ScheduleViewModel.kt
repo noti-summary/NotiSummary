@@ -5,6 +5,7 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.*
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.Schedule
+import org.muilab.noti.summary.util.LogAlarm
 
 class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleDatabase) :
     AndroidViewModel(application) {

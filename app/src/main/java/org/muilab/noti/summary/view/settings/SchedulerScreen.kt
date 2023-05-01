@@ -31,6 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.Schedule
+import org.muilab.noti.summary.util.LogAlarm
 import org.muilab.noti.summary.util.addAlarm
 import org.muilab.noti.summary.util.deleteAlarm
 import org.muilab.noti.summary.util.logUserAction
@@ -42,7 +43,8 @@ import java.util.*
 @Composable
 fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
     val sharedPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
-    var checkedState by remember { mutableStateOf(sharedPref.getBoolean("send_or_not", true)) }
+    var checkedState by remember { mutableStateOf(sharedPref.getBoolean("send_or_not", false)) }
+    var showDialog by remember { mutableStateOf(false) }
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -60,6 +62,11 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
                 checked = checkedState,
                 onCheckedChange = { newState ->
                     checkedState = newState
+
+                    if (newState && !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+                        // Notifications are not enabled, navigate to settings
+                        showDialog = true
+                    }
                     with(sharedPref.edit()) {
                         putBoolean("send_or_not", newState)
                         apply()
@@ -69,6 +76,34 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
         }
         TimeList(context, scheduleViewModel)
     }
+
+    if (showDialog) {
+        AlertDialog(
+            title = { Text(stringResource(R.string.no_noti_permission)) },
+            text = { Text(stringResource(R.string.click_to_open_permission)) },
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        showDialog = false
+                        val intent = Intent().apply {
+                            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                    )
+                }
+            },
+        )
+    }
+
     AddScheduleButton(context, scheduleViewModel)
 }
 
@@ -110,8 +145,8 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                             )
                         }
                         IconButton(onClick = {
-                            showDialog = true
                             editSchedule = item
+                            showDialog = true
                         }) {
                             Icon(
                                 modifier = Modifier
@@ -139,6 +174,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
         val weekState = remember { mutableStateOf(editSchedule.week) }
         val confirmAction = {
             showDialog = !showDialog
+            LogAlarm(context, "update", editSchedule.getTime(), weekState.value)
             coroutineScope.launch {
                 scheduleViewModel.updateWeekSchedule(editSchedule, weekState.value)
             }
@@ -162,7 +198,7 @@ fun SetDayOfWeekDialog(
         Surface(
             modifier = Modifier
                 .width(300.dp)
-                .height(500.dp)
+                .height(450.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -170,12 +206,6 @@ fun SetDayOfWeekDialog(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Select a Week",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -238,7 +268,6 @@ fun SetDayOfWeekDialog(
 
 @Composable
 fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
-    var showDialog by remember { mutableStateOf(false) }
     val listener = TimePickerDialog.OnTimeSetListener { _, hour, minute ->
         val coroutineScope = CoroutineScope(Dispatchers.IO)
         coroutineScope.launch {
@@ -247,10 +276,6 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
                 addAlarm(context, newSchedule)
                 logUserAction("schedulerDialog", "confirm", context)
             }
-        }
-        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-            // Notifications are not enabled, navigate to settings
-            showDialog = true
         }
     }
 
@@ -271,32 +296,5 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
         }) {
             Icon(Icons.Filled.Add, "schedule summary")
         }
-    }
-
-    if (showDialog) {
-        AlertDialog(
-            title = { Text(stringResource(R.string.no_noti_permission)) },
-            text = { Text(stringResource(R.string.click_to_open_permission)) },
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        showDialog = false
-                        val intent = Intent().apply {
-                            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        }
-                        context.startActivity(intent)
-                    }
-                ) {
-                    Text(
-                        text = stringResource(R.string.ok),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-                    )
-                }
-            },
-        )
     }
 }

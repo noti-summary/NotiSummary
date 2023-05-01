@@ -39,33 +39,6 @@ class AlarmReceiver : BroadcastReceiver() {
         val minute = intent.getIntExtra("minute", -1)
         if (hour != -1 && minute != -1)
             scheduleNextDayAlarm(context, hour, minute)
-
-        val sharedPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
-        val sendNotiOrNot = sharedPref.getBoolean("send_or_not", true)
-        if (!sendNotiOrNot)
-            return
-        // If user don't want to send the notification, return directly
-
-        val notiContentIntent = Intent(context, MainActivity::class.java)
-        val pendingIntent =
-            PendingIntent.getActivity(context, 0, notiContentIntent, PendingIntent.FLAG_IMMUTABLE)
-
-        val builder = NotificationCompat.Builder(context, "Alarm")
-            .setSmallIcon(R.drawable.quotation)
-            .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(context.getString(R.string.noti_content))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel("Alarm", "Remind", importance)
-
-        val notificationManager = context.getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
-
-        val notificationManagerCompat = NotificationManagerCompat.from(context)
-        notificationManagerCompat.notify(0, builder.build())
     }
 
     private fun scheduleNextDayAlarm(context: Context, hour: Int, minute: Int) {
