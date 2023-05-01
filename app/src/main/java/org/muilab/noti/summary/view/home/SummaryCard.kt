@@ -110,9 +110,7 @@ fun SummaryCard(
                 summaryPrefs.edit().putInt("rating", 0).apply()
                 likeDislike.value = 0
             }
-
         }
-
     }
 
     scrollState.apply {

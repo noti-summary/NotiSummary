@@ -73,16 +73,15 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) {
-        if (activeNotifications.size > 0){
+        if (activeNotifications.size > 0) {
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
-            _notifications.postValue(activeNotifications.toList())
             viewModelScope.launch {
                 val responseMessage = summaryService.sendToServer(activeNotifications, isScheduled)
                 _result.postValue(responseMessage)
+                resetNotiDrawer()
             }
         } else {
             _result.postValue(context.getString(SummaryResponse.NO_NOTIFICATION.message))
         }
-        resetNotiDrawer()
     }
 }

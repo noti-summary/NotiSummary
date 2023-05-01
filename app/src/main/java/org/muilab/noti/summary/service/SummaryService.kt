@@ -364,7 +364,7 @@ class SummaryService : Service(), LifecycleOwner {
         sendBroadcast(updateIntent)
     }
 
-    fun notifySummary(responseStr: String) {
+    private fun notifySummary(responseStr: String) {
         val sharedPref = getSharedPreferences("noti-send", Context.MODE_PRIVATE)
         val sendNotiOrNot = sharedPref.getBoolean("send_or_not", true)
         if (!sendNotiOrNot)

@@ -9,7 +9,6 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
-import android.service.notification.NotificationListenerService.*
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -134,7 +133,6 @@ class NotiListenerService: NotificationListenerService() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun getNotiUnits(): ArrayList<NotiUnit> {
-
         val notiUnits = activeNotifications.mapIndexed { idx, sbn ->
             NotiUnit(applicationContext, sbn, idx)
         }.filter{ it.title != "null" && it.content != "null" }.toCollection(ArrayList())
