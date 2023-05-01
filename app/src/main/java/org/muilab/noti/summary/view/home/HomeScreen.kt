@@ -252,9 +252,9 @@ fun SubmitButton(
                     docRef.get()
                         .addOnSuccessListener { document ->
                             if (document != null) {
-                                if(document.exists()){
+                                if (document.exists()) {
                                     val res = document.toObject<UserCredit>()!!
-                                    if(res.credit > 0) {
+                                    if (res.credit > 0) {
                                         logUserAction("genSummary", "Submit", context)
                                         sumViewModel.getSummaryText()
                                     } else {
