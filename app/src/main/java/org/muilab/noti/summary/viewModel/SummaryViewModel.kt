@@ -5,7 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
@@ -13,7 +12,6 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.service.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
-import org.muilab.noti.summary.util.*
 import org.muilab.noti.summary.view.home.SummaryResponse
 
 class SummaryViewModel(application: Application) : AndroidViewModel(application) {

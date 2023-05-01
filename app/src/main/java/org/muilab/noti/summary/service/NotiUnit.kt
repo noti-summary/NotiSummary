@@ -13,7 +13,6 @@ import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 // val appName: String, val time: String, val title: String, val content: String
 
 data class NotiUnit(

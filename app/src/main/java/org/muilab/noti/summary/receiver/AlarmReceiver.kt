@@ -1,8 +1,6 @@
 package org.muilab.noti.summary.receiver
 
 import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
@@ -10,16 +8,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.*
-import org.muilab.noti.summary.MainActivity
-import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.model.Schedule
 import org.muilab.noti.summary.util.TAG
-import java.time.LocalTime
 import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
