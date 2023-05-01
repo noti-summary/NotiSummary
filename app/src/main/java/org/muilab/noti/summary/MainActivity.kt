@@ -58,11 +58,6 @@ class MainActivity : ComponentActivity() {
         }
         bindService(summaryServiceIntent, summaryServiceConnection, Context.BIND_AUTO_CREATE)
 
-        val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
-        registerReceiver(allNotiReturnReceiver, allNotiFilter)
-        val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
-        registerReceiver(newStatusReceiver, newStatusFilter)
-
         val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
         if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
             with(notiFilterPrefs.edit()) {
@@ -133,18 +128,22 @@ class MainActivity : ComponentActivity() {
             logUserAction("lifeCycle", "appResume", applicationContext)
         if (!isNotiListenerEnabled())
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
+        registerReceiver(allNotiReturnReceiver, allNotiFilter)
+        val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
+        registerReceiver(newStatusReceiver, newStatusFilter)
     }
 
     override fun onPause() {
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
         if (sharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
             logUserAction("lifeCycle", "appPause", applicationContext)
+        unregisterReceiver(allNotiReturnReceiver)
+        unregisterReceiver(newStatusReceiver)
         super.onPause()
     }
 
     override fun onDestroy() {
-        unregisterReceiver(allNotiReturnReceiver)
-        unregisterReceiver(newStatusReceiver)
         unbindService(summaryServiceConnection)
         super.onDestroy()
     }

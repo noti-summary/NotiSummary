@@ -124,7 +124,7 @@ class SummaryService : Service(), LifecycleOwner {
                 "curPrompt",
                 getString(R.string.default_summary_prompt)
             ) as String
-            Log.d("sendToServer@SummaryService", "current prompt: $prompt")
+            Log.d("sendToServer", "current prompt: $prompt")
 
             @Suppress("IMPLICIT_CAST_TO_ANY")
             val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
@@ -305,6 +305,7 @@ class SummaryService : Service(), LifecycleOwner {
 
     override fun onDestroy() {
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        unregisterReceiver(allNotiReturnReceiver)
         super.onDestroy()
     }
 

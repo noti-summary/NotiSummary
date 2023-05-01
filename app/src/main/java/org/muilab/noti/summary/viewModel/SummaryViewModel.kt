@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -75,6 +76,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) {
         if (activeNotifications.size > 0) {
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
+            Log.d("sendToServer", "Trigger NotScheduled")
             viewModelScope.launch {
                 val responseMessage = summaryService.sendToServer(activeNotifications, isScheduled)
                 _result.postValue(responseMessage)
