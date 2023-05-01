@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
@@ -64,7 +65,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     fun updateStatusText(newStatus: String, activeNotifications: ArrayList<NotiUnit>) {
         if (newStatus.isNotEmpty()) {
             _result.postValue(newStatus)
-            if (newStatus.equals(SummaryResponse.GENERATING.message))
+            if (newStatus == context.getString(SummaryResponse.GENERATING.message))
                 _notifications.postValue(activeNotifications)
             else
                 resetNotiDrawer()

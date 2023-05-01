@@ -123,7 +123,7 @@ class SummaryService : Service(), LifecycleOwner {
                 "curPrompt",
                 getString(R.string.default_summary_prompt)
             ) as String
-            Log.d("sendToServer@SummaryViewModel", "current prompt: $prompt")
+            Log.d("sendToServer@SummaryService", "current prompt: $prompt")
 
             @Suppress("IMPLICIT_CAST_TO_ANY")
             val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
@@ -252,7 +252,7 @@ class SummaryService : Service(), LifecycleOwner {
             notiInProcess = arrayListOf()
             if (isScheduled)
                 notifySummary(responseStr)
-            responseStr
+            responseStr // return value
         }
     }
 
