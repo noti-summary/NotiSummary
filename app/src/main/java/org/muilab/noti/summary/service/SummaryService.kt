@@ -21,6 +21,7 @@ import com.google.gson.Gson
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
 import io.github.cdimascio.dotenv.dotenv
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -398,7 +399,9 @@ class SummaryService : Service(), LifecycleOwner {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED") {
                 val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
                 if (activeNotifications != null) {
-                    lifecycleScope.launch { sendToServer(activeNotifications, true) }
+                    CoroutineScope(Dispatchers.IO).launch {
+                        sendToServer(activeNotifications, true)
+                    }
                 }
             }
         }
