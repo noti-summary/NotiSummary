@@ -58,13 +58,6 @@ class MainActivity : ComponentActivity() {
         }
         bindService(summaryServiceIntent, summaryServiceConnection, Context.BIND_AUTO_CREATE)
 
-        val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
-        if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
-            with(notiFilterPrefs.edit()) {
-                putBoolean(getString(R.string.content), false)
-                apply()
-            }
-        }
 
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
         setContent {

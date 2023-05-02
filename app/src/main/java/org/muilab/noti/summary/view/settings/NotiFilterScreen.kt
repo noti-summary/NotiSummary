@@ -31,7 +31,7 @@ fun NotiFilterScreen(context: Context) {
             context.getString(R.string.application_name) to true,
             context.getString(R.string.time) to true,
             context.getString(R.string.title) to true,
-            context.getString(R.string.content) to false
+            context.getString(R.string.content) to true
         )
     }
     val notiFilterPrefs = context.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
