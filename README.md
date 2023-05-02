@@ -16,22 +16,23 @@ To address this issue, NotiSummary was created. The app streamlines the notifica
 
 
 ## Features
-> **Custom Prompt**
+### 💬 Custom Prompt
 
 Users can provide specific instructions or criteria for the information they want to be included in the summary. These prompts are sent to ChatGPT as a hint to generate a more accurate and personalized summary, allowing users to tailor their summary to their individual needs and preferences.
 
-> **Filter**
+### 🔎 Filter
 
 Users can select specific apps to be summarized and choose which notification details to include. With this feature, users can focus on the most relevant information and reduce distractions.
   
-> **Scheduler**
+### 🗓️ Scheduler
 
 Users can set the app to automatically summarize notifications at specific times, ensuring that they stay up-to-date with important information without being interrupted throughout the day.
   
 
 ## Usage
 #### Grant Permissions
-- The app may request certain permissions or access, such as accessing your mobile device's notifications and sending you push notifications. If you want to change or adjust these permissions, you can do so in your device's settings.
+- The app may request certain permissions or access, such as accessing your mobile device's notifications and sending you push notifications. 
+- If you want to change or adjust these permissions, you can do so in your device's settings.
 #### Generate summary
 - To generate a notification summary, click on the **Generate Summary** button. 
 - The resulting summary will be displayed on the **My Summary** card, while the associated notifications will be displayed on the **My Notifications** card.
@@ -49,7 +50,6 @@ Users can set the app to automatically summarize notifications at specific times
     - In this page, you can choose which apps you want to be included in the summary.
 - Scope of Summary (Notification Info)
     - In this page, you can select which notification details you want to include in the summary.
-    - To protect users' privacy, this app does not include the content of notifications in the summary by default.
 #### Free Quotas and API Key
 - Users are given a specific amount of free quotas for generating summaries every day. These quotas refresh daily at 00:00 (UTC+8).
 - Users who use their own API key can generate summaries without being restricted by the free quotas. 
