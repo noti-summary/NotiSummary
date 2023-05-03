@@ -68,4 +68,5 @@
     <string name="everyWeekend">every weekend</string>
     <string name="everyWeekday">every weekday</string>
     <string name="save">save</string>
+    <string name="share_ux_interested" translatable="false">我有興趣</string>
 </resources>

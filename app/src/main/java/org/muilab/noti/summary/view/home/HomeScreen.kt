@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -197,6 +198,46 @@ fun HomeScreen(
             }
         }
         SubmitButton(context, userId, sumViewModel, submitButtonState)
+    }
+
+
+    val notiSendPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
+    val sendOrNot = notiSendPref.getBoolean("send_or_not", false)
+    val adTitle = notiSendPref.getString("ad_title", "") as String
+    val adBody = notiSendPref.getString("ad_body", "") as String
+    val country = sharedPref.getString("country", "Unknown")
+    val countryCode = country!!.substring(5, 7)
+    val uriHandler = LocalUriHandler.current
+    var showDialog by remember {mutableStateOf(countryCode == "TW" && !sendOrNot && (adTitle.isNotEmpty() || adBody.isNotEmpty()))}
+
+    if (showDialog) {
+
+        AlertDialog(
+            title = { Text(adTitle) },
+            text = { Text(adBody) },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.share_ux_interested),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                    )
+                }
+            },
+            onDismissRequest = {
+                showDialog = false
+                with (notiSendPref.edit()) {
+                    putString("ad_title", "")
+                    putString("ad_body", "")
+                    apply()
+                }
+            }
+        )
     }
 }
 
