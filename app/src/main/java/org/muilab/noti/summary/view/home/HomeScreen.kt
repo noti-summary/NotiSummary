@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -202,13 +203,15 @@ fun HomeScreen(
 
 
     val notiSendPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
-    val sendOrNot = notiSendPref.getBoolean("send_or_not", false)
+    val sendOrNot = NotificationManagerCompat.from(context).areNotificationsEnabled()
     val adTitle = notiSendPref.getString("ad_title", "") as String
     val adBody = notiSendPref.getString("ad_body", "") as String
     val country = sharedPref.getString("country", "Unknown")
     val countryCode = country!!.substring(5, 7)
     val uriHandler = LocalUriHandler.current
-    var showDialog by remember {mutableStateOf(countryCode == "TW" && !sendOrNot && (adTitle.isNotEmpty() || adBody.isNotEmpty()))}
+    var showDialog by remember {
+        mutableStateOf(countryCode == "TW" && !sendOrNot && (adTitle.isNotEmpty() || adBody.isNotEmpty()))
+    }
 
     if (showDialog) {
 
