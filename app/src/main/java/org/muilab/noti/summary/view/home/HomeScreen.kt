@@ -8,17 +8,18 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -199,51 +200,6 @@ fun HomeScreen(
             }
         }
         SubmitButton(context, userId, sumViewModel, submitButtonState)
-    }
-
-
-    val notiSendPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
-    val sendOrNot = NotificationManagerCompat.from(context).areNotificationsEnabled()
-    val adTitle = notiSendPref.getString("ad_title", "") as String
-    val adBody = notiSendPref.getString("ad_body", "") as String
-    val country = sharedPref.getString("country", "Unknown")
-    val countryCode = country!!.substring(5, 7)
-    val uriHandler = LocalUriHandler.current
-    var showDialog by remember {
-        mutableStateOf(countryCode == "TW" && !sendOrNot && (adTitle.isNotEmpty() || adBody.isNotEmpty()))
-    }
-
-    if (showDialog) {
-
-        fun dismissAction() {
-            showDialog = false
-            with (notiSendPref.edit()) {
-                putString("ad_title", "")
-                putString("ad_body", "")
-                apply()
-            }
-        }
-
-        AlertDialog(
-            title = { Text(adTitle) },
-            text = { Text(adBody) },
-            confirmButton = {
-                TextButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
-                        dismissAction()
-                    }
-                ) {
-                    Text(
-                        text = stringResource(R.string.share_ux_interested),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
-                    )
-                }
-            },
-            onDismissRequest = { dismissAction() }
-        )
     }
 }
 

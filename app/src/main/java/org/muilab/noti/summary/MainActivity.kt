@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
+import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
@@ -69,6 +70,13 @@ class MainActivity : ComponentActivity() {
             NotiappTheme {
                 when (initStatus) {
                     "NOT_STARTED" -> {
+                        if (!NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+                            val intent = Intent().apply {
+                                action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            }
+                            startActivity(intent)
+                        }
                         if (isNetworkConnected())
                             PrivacyPolicyDialog(onAgree = {
                                 with(sharedPref.edit()) {

@@ -9,7 +9,6 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import org.muilab.noti.summary.R
@@ -22,14 +21,7 @@ class RecruitmentMessagingService : FirebaseMessagingService() {
         Log.d(TAG, "From: ${remoteMessage.from}")
         remoteMessage.notification?.let {
             Log.d(TAG, "Message Notification Body: ${it.body}")
-            val sharedPref = getSharedPreferences("noti-send", Context.MODE_PRIVATE)
-            with (sharedPref.edit()) {
-                putString("ad_title", it.title)
-                putString("ad_body", it.body)
-                apply()
-            }
-            if (!NotificationManagerCompat.from(applicationContext).areNotificationsEnabled())
-                it.body?.let { body -> sendNotification(body) }
+            it.body?.let { body -> sendNotification(body) }
         }
     }
 

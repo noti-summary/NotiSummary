@@ -54,7 +54,7 @@ fun PrivacyPolicyDialog(onAgree: () -> Unit) {
                         modifier = Modifier.size(privacyWidth, privacyHeight)
                     )
                 }
-                Row (verticalAlignment = Alignment.CenterVertically) {
+                Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(privacyWidth)) {
                     Checkbox(
                         checked = agree,
                         onCheckedChange = { agree = it }
