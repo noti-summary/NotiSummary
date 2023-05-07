@@ -38,7 +38,7 @@ Users can set the app to automatically summarize notifications at specific times
 - You can click on the thumbs-up or thumbs-down button displayed on the **My Summary** card to rate a summary, this will help us improve the quality of our service.
 
 #### Add Custom Prompts
-- You can add customize prompts to generate personalized summaries in the app's settings.
+- You can add customized prompts to generate personalized summaries in the app's settings.
 - A default prompt is provided, but you can switch to your own customized prompt by tapping on it.
 
 #### Add Scheduled Summaries
