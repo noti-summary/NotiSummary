@@ -215,6 +215,15 @@ fun HomeScreen(
 
     if (showDialog) {
 
+        fun dismissAction() {
+            showDialog = false
+            with (notiSendPref.edit()) {
+                putString("ad_title", "")
+                putString("ad_body", "")
+                apply()
+            }
+        }
+
         AlertDialog(
             title = { Text(adTitle) },
             text = { Text(adBody) },
@@ -223,6 +232,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         uriHandler.openUri("https://forms.gle/5pY6BBqpsSfZQ2LJA")
+                        dismissAction()
                     }
                 ) {
                     Text(
@@ -232,14 +242,7 @@ fun HomeScreen(
                     )
                 }
             },
-            onDismissRequest = {
-                showDialog = false
-                with (notiSendPref.edit()) {
-                    putString("ad_title", "")
-                    putString("ad_body", "")
-                    apply()
-                }
-            }
+            onDismissRequest = { dismissAction() }
         )
     }
 }
