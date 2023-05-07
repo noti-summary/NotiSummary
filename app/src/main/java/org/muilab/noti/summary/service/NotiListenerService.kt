@@ -133,9 +133,11 @@ class NotiListenerService: NotificationListenerService() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun getNotiUnits(): ArrayList<NotiUnit> {
-        val notiUnits = activeNotifications.mapIndexed { idx, sbn ->
-            NotiUnit(applicationContext, sbn, idx)
-        }.filter{ it.title != "null" && it.content != "null" }.toCollection(ArrayList())
+        val notiUnits = activeNotifications
+            .mapIndexed { idx, sbn -> NotiUnit(applicationContext, sbn, idx) }
+            .filter{ it.title != "null" && it.content != "null" }
+            .distinctBy { it.appName to it.time to it.title to it.content }
+            .toCollection(ArrayList())
         return notiUnits
     }
 }
