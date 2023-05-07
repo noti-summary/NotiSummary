@@ -16,44 +16,44 @@ To address this issue, NotiSummary was created. The app streamlines the notifica
 
 
 ## Features
-> **Custom Prompt**
-
+### 💬 Custom Prompt
 Users can provide specific instructions or criteria for the information they want to be included in the summary. These prompts are sent to ChatGPT as a hint to generate a more accurate and personalized summary, allowing users to tailor their summary to their individual needs and preferences.
 
-> **Filter**
-
+### 🔎 Filter
 Users can select specific apps to be summarized and choose which notification details to include. With this feature, users can focus on the most relevant information and reduce distractions.
   
-> **Scheduler**
-
+### 🗓️ Scheduler
 Users can set the app to automatically summarize notifications at specific times, ensuring that they stay up-to-date with important information without being interrupted throughout the day.
   
 
 ## Usage
 #### Grant Permissions
-- The app may request certain permissions or access, such as accessing your mobile device's notifications and sending you push notifications. If you want to change or adjust these permissions, you can do so in your device's settings.
-#### Generate summary
+- The app may request certain permissions or access, such as accessing your mobile device's notifications and sending you push notifications. 
+
+#### Generate Summaries
 - To generate a notification summary, click on the **Generate Summary** button. 
 - The resulting summary will be displayed on the **My Summary** card, while the associated notifications will be displayed on the **My Notifications** card.
-- To view additional information about the notifications or summary, simply tap on the corresponding card to expand it.
-#### Rate Summary
+
+#### Rate Summaries
 - You can click on the thumbs-up or thumbs-down button displayed on the **My Summary** card to rate a summary, this will help us improve the quality of our service.
-#### Settings
-- Prompt
-    - In this page, you can add customize prompt for generating summary.
-    - A default prompt is provided, but you can switch to your own customized prompt by tapping on it.
-- Scheduled Summary
-    - In this page, you can set timers to automatically generate summaries at specific times.
-    - The app may send push notifications when the timer is activated, you can turn it off by toggling the **Open Push Notifications** button.
-- Scope of Summary (App)
-    - In this page, you can choose which apps you want to be included in the summary.
-- Scope of Summary (Notification Info)
-    - In this page, you can select which notification details you want to include in the summary.
-    - To protect users' privacy, this app does not include the content of notifications in the summary by default.
-#### Free Quotas and API Key
+
+#### Add Custom Prompts
+- You can add customize prompts to generate personalized summaries in the app's settings.
+- A default prompt is provided, but you can switch to your own customized prompt by tapping on it.
+
+#### Add Scheduled Summaries
+- Set up scheduled summaries in the app's settings to automatically generate summaries at specific times.
+- You can enable or disable push notifications for scheduled summaries by toggling the **Open Push Notifications** button.
+
+#### Adjust the Scope of Summary
+- App: You can choose which apps you want to include in the summary.
+- Notification Info: You can select specific notification details you want to include in the summary.
+
+#### Free Quotas & API Key
 - Users are given a specific amount of free quotas for generating summaries every day. These quotas refresh daily at 00:00 (UTC+8).
 - Users who use their own API key can generate summaries without being restricted by the free quotas. 
-- To add an API key, go to **OpenAI API Key** in app settings.
+- To add an API key, go to **OpenAI API Key** in the app's settings.
+
 
 ## Built with
 - [Kotlin](https://kotlinlang.org)
