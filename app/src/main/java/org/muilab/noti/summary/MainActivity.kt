@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
+import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
@@ -58,13 +59,6 @@ class MainActivity : ComponentActivity() {
         }
         bindService(summaryServiceIntent, summaryServiceConnection, Context.BIND_AUTO_CREATE)
 
-        val notiFilterPrefs = this.getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
-        if (!notiFilterPrefs.getBoolean(this.getString(R.string.content), false)) {
-            with(notiFilterPrefs.edit()) {
-                putBoolean(getString(R.string.content), false)
-                apply()
-            }
-        }
 
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
         setContent {
@@ -76,6 +70,13 @@ class MainActivity : ComponentActivity() {
             NotiappTheme {
                 when (initStatus) {
                     "NOT_STARTED" -> {
+                        if (!NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+                            val intent = Intent().apply {
+                                action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            }
+                            startActivity(intent)
+                        }
                         if (isNetworkConnected())
                             PrivacyPolicyDialog(onAgree = {
                                 with(sharedPref.edit()) {

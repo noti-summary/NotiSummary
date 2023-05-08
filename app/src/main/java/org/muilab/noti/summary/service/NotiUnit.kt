@@ -87,8 +87,7 @@ data class NotiUnit(
     private fun contentInit(context: Context, sbn: StatusBarNotification) {
 
         fun replaceChars(str: String): String {
-            return str.replace("\n", " ")
-                .replace(",", " ")
+            return str.replace("\n", " ").replace(",", " ")
         }
 
         // appName

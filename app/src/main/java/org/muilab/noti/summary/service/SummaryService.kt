@@ -67,15 +67,13 @@ class SummaryService : Service(), LifecycleOwner {
         activeNotifications.forEach { noti ->
 
             val filterMap = mutableMapOf<String, String>()
-            filterMap[getString(R.string.application_name)] =
-                "App: ${noti.appName}"
+            filterMap[getString(R.string.application_name)] = "App: ${noti.appName}"
             filterMap[getString(R.string.time)] = "Time: ${noti.time}"
             filterMap[getString(R.string.title)] = "Title: ${noti.title}"
             filterMap[getString(R.string.content)] = "Content: ${noti.content}"
 
             val notiFilterPrefs = getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
-            val input =
-                filterMap.filter { attribute -> notiFilterPrefs.getBoolean(attribute.key, true) }
+            val input = filterMap.filter { attribute -> notiFilterPrefs.getBoolean(attribute.key, true) }
                     .values
                     .joinToString(separator = ", ")
 
@@ -110,8 +108,7 @@ class SummaryService : Service(), LifecycleOwner {
             data class GPTRequest(val prompt: String, val content: String)
             data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
 
-            val userAPIKey =
-                apiPref.getString("userAPIKey", getString(R.string.system_key))!!
+            val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.system_key))!!
 
             val requestURL = if (userAPIKey == getString(R.string.system_key)) {
                 serverURL
@@ -168,7 +165,6 @@ class SummaryService : Service(), LifecycleOwner {
                             putString("notiDrawer", notiDrawerJson)
 
                             val notiData = summarizedNotifications.map {
-                                // TODO: Get length from server
                                 SummaryNoti(it)
                             }
                             val notiDataJson = Gson().toJson(notiData)
@@ -196,7 +192,6 @@ class SummaryService : Service(), LifecycleOwner {
                             val notiScopeJson = Gson().toJson(notiScope)
                             putString("notiScope", notiScopeJson)
 
-                            // TODO: Get length from server
                             val summaryLength = getWordCount(summary)
                             val summaryLengthJson = Gson().toJson(summaryLength)
                             putString("summaryLength", summaryLengthJson)
@@ -374,8 +369,7 @@ class SummaryService : Service(), LifecycleOwner {
         // If user don't want to send the notification, return directly
 
         val notiContentIntent = Intent(applicationContext, MainActivity::class.java)
-        val pendingIntent =
-            PendingIntent.getActivity(applicationContext, 0, notiContentIntent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getActivity(applicationContext, 0, notiContentIntent, PendingIntent.FLAG_IMMUTABLE)
 
         val builder = NotificationCompat.Builder(applicationContext, "Notify")
             .setSmallIcon(R.drawable.quotation)
