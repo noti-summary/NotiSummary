@@ -10,7 +10,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
-import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.view.home.SummaryResponse
 
@@ -51,7 +51,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             val notiDrawerType = object : TypeToken<List<NotiUnit>>() {}.type
             _notifications.value = Gson()
                 .fromJson<List<NotiUnit>>(notiDrawerJson, notiDrawerType)
-                .sortedBy { it.drawerIndex }
+                .sortedBy { it.index }
         } else
             _notifications.value = listOf()
     }

@@ -22,7 +22,7 @@ import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
-import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.util.logUserAction

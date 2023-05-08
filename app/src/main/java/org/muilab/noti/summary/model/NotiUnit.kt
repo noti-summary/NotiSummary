@@ -1,4 +1,4 @@
-package org.muilab.noti.summary.service
+package org.muilab.noti.summary.model
 
 import android.app.Notification
 import android.content.Context
@@ -10,27 +10,30 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.service.notification.StatusBarNotification
 import androidx.annotation.RequiresApi
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.text.SimpleDateFormat
 import java.util.*
 
-// val appName: String, val time: String, val title: String, val content: String
-
+@Entity(tableName = "noti_drawer")
 data class NotiUnit(
     // For logging
-    val drawerIndex: Int,
+    var index: Int = -1,
     val `when`: Long,
     val postTime: Long,
-    val sbnKey: String,
     val pkgName: String,
     val category: String,
+    val sbnKey: String,
+    val groupKey: String,
+    val sortKey: String,
     // For display
     var appName: String = "Unknown App",
     var time: String = "??:??",
     var title: String = "Unknown Title",
     var content: String = "Unknown Content"
 ): Parcelable {
-
-    val notiId: String = "${sbnKey}_${postTime}"
+    @PrimaryKey(autoGenerate = false)
+    var notiId: String = "${sbnKey}_${postTime}"
 
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
@@ -42,28 +45,33 @@ data class NotiUnit(
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,
+        parcel.readString()!!,
+        parcel.readString()!!,
         parcel.readString()!!
     )
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    constructor(context: Context, sbn: StatusBarNotification, index: Int): this(
-        drawerIndex = index,
+    constructor(context: Context, sbn: StatusBarNotification): this(
         `when` = sbn.notification?.`when` as Long,
         postTime = sbn.postTime,
-        sbnKey = sbn.key,
         pkgName = sbn.opPkg,
         category = sbn.notification?.category ?: "Unknown",
+        sbnKey = sbn.key,
+        groupKey = sbn.notification?.group.toString(),
+        sortKey = sbn.notification?.sortKey.toString()
     ) {
         contentInit(context, sbn)
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(drawerIndex)
+        parcel.writeInt(index)
         parcel.writeLong(`when`)
         parcel.writeLong(postTime)
-        parcel.writeString(sbnKey)
         parcel.writeString(pkgName)
         parcel.writeString(category)
+        parcel.writeString(sbnKey)
+        parcel.writeString(groupKey)
+        parcel.writeString(sortKey)
         parcel.writeString(appName)
         parcel.writeString(time)
         parcel.writeString(title)
@@ -108,7 +116,7 @@ data class NotiUnit(
 
         // time
         val simpleDateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val date = Date(postTime)
+        val date = Date(`when`)
         time = simpleDateFormat.format(date)
 
         // title

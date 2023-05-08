@@ -57,7 +57,7 @@
     <string name="click_to_open_permission">點擊確認前往開啟</string>
     <string name="noti_covered_dialog_title">通知隱私保護與設定</string>
     <string name="noti_covered_dialog_content">為了保障使用者的隱私權，您可以選擇將通知的部分資訊從摘要範圍中排除。如欲調整此設定，可前往「⚙️」>「摘要範圍 (通知資訊)」進行調整。</string>
-    <string name="default_summary_prompt">請用一段文字摘要以下手機通知</string>
+    <string name="default_summary_prompt">幫我摘要這些通知</string>
     <string name="search_app">搜尋</string>
     <string name="push_notification">開啟通知提醒</string>
     <string name="privacy_URL">https://hackmd.io/@noti-summary/privacy-policy-zh</string>
