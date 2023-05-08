@@ -32,17 +32,23 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private lateinit var summaryService: SummaryService
 
     init {
-        val resultValue = sharedPreferences.getString(
-            "resultValue", application.getString(SummaryResponse.HINT.message))
-        _result.value = resultValue!!
+        updateFromSharedPref()
         resetNotiDrawer()
+    }
+
+    private fun updateFromSharedPref() {
+        val resultValue = sharedPreferences.getString(
+            "resultValue", context.getString(SummaryResponse.HINT.message))
+        _result.value = resultValue!!
     }
 
     fun setService(summaryService: SummaryService) {
         this.summaryService = summaryService
-        val statusText = this.summaryService.getStatusText()
-        val notiInProcess = this.summaryService.getNotiInProcess()
-        updateStatusText(statusText, notiInProcess)
+        if (summaryService.getStatusText() != context.getString(SummaryResponse.GENERATING.message)) {
+            updateFromSharedPref()
+            resetNotiDrawer()
+        } else
+            updateStatusText()
     }
 
     private fun resetNotiDrawer() {
@@ -61,7 +67,13 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
-    fun updateStatusText(newStatus: String, activeNotifications: ArrayList<NotiUnit>) {
+    fun updateStatusText() {
+        if (!::summaryService.isInitialized)
+            return
+
+        Log.d("SummaryViewModel", "updateStatusText")
+        val newStatus = summaryService.getStatusText()
+        val activeNotifications = summaryService.getNotiInProcess()
         if (newStatus.isNotEmpty()) {
             _result.postValue(newStatus)
             if (newStatus == context.getString(SummaryResponse.GENERATING.message))
