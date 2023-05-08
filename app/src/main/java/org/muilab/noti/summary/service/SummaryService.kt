@@ -244,8 +244,6 @@ class SummaryService : Service(), LifecycleOwner {
             }
 
             updateStatusText(responseStr)
-            statusText = ""
-            notiInProcess = arrayListOf()
             if (isScheduled)
                 notifySummary(responseStr)
             responseStr // return value
@@ -356,8 +354,6 @@ class SummaryService : Service(), LifecycleOwner {
     private fun updateStatusText(newStatus: String) {
         statusText = newStatus
         val updateIntent = Intent("edu.mui.noti.summary.UPDATE_STATUS")
-        updateIntent.putExtra("newStatus", newStatus)
-        updateIntent.putParcelableArrayListExtra("activeNotis", notiInProcess)
         sendBroadcast(updateIntent)
     }
 
