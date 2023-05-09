@@ -37,7 +37,7 @@ import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 
-const val maxCredit: Int = 20
+const val maxCredit: Int = 50
 
 class MainActivity : ComponentActivity() {
 
