@@ -102,10 +102,10 @@ class SummaryService : Service(), LifecycleOwner {
             if (notiInProcess.isNotEmpty()) {
 
                 val client = OkHttpClient.Builder()
-                    .connectTimeout(180, TimeUnit.SECONDS)
-                    .writeTimeout(180, TimeUnit.SECONDS)
-                    .readTimeout(180, TimeUnit.SECONDS)
-                    .callTimeout(180, TimeUnit.SECONDS)
+                    .connectTimeout(300, TimeUnit.SECONDS)
+                    .writeTimeout(300, TimeUnit.SECONDS)
+                    .readTimeout(300, TimeUnit.SECONDS)
+                    .callTimeout(300, TimeUnit.SECONDS)
                     .build()
 
                 data class GPTRequest(val prompt: String, val content: String)
