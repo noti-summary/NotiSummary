@@ -21,7 +21,7 @@ abstract class DrawerDatabase : RoomDatabase() {
             }
 
         private fun buildDatabase(context: Context) = Room.databaseBuilder(
-            context.applicationContext, DrawerDatabase::class.java, "drawer_database")
+            context.applicationContext, DrawerDatabase::class.java, "noti_drawer")
             .build()
     }
 }
