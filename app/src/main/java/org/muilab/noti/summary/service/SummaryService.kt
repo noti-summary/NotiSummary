@@ -360,6 +360,8 @@ class SummaryService : Service(), LifecycleOwner {
 
     fun getNotiInProcess(): ArrayList<NotiUnit> {
         return notiInProcess
+            .sortedBy { it.index }
+            .toCollection(ArrayList())
     }
 
     private fun updateStatusText(newStatus: String) {

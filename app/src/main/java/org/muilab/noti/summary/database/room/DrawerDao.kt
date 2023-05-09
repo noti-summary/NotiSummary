@@ -12,8 +12,8 @@ interface DrawerDao {
     @Query("SELECT * FROM noti_drawer")
     fun getAll(): List<NotiUnit>
 
-    @Query("SELECT * FROM noti_drawer WHERE pkgName = :pkgName")
-    fun getByPackageName(pkgName: String): List<NotiUnit>
+    @Query("SELECT * FROM noti_drawer WHERE pkgName = :pkgName AND sbnKey = :sbnKey")
+    fun getBySbnKey(pkgName: String, sbnKey: String): List<NotiUnit>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(notiUnit: NotiUnit)

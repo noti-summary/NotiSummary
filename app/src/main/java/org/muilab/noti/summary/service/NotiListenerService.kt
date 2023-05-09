@@ -20,11 +20,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.muilab.noti.summary.database.room.DrawerDatabase
-import org.muilab.noti.summary.database.room.UserActionDatabase
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.util.logSummary
-import org.muilab.noti.summary.util.uploadUserAction
 
 class NotiListenerService: NotificationListenerService() {
 
@@ -195,16 +193,18 @@ class NotiListenerService: NotificationListenerService() {
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getNotiUnits(): ArrayList<NotiUnit> = withContext(Dispatchers.IO) {
 
-        val notiUnits = arrayListOf<NotiUnit>()
+        var notiUnits = arrayListOf<NotiUnit>()
         val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
         val drawerDao = drawerDatabase.drawerDao()
 
-        val pkgNames = activeNotifications
-            .map { NotiUnit(applicationContext, it).pkgName }
+        val sbnKeys = activeNotifications
+            .map {
+                val notiUnit = NotiUnit(applicationContext, it)
+                notiUnit.pkgName to notiUnit.sbnKey
+            }
             .distinct()
-        pkgNames.forEach { pkgName ->
-            val pkgNotis = drawerDao.getByPackageName(pkgName)
-                .distinctBy { it.appName to it.`when` to it.title to it.content }
+        sbnKeys.forEach { (pkgName, sbnKey) ->
+            val pkgNotis = drawerDao.getBySbnKey(pkgName, sbnKey)
                 .sortedWith(
                     compareByDescending<NotiUnit> { it.groupKey }
                         .thenBy { it.sortKey }
@@ -212,8 +212,20 @@ class NotiListenerService: NotificationListenerService() {
                 )
             notiUnits.addAll(pkgNotis)
         }
+        notiUnits = notiUnits
+            .distinctBy { it.appName to it.`when` to it.title to it.content }
+            .toCollection(ArrayList())
 
-        notiUnits.forEachIndexed { idx, notiUnit -> notiUnit.index = idx }
+        notiUnits.forEachIndexed { idx, notiUnit ->
+            notiUnit.index = idx
+            Log.d("NotiDrawer", notiUnit.sbnKey)
+            Log.d("NotiDrawer", notiUnit.groupKey)
+            Log.d("NotiDrawer", notiUnit.sortKey)
+            Log.d("NotiDrawer", notiUnit.pkgName)
+            Log.d("NotiDrawer", notiUnit.`when`.toString())
+            Log.d("NotiDrawer", notiUnit.title)
+            Log.d("NotiDrawer", notiUnit.content)
+        }
         notiUnits
     }
 }
