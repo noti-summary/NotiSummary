@@ -21,8 +21,8 @@ class ScheduleViewModel(application: Application, scheduleDatabase: ScheduleData
         }
     }
 
-    fun updateWeekSchedule(schedule: Schedule, newWeekState: Int) {
-        scope.launch {
+    suspend fun updateWeekSchedule(schedule: Schedule, newWeekState: Int) {
+        return withContext(Dispatchers.IO) {
             scheduleDao.updateWeekSchedule(
                 schedule.hour, schedule.minute, schedule.week, newWeekState
             )

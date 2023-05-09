@@ -31,10 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.Schedule
-import org.muilab.noti.summary.util.LogAlarm
-import org.muilab.noti.summary.util.addAlarm
-import org.muilab.noti.summary.util.deleteAlarm
-import org.muilab.noti.summary.util.logUserAction
+import org.muilab.noti.summary.util.*
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -176,11 +173,13 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
         val weekState = remember { mutableStateOf(editSchedule.week) }
         val confirmAction = {
             showDialog = !showDialog
-            LogAlarm(context, "update", editSchedule.getTime(), weekState.value)
             coroutineScope.launch {
                 scheduleViewModel.updateWeekSchedule(editSchedule, weekState.value)
+                editSchedule.week = weekState.value
+                updateAlarm(context, editSchedule)
             }
         }
+
         SetDayOfWeekDialog(weekState, onDismissRequest = { showDialog = !showDialog }, confirmAction)
     }
 }

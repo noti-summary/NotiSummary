@@ -12,7 +12,7 @@ import org.muilab.noti.summary.receiver.AlarmReceiver
 import java.time.LocalTime
 import java.util.*
 
-fun addAlarm(context: Context, schedule: Schedule) {
+fun addAlarm(context: Context, schedule: Schedule, isNotUpdate: Boolean = true) {
     Log.d("addAlarm", "time=${schedule.getTime()}")
     Log.d("primaryKey", schedule.primaryKey.toString())
 
@@ -51,10 +51,19 @@ fun addAlarm(context: Context, schedule: Schedule) {
         /* triggerAtMillis = */ calendar.timeInMillis,
         /* operation = */ pendingIntent
     )
-    LogAlarm(context, "create", schedule.getTime(), schedule.week)
+
+    if (isNotUpdate)
+        logAlarm(context, "create", schedule.getTime(), schedule.week)
 }
 
-fun deleteAlarm(context: Context, schedule: Schedule) {
+fun updateAlarm(context: Context, schedule: Schedule) {
+    Log.d("updateAlarm", "time=${schedule.getTime()}")
+    logAlarm(context, "update", schedule.getTime(), schedule.week)
+    deleteAlarm(context, schedule, isNotUpdate = false)
+    addAlarm(context, schedule, isNotUpdate = false)
+}
+
+fun deleteAlarm(context: Context, schedule: Schedule, isNotUpdate: Boolean = true) {
     Log.d("deleteAlarm", "time=${schedule.getTime()}")
     Log.d("primaryKey", schedule.primaryKey.toString())
 
@@ -68,10 +77,12 @@ fun deleteAlarm(context: Context, schedule: Schedule) {
 
     alarmManager.cancel(pendingIntent)
     pendingIntent.cancel()
-    LogAlarm(context, "delete", schedule.getTime(), schedule.week)
+
+    if (isNotUpdate)
+        logAlarm(context, "delete", schedule.getTime(), schedule.week)
 }
 
-fun LogAlarm(context: Context, action: String, scheduleTime: String, dayOfWeek: Int) {
+fun logAlarm(context: Context, action: String, scheduleTime: String, dayOfWeek: Int) {
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
     val timestamp = System.currentTimeMillis()
