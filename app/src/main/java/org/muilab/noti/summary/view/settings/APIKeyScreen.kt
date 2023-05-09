@@ -14,10 +14,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.logUserAction
@@ -37,6 +44,26 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val selectedOption = apiKeyViewModel.apiKey.observeAsState()
     val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
     val defaultAPIKey = stringResource(R.string.system_key)
+    val uriHandler = LocalUriHandler.current
+
+    val annotatedLinkString: AnnotatedString = buildAnnotatedString {
+        val annotStr = stringResource(R.string.create_api_key)
+        val startIndex = 0
+        val endIndex = annotStr.length
+        append(annotStr)
+        addStyle(
+            style = SpanStyle(
+                color = Color(0xff64B5F6),
+                textDecoration = TextDecoration.Underline
+            ), start = startIndex, end = endIndex
+        )
+        addStringAnnotation(
+            tag = "URL",
+            annotation = "https://platform.openai.com/account/api-keys",
+            start = startIndex,
+            end = endIndex
+        )
+    }
 
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
@@ -101,6 +128,23 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                 }
             }
         }
+    }
+
+    Box(
+        contentAlignment = Alignment.CenterEnd,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        ClickableText(
+            annotatedLinkString,
+            modifier = Modifier.padding(end = 15.dp, top = 10.dp, bottom = 10.dp),
+            onClick = {
+                annotatedLinkString
+                    .getStringAnnotations("URL", it, it)
+                    .firstOrNull()?.let { stringAnnotation ->
+                        uriHandler.openUri(stringAnnotation.item)
+                    }
+            }
+        )
     }
 }
 

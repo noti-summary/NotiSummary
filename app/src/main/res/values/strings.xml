@@ -69,4 +69,5 @@
     <string name="everyWeekday">every weekday</string>
     <string name="save">save</string>
     <string name="share_ux_interested" translatable="false">我有興趣</string>
+    <string name="create_api_key">Create your OpenAI API key</string>
 </resources>

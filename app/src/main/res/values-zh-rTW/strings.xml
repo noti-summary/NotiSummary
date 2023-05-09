@@ -67,4 +67,5 @@
     <string name="everyWeekend">每週末</string>
     <string name="everyWeekday">平日</string>
     <string name="save">儲存</string>
+    <string name="create_api_key">產生您的 OpenAI API 金鑰</string>
 </resources>
