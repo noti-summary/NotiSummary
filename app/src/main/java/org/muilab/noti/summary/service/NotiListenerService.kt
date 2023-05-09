@@ -213,7 +213,7 @@ class NotiListenerService: NotificationListenerService() {
             notiUnits.addAll(pkgNotis)
         }
         notiUnits = notiUnits
-            .distinctBy { it.appName to it.`when` to it.title to it.content }
+            .distinctBy { it.appName to it.time to it.title to it.content }
             .toCollection(ArrayList())
 
         notiUnits.forEachIndexed { idx, notiUnit ->
