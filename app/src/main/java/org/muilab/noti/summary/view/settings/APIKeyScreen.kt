@@ -26,14 +26,11 @@ import org.muilab.noti.summary.viewModel.APIKeyViewModel
 
 @Composable
 fun APIKeyScreen(context: Context, apiKeyViewModel: APIKeyViewModel) {
-
     MaterialTheme {
         APIKeyList(apiKeyViewModel)
         AddKeyButton(context, apiKeyViewModel)
     }
-
 }
-
 
 @Composable
 fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
@@ -79,7 +76,7 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).padding(5.dp),
                         text = if (item != defaultAPIKey) {
                             "sk-**********" + item.takeLast(4)
                         } else {
@@ -94,7 +91,10 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                     )
 
                     if (item != defaultAPIKey) {
-                        IconButton(onClick = { apiKeyViewModel.deleteAPI(item) }) {
+                        IconButton(
+                            modifier = Modifier.size(42.dp).padding(3.dp),
+                            onClick = { apiKeyViewModel.deleteAPI(item) }
+                        ) {
                             Icon(Icons.Rounded.Delete, contentDescription = "delete api")
                         }
                     }
@@ -103,7 +103,6 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
         }
     }
 }
-
 
 @Composable
 fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
@@ -155,10 +154,7 @@ fun APIKeyEditor(
     NoPaddingAlertDialog(
         title = {
             Image(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 30.dp, bottom = 20.dp)
-                    .height(70.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
                 painter = painterResource(id = R.drawable.key),
                 contentDescription = "key_icon",
             )

@@ -55,7 +55,7 @@ Users can set the app to automatically summarize notifications at specific times
 
 #### Adjust the Scope of Summary
 - App: You can choose which apps you want to include in the summary.
-- Notification Info: You can select specific notification details you want to include in the summary.
+- Notification: You can select specific notification details you want to include in the summary.
 
 #### Free Quotas & API Key
 - Users are given a specific amount of free quotas for generating summaries every day. These quotas refresh daily at 00:00 (UTC+8).

@@ -59,7 +59,6 @@ class MainActivity : ComponentActivity() {
         }
         bindService(summaryServiceIntent, summaryServiceConnection, Context.BIND_AUTO_CREATE)
 
-
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
         setContent {
 
@@ -133,6 +132,7 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
         val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
         registerReceiver(newStatusReceiver, newStatusFilter)
+        sumViewModel.updateStatusText()
     }
 
     override fun onPause() {
@@ -197,11 +197,7 @@ class MainActivity : ComponentActivity() {
     private val newStatusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.UPDATE_STATUS") {
-                val newStatus = intent.getStringExtra("newStatus")
-                val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
-                if (newStatus != null && activeNotifications != null) {
-                    sumViewModel.updateStatusText(newStatus, activeNotifications)
-                }
+                sumViewModel.updateStatusText()
             }
         }
     }

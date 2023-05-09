@@ -43,8 +43,19 @@ import java.util.*
 @Composable
 fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
     val sharedPref = context.getSharedPreferences("noti-send", Context.MODE_PRIVATE)
-    var checkedState by remember { mutableStateOf(sharedPref.getBoolean("send_or_not", false)) }
+    var checkedState by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            with(sharedPref.edit()) {
+                putBoolean("send_or_not", false)
+                apply()
+            }
+        }
+        checkedState = sharedPref.getBoolean("send_or_not", false)
+    }
+
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -52,24 +63,21 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
         ) {
             Text(
                 text = stringResource(id = R.string.push_notification),
-                modifier = Modifier
-                    .padding(horizontal = 30.dp)
-                    .weight(1f),
+                modifier = Modifier.padding(horizontal = 30.dp).weight(1f),
                 style = MaterialTheme.typography.bodyLarge
             )
             Switch(
                 modifier = Modifier.padding(horizontal = 30.dp),
                 checked = checkedState,
                 onCheckedChange = { newState ->
-                    checkedState = newState
-
                     if (newState && !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-                        // Notifications are not enabled, navigate to settings
                         showDialog = true
-                    }
-                    with(sharedPref.edit()) {
-                        putBoolean("send_or_not", newState)
-                        apply()
+                    } else {
+                        checkedState = newState
+                        with(sharedPref.edit()) {
+                            putBoolean("send_or_not", newState)
+                            apply()
+                        }
                     }
                 }
             )
@@ -124,16 +132,12 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                         .wrapContentHeight(),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth(),
+                        modifier = Modifier.padding(10.dp).fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
+                            modifier = Modifier.fillMaxWidth().weight(1f)
                         ) {
                             Text(
                                 text = item.getTime(),
@@ -149,9 +153,7 @@ fun TimeList(context: Context, scheduleViewModel: ScheduleViewModel) {
                             showDialog = true
                         }) {
                             Icon(
-                                modifier = Modifier
-                                    .padding(all = 11.dp)
-                                    .size(20.dp),
+                                modifier = Modifier.padding(all = 11.dp).size(20.dp),
                                 painter = painterResource(R.drawable.calendar),
                                 contentDescription = "weekly schedule"
                             )
@@ -196,20 +198,14 @@ fun SetDayOfWeekDialog(
         onDismissRequest = onDismissRequest
     ) {
         Surface(
-            modifier = Modifier
-                .width(300.dp)
-                .height(450.dp)
+            modifier = Modifier.width(300.dp).height(450.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize(),
+                modifier = Modifier.padding(16.dp).fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 400.dp)
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)
                 ) {
                     itemsIndexed(daysOfWeek) { idx, week ->
                         Row(
@@ -232,9 +228,7 @@ fun SetDayOfWeekDialog(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                modifier = Modifier
-                                    .padding(12.dp)
-                                    .weight(1f),
+                                modifier = Modifier.padding(12.dp).weight(1f),
                                 text = week,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyLarge
@@ -254,9 +248,7 @@ fun SetDayOfWeekDialog(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    modifier = Modifier
-                        .height(40.dp)
-                        .fillMaxWidth(),
+                    modifier = Modifier.height(40.dp).fillMaxWidth(),
                     onClick = { confirmAction() }
                 ) {
                     Text(text = stringResource(R.string.save))
@@ -280,9 +272,7 @@ fun AddScheduleButton(context: Context, scheduleViewModel: ScheduleViewModel) {
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 20.dp, end = 20.dp),
+        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(onClick = {
