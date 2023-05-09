@@ -10,7 +10,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
-import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.view.home.SummaryResponse
 
@@ -57,7 +57,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             val notiDrawerType = object : TypeToken<List<NotiUnit>>() {}.type
             _notifications.value = Gson()
                 .fromJson<List<NotiUnit>>(notiDrawerJson, notiDrawerType)
-                .sortedBy { it.drawerIndex }
+                .sortedBy { it.index }
         } else
             _notifications.value = listOf()
     }
@@ -84,7 +84,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateSummaryText(activeNotifications: ArrayList<NotiUnit>, isScheduled: Boolean) {
-        if (activeNotifications.size > 0) {
+        if (activeNotifications.isNotEmpty()) {
             _result.postValue(context.getString(SummaryResponse.GENERATING.message))
             Log.d("sendToServer", "Trigger NotScheduled")
             viewModelScope.launch {
@@ -94,6 +94,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             }
         } else {
             _result.postValue(context.getString(SummaryResponse.NO_NOTIFICATION.message))
+            _notifications.postValue(listOf())
         }
     }
 }

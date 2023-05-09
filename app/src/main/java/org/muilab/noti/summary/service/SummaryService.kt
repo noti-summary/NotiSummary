@@ -31,6 +31,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.*
 import org.muilab.noti.summary.view.home.SummaryResponse
@@ -91,158 +92,168 @@ class SummaryService : Service(), LifecycleOwner {
             val appFilterMap = getAppFilter()
             val summarizedNotifications = activeNotifications.filter {
                 noti -> appFilterMap[noti.pkgName] == true
-            }.sortedBy { it.drawerIndex }.toCollection(ArrayList())
+            }.sortedBy { it.index }.toCollection(ArrayList())
 
             notiInProcess = summarizedNotifications
             updateStatusText(getString(SummaryResponse.GENERATING.message))
 
             var responseStr = ""
 
-            val client = OkHttpClient.Builder()
-                .connectTimeout(180, TimeUnit.SECONDS)
-                .writeTimeout(180, TimeUnit.SECONDS)
-                .readTimeout(180, TimeUnit.SECONDS)
-                .callTimeout(180, TimeUnit.SECONDS)
-                .build()
+            if (notiInProcess.isNotEmpty()) {
 
-            data class GPTRequest(val prompt: String, val content: String)
-            data class GPTRequestWithKey(val prompt: String, val content: String, val key: String)
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(180, TimeUnit.SECONDS)
+                    .writeTimeout(180, TimeUnit.SECONDS)
+                    .readTimeout(180, TimeUnit.SECONDS)
+                    .callTimeout(180, TimeUnit.SECONDS)
+                    .build()
 
-            val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.system_key))!!
+                data class GPTRequest(val prompt: String, val content: String)
+                data class GPTRequestWithKey(
+                    val prompt: String,
+                    val content: String,
+                    val key: String
+                )
 
-            val requestURL = if (userAPIKey == getString(R.string.system_key)) {
-                serverURL
-            } else {
-                "$serverURL/key"
-            }
+                val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.system_key))!!
 
-            val postContent = getPostContent(summarizedNotifications)
-            val prompt = promptPref.getString(
-                "curPrompt",
-                getString(R.string.default_summary_prompt)
-            ) as String
-            Log.d("sendToServer", "current prompt: $prompt")
-
-            @Suppress("IMPLICIT_CAST_TO_ANY")
-            val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
-                GPTRequest(prompt, postContent)
-            } else {
-                GPTRequestWithKey(prompt, postContent, userAPIKey)
-            }
-
-            val postBody = Gson().toJson(gptRequest)
-
-            val request = Request.Builder()
-                .url(requestURL)
-                .post(postBody.toRequestBody(mediaType))
-                .build()
-
-            try {
-                val submitTime = System.currentTimeMillis()
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val responseText =
-                        response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")
-                            ?.removeSurrounding("\"")
-                    val summary = ChineseConverter.convert(
-                        responseText,
-                        ConversionType.S2TWP,
-                        applicationContext
-                    )
-                    if (summary != null) {
-
-                        if (userAPIKey == getString(R.string.system_key))
-                            subtractCredit()
-                        logUserAction("genSummary", "Success", applicationContext)
-
-                        with(summaryPref.edit()) {
-                            putString("resultValue", summary)
-                            putLong("submitTime", submitTime)
-                            putBoolean("isScheduled", isScheduled)
-                            putString("prompt", prompt)
-
-                            val notiDrawerJson = Gson().toJson(summarizedNotifications)
-                            putString("notiDrawer", notiDrawerJson)
-
-                            val notiData = summarizedNotifications.map {
-                                SummaryNoti(it)
-                            }
-                            val notiDataJson = Gson().toJson(notiData)
-                            putString("notiData", notiDataJson)
-
-                            val notiFilterPrefs = getSharedPreferences("noti_filter",Context.MODE_PRIVATE)
-
-                            val notiScope = mutableMapOf<String, Boolean>()
-                            notiScope["appName"] = notiFilterPrefs.getBoolean(
-                                getString(R.string.application_name),
-                                true
-                            )
-                            notiScope["time"] = notiFilterPrefs.getBoolean(
-                                getString(R.string.time),
-                                true
-                            )
-                            notiScope["title"] = notiFilterPrefs.getBoolean(
-                                getString(R.string.title),
-                                true
-                            )
-                            notiScope["content"] = notiFilterPrefs.getBoolean(
-                                getString(R.string.content),
-                                true
-                            )
-                            val notiScopeJson = Gson().toJson(notiScope)
-                            putString("notiScope", notiScopeJson)
-
-                            val summaryLength = getWordCount(summary)
-                            val summaryLengthJson = Gson().toJson(summaryLength)
-                            putString("summaryLength", summaryLengthJson)
-
-                            putString("removedNotis", "{}")
-                            putInt("rating", 0)
-
-                            apply()
-                        }
-                        logSummary(applicationContext)
-                        responseStr = summary
-                    } else {
-                        logUserAction("genSummary", "ServerError", applicationContext)
-                        responseStr = getString(SummaryResponse.SERVER_ERROR.message)
-                    }
+                val requestURL = if (userAPIKey == getString(R.string.system_key)) {
+                    serverURL
                 } else {
-                    response.body?.let {
-                        val responseBody = it.string()
-                        Log.i("ServerResponse", responseBody)
-                        responseStr = if (responseBody.contains("You didn't provide an API key") ||
-                            responseBody.contains("Incorrect API key provided")
-                        ) {
-                            logUserAction("genSummary", "KeyError", applicationContext)
-                            getString(SummaryResponse.APIKEY_ERROR.message)
-                        } else if (responseBody.contains("exceeded your current quota")) {
-                            logUserAction("genSummary", "NoQuota", applicationContext)
-                            getString(SummaryResponse.QUOTA_ERROR.message)
+                    "$serverURL/key"
+                }
+
+                val postContent = getPostContent(summarizedNotifications)
+                val prompt = promptPref.getString(
+                    "curPrompt",
+                    getString(R.string.default_summary_prompt)
+                ) as String
+                Log.d("sendToServer", "current prompt: $prompt")
+
+                @Suppress("IMPLICIT_CAST_TO_ANY")
+                val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
+                    GPTRequest(prompt, postContent)
+                } else {
+                    GPTRequestWithKey(prompt, postContent, userAPIKey)
+                }
+
+                val postBody = Gson().toJson(gptRequest)
+
+                val request = Request.Builder()
+                    .url(requestURL)
+                    .post(postBody.toRequestBody(mediaType))
+                    .build()
+
+                try {
+                    val submitTime = System.currentTimeMillis()
+                    val response = client.newCall(request).execute()
+                    if (response.isSuccessful) {
+                        val responseText =
+                            response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")
+                                ?.removeSurrounding("\"")
+                        val summary = ChineseConverter.convert(
+                            responseText,
+                            ConversionType.S2TWP,
+                            applicationContext
+                        )
+                        if (summary != null) {
+
+                            if (userAPIKey == getString(R.string.system_key))
+                                subtractCredit()
+                            logUserAction("genSummary", "Success", applicationContext)
+
+                            with(summaryPref.edit()) {
+                                putString("resultValue", summary)
+                                putLong("submitTime", submitTime)
+                                putBoolean("isScheduled", isScheduled)
+                                putString("prompt", prompt)
+
+                                val notiDrawerJson = Gson().toJson(summarizedNotifications)
+                                putString("notiDrawer", notiDrawerJson)
+
+                                val notiData = summarizedNotifications.map {
+                                    SummaryNoti(it)
+                                }
+                                val notiDataJson = Gson().toJson(notiData)
+                                putString("notiData", notiDataJson)
+
+                                val notiFilterPrefs =
+                                    getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
+
+                                val notiScope = mutableMapOf<String, Boolean>()
+                                notiScope["appName"] = notiFilterPrefs.getBoolean(
+                                    getString(R.string.application_name),
+                                    true
+                                )
+                                notiScope["time"] = notiFilterPrefs.getBoolean(
+                                    getString(R.string.time),
+                                    true
+                                )
+                                notiScope["title"] = notiFilterPrefs.getBoolean(
+                                    getString(R.string.title),
+                                    true
+                                )
+                                notiScope["content"] = notiFilterPrefs.getBoolean(
+                                    getString(R.string.content),
+                                    true
+                                )
+                                val notiScopeJson = Gson().toJson(notiScope)
+                                putString("notiScope", notiScopeJson)
+
+                                val summaryLength = getWordCount(summary)
+                                val summaryLengthJson = Gson().toJson(summaryLength)
+                                putString("summaryLength", summaryLengthJson)
+
+                                putString("removedNotis", "{}")
+                                putInt("rating", 0)
+
+                                apply()
+                            }
+                            logSummary(applicationContext)
+                            responseStr = summary
                         } else {
                             logUserAction("genSummary", "ServerError", applicationContext)
-                            getString(SummaryResponse.SERVER_ERROR.message)
+                            responseStr = getString(SummaryResponse.SERVER_ERROR.message)
                         }
-                    } ?: let {
-                        logUserAction("genSummary", "ServerError", applicationContext)
-                        responseStr = getString(SummaryResponse.SERVER_ERROR.message)
+                    } else {
+                        response.body?.let {
+                            val responseBody = it.string()
+                            Log.i("ServerResponse", responseBody)
+                            responseStr =
+                                if (responseBody.contains("You didn't provide an API key") ||
+                                    responseBody.contains("Incorrect API key provided")
+                                ) {
+                                    logUserAction("genSummary", "KeyError", applicationContext)
+                                    getString(SummaryResponse.APIKEY_ERROR.message)
+                                } else if (responseBody.contains("exceeded your current quota")) {
+                                    logUserAction("genSummary", "NoQuota", applicationContext)
+                                    getString(SummaryResponse.QUOTA_ERROR.message)
+                                } else {
+                                    logUserAction("genSummary", "ServerError", applicationContext)
+                                    getString(SummaryResponse.SERVER_ERROR.message)
+                                }
+                        } ?: let {
+                            logUserAction("genSummary", "ServerError", applicationContext)
+                            responseStr = getString(SummaryResponse.SERVER_ERROR.message)
+                        }
                     }
+                    response.close()
+                } catch (e: InterruptedIOException) {
+                    Log.i("InterruptedIOException", e.toString())
+                    logUserAction("genSummary", "ServerTimeout", applicationContext)
+                    responseStr = getString(SummaryResponse.TIMEOUT_ERROR.message)
+                } catch (e: IOException) {
+                    Log.i("IOException", e.toString())
+                    logUserAction("genSummary", "NetworkError", applicationContext)
+                    responseStr = getString(SummaryResponse.NETWORK_ERROR.message)
+                } catch (e: Exception) {
+                    Log.i("Exception in sendToServer", e.toString())
+                    logUserAction("genSummary", "ServerError", applicationContext)
+                    responseStr = getString(SummaryResponse.SERVER_ERROR.message)
                 }
-                response.close()
-            } catch (e: InterruptedIOException) {
-                Log.i("InterruptedIOException", e.toString())
-                logUserAction("genSummary", "ServerTimeout", applicationContext)
-                responseStr = getString(SummaryResponse.TIMEOUT_ERROR.message)
-            } catch (e: IOException) {
-                Log.i("IOException", e.toString())
-                logUserAction("genSummary", "NetworkError", applicationContext)
-                responseStr = getString(SummaryResponse.NETWORK_ERROR.message)
-            } catch (e: Exception) {
-                Log.i("Exception in sendToServer", e.toString())
-                logUserAction("genSummary", "ServerError", applicationContext)
-                responseStr = getString(SummaryResponse.SERVER_ERROR.message)
+            } else {
+                responseStr = getString(SummaryResponse.NO_NOTIFICATION.message)
             }
-
             updateStatusText(responseStr)
             if (isScheduled)
                 notifySummary(responseStr)
@@ -349,6 +360,8 @@ class SummaryService : Service(), LifecycleOwner {
 
     fun getNotiInProcess(): ArrayList<NotiUnit> {
         return notiInProcess
+            .sortedBy { it.index }
+            .toCollection(ArrayList())
     }
 
     private fun updateStatusText(newStatus: String) {

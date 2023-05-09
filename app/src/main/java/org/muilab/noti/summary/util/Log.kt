@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import org.muilab.noti.summary.database.room.UserActionDao
 import org.muilab.noti.summary.database.room.UserActionDatabase
 import org.muilab.noti.summary.model.UserAction
-import org.muilab.noti.summary.service.NotiUnit
+import org.muilab.noti.summary.model.NotiUnit
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.full.memberProperties

@@ -85,7 +85,15 @@ fun SummaryCard(
                         modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        if (submitButtonState != SSButtonState.LOADING) {
+                        if (result != stringResource(SummaryResponse.HINT.message) &&
+                            result != stringResource(SummaryResponse.GENERATING.message) &&
+                            result != stringResource(SummaryResponse.NO_NOTIFICATION.message) &&
+                            result != stringResource(SummaryResponse.NETWORK_ERROR.message) &&
+                            result != stringResource(SummaryResponse.SERVER_ERROR.message) &&
+                            result != stringResource(SummaryResponse.TIMEOUT_ERROR.message) &&
+                            result != stringResource(SummaryResponse.APIKEY_ERROR.message) &&
+                            result != stringResource(SummaryResponse.QUOTA_ERROR.message)
+                        ) {
                             DislikeButton(context, likeDislike, summaryPrefs)
                             LikeButton(context, likeDislike, summaryPrefs)
                         }

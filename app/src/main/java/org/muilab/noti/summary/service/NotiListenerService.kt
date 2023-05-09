@@ -15,15 +15,26 @@ import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.muilab.noti.summary.database.room.DrawerDatabase
+import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.util.logSummary
 
 class NotiListenerService: NotificationListenerService() {
 
     private var connected: Boolean = false
+    private var intentRegistered: Boolean = false
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onListenerConnected() {
         super.onListenerConnected()
+        activeNotifications.forEach {
+            insertNoti(it)
+        }
         Log.i(TAG, "Connected!")
         connected = true
     }
@@ -40,14 +51,16 @@ class NotiListenerService: NotificationListenerService() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private val allNotiRequestReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
-                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
-                broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
-                sendBroadcast(broadcastIntent)
-            } else if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
-                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
-                broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
-                sendBroadcast(broadcastIntent)
+            CoroutineScope(Dispatchers.IO).launch {
+                if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
+                    val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
+                    broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
+                    sendBroadcast(broadcastIntent)
+                } else if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
+                    val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
+                    broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
+                    sendBroadcast(broadcastIntent)
+                }
             }
         }
     }
@@ -60,6 +73,7 @@ class NotiListenerService: NotificationListenerService() {
         val allNotiFilterScheduled = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED")
         LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilter)
         LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilterScheduled)
+        intentRegistered = true
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -71,7 +85,10 @@ class NotiListenerService: NotificationListenerService() {
         getSystemService(Context.ALARM_SERVICE)
         val alarmService: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmService.set(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis() + 10000, restartServicePendingIntent)
-        unregisterReceiver(allNotiRequestReceiver)
+        if (intentRegistered) {
+            unregisterReceiver(allNotiRequestReceiver)
+            intentRegistered = false
+        }
         Log.d(TAG, "onDestroy")
     }
 
@@ -79,12 +96,14 @@ class NotiListenerService: NotificationListenerService() {
         return START_STICKY
     }
 
-    override fun onNotificationPosted(sbn: StatusBarNotification?) {
-
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override fun onNotificationPosted(sbn: StatusBarNotification) {
+        insertNoti(sbn)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onNotificationRemoved(
-        sbn: StatusBarNotification?,
+        sbn: StatusBarNotification,
         rankingMap: RankingMap?,
         reason: Int
     ) {
@@ -116,9 +135,24 @@ class NotiListenerService: NotificationListenerService() {
             }
         }
 
-        val notiKey = sbn?.key as String
+        val notiUnit = NotiUnit(applicationContext, sbn)
         val reasonStr = getNotificationReasonString(reason)
 
+        CoroutineScope(Dispatchers.IO).launch {
+            val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
+            val drawerDao = drawerDatabase.drawerDao()
+            Log.d("NotiDelete", notiUnit.sbnKey)
+            Log.d("NotiDelete", notiUnit.groupKey)
+            Log.d("NotiDelete", notiUnit.sortKey)
+            drawerDao.deleteByPackageSortKey(
+                notiUnit.pkgName,
+                notiUnit.sbnKey,
+                notiUnit.groupKey,
+                notiUnit.sortKey
+            )
+        }
+
+        val notiKey = notiUnit.sbnKey
         val summarySharedPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
         val prevRemovedNotisJson = summarySharedPref.getString("removedNotis", "{}")
         val removedNotisType = object : TypeToken<MutableMap<String, String>>() {}.type
@@ -132,12 +166,66 @@ class NotiListenerService: NotificationListenerService() {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    fun getNotiUnits(): ArrayList<NotiUnit> {
-        val notiUnits = activeNotifications
-            .mapIndexed { idx, sbn -> NotiUnit(applicationContext, sbn, idx) }
-            .filter{ it.title != "null" && it.content != "null" }
+    fun insertNoti(sbn: StatusBarNotification) {
+        val notiUnit = NotiUnit(applicationContext, sbn)
+        if (notiUnit.title == "null" || notiUnit.content == "null")
+            return
+        CoroutineScope(Dispatchers.IO).launch {
+            val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
+            val drawerDao = drawerDatabase.drawerDao()
+            drawerDao.deleteByVisibleAttr(
+                notiUnit.pkgName,
+                notiUnit.`when`,
+                notiUnit.title,
+                notiUnit.content
+            )
+            if (notiUnit.sortKey != "null")
+                drawerDao.deleteByPackageSortKey(
+                    notiUnit.pkgName,
+                    notiUnit.sbnKey,
+                    notiUnit.groupKey,
+                    notiUnit.sortKey
+                )
+            drawerDao.insert(notiUnit)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    suspend fun getNotiUnits(): ArrayList<NotiUnit> = withContext(Dispatchers.IO) {
+
+        var notiUnits = arrayListOf<NotiUnit>()
+        val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
+        val drawerDao = drawerDatabase.drawerDao()
+
+        val sbnKeys = activeNotifications
+            .map {
+                val notiUnit = NotiUnit(applicationContext, it)
+                notiUnit.pkgName to notiUnit.sbnKey
+            }
+            .distinct()
+        sbnKeys.forEach { (pkgName, sbnKey) ->
+            val pkgNotis = drawerDao.getBySbnKey(pkgName, sbnKey)
+                .sortedWith(
+                    compareByDescending<NotiUnit> { it.groupKey }
+                        .thenBy { it.sortKey }
+                        .thenBy { it.`when` }
+                )
+            notiUnits.addAll(pkgNotis)
+        }
+        notiUnits = notiUnits
             .distinctBy { it.appName to it.time to it.title to it.content }
             .toCollection(ArrayList())
-        return notiUnits
+
+        notiUnits.forEachIndexed { idx, notiUnit ->
+            notiUnit.index = idx
+            Log.d("NotiDrawer", notiUnit.sbnKey)
+            Log.d("NotiDrawer", notiUnit.groupKey)
+            Log.d("NotiDrawer", notiUnit.sortKey)
+            Log.d("NotiDrawer", notiUnit.pkgName)
+            Log.d("NotiDrawer", notiUnit.`when`.toString())
+            Log.d("NotiDrawer", notiUnit.title)
+            Log.d("NotiDrawer", notiUnit.content)
+        }
+        notiUnits
     }
 }
