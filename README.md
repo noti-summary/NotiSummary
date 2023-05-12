@@ -4,9 +4,11 @@
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Language](https://img.shields.io/badge/Kotlin-1.8.0-yellowgreen)
 
-
-[<div align="center"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="Download from Google Play" height="80"></div>](https://play.google.com/store/apps/details?id=org.muilab.noti.summary)
-
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=org.muilab.noti.summary">
+    <img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="Download from Google Play" height="80">
+  </a>
+</p>
 
 ## About
 NotiSummary is an Android application that utilizes the power of generative AI technology (ChatGPT) to transform lengthy smartphone notifications into concise and intelligible sentences, allowing users to stay on top of important information without feeling inundated. With NotiSummary, users can effortlessly view all their notifications in a convenient summary form, saving them the time and effort of having to manually sift through each individual notification.
