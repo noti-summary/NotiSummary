@@ -150,8 +150,9 @@ fun NotiDrawer(context: Context, sumViewModel: SummaryViewModel) {
     }
 
     state.apply {
-        val notiCount = layoutInfo.visibleItemsInfo.lastOrNull()?.index
-        if (!isScrollInProgress)
-            logUserAction("scroll", "drawer", context, notiCount.toString())
+        val firstIndex = firstVisibleItemIndex
+        val lastIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index
+        if (!isScrollInProgress && lastIndex != null)
+            logUserAction("scroll", "drawer", context, "${firstIndex},${lastIndex}")
     }
 }

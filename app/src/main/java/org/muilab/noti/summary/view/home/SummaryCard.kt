@@ -121,9 +121,18 @@ fun SummaryCard(
         }
     }
 
+    fun isSummaryResult(): Boolean {
+        for (response in SummaryResponse.values()) {
+            val messageString = context.getString(response.message)
+            if (result == messageString)
+                return false
+        }
+        return true
+    }
+
     scrollState.apply {
         val scrollPercentage = round((value + textHeight).toDouble() * 10000 / (maxValue + textHeight)) / 100
-        if (!isScrollInProgress)
+        if (!isScrollInProgress && isSummaryResult())
             logUserAction("scroll", "summary", context, scrollPercentage.toString())
     }
 }
