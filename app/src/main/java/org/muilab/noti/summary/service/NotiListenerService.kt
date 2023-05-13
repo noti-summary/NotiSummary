@@ -193,6 +193,10 @@ class NotiListenerService: NotificationListenerService() {
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getNotiUnits(): ArrayList<NotiUnit> = withContext(Dispatchers.IO) {
 
+        activeNotifications.forEach {
+            insertNoti(it)
+        }
+
         var notiUnits = arrayListOf<NotiUnit>()
         val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
         val drawerDao = drawerDatabase.drawerDao()
