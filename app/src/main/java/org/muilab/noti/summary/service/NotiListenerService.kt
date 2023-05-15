@@ -56,7 +56,16 @@ class NotiListenerService: NotificationListenerService() {
                     val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
                     broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
                     sendBroadcast(broadcastIntent)
-                } else if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private val allNotiRequestScheduledReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            CoroutineScope(Dispatchers.IO).launch {
+                if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
                     val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
                     broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
                     sendBroadcast(broadcastIntent)
@@ -72,7 +81,7 @@ class NotiListenerService: NotificationListenerService() {
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS")
         val allNotiFilterScheduled = IntentFilter("edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED")
         LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilter)
-        LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestReceiver, allNotiFilterScheduled)
+        LocalBroadcastManager.getInstance(this).registerReceiver(allNotiRequestScheduledReceiver, allNotiFilterScheduled)
         intentRegistered = true
     }
 
@@ -87,6 +96,7 @@ class NotiListenerService: NotificationListenerService() {
         alarmService.set(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis() + 10000, restartServicePendingIntent)
         if (intentRegistered) {
             unregisterReceiver(allNotiRequestReceiver)
+            unregisterReceiver(allNotiRequestScheduledReceiver)
             intentRegistered = false
         }
         Log.d(TAG, "onDestroy")
