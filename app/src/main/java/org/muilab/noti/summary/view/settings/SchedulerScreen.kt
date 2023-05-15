@@ -20,6 +20,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -193,59 +194,65 @@ fun SetDayOfWeekDialog(
     val daysOfWeek = DayOfWeek.values().map {
         it.getDisplayName(TextStyle.FULL, Locale.getDefault())
     }
+
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
     Dialog(
         onDismissRequest = onDismissRequest
     ) {
         Surface(
-            modifier = Modifier.width(300.dp).height(450.dp)
+            modifier = Modifier.width(screenWidth * 4 / 5).height(screenHeight * 1 / 2)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp).fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)
-                ) {
-                    itemsIndexed(daysOfWeek) { idx, week ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
-                                    RoundedCornerShape(
-                                        topStart = if (idx == 0) 8.dp else 0.dp,
-                                        topEnd = if (idx == 0) 8.dp else 0.dp,
-                                        bottomStart = if (idx == 6) 8.dp else 0.dp,
-                                        bottomEnd = if (idx == 6) 8.dp else 0.dp
+                Box(modifier = Modifier.weight(1f)) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp)
+                    ) {
+                        itemsIndexed(daysOfWeek) { idx, week ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        RoundedCornerShape(
+                                            topStart = if (idx == 0) 8.dp else 0.dp,
+                                            topEnd = if (idx == 0) 8.dp else 0.dp,
+                                            bottomStart = if (idx == 6) 8.dp else 0.dp,
+                                            bottomEnd = if (idx == 6) 8.dp else 0.dp
+                                        )
                                     )
+                                    .clickable {
+                                        weekState.value = weekState.value xor (1 shl (6 - idx))
+                                    },
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    modifier = Modifier.padding(12.dp).weight(1f),
+                                    text = week,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
-                                .clickable {
-                                    weekState.value = weekState.value xor (1 shl (6 - idx))
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                modifier = Modifier.padding(12.dp).weight(1f),
-                                text = week,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
 
-                            if (weekState.value and (1 shl (6 - idx)) != 0) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Spacer(modifier = Modifier.padding(8.dp))
+                                if (weekState.value and (1 shl (6 - idx)) != 0) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Spacer(modifier = Modifier.padding(8.dp))
+                                }
                             }
+                            Spacer(modifier = Modifier.height(4.dp))
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     modifier = Modifier.height(40.dp).fillMaxWidth(),
                     onClick = { confirmAction() }
