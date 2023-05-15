@@ -102,10 +102,14 @@ data class NotiUnit(
         val pm = context.packageManager
         val applicationInfo: ApplicationInfo? =
             sbn.packageName?.let {
-                if (Build.VERSION.SDK_INT >= TIRAMISU) {
-                    pm.getApplicationInfo(it, PackageManager.ApplicationInfoFlags.of(0))
-                } else {
-                    pm.getApplicationInfo(it, 0)
+                try {
+                    if (Build.VERSION.SDK_INT >= TIRAMISU) {
+                        pm.getApplicationInfo(it, PackageManager.ApplicationInfoFlags.of(0))
+                    } else {
+                        pm.getApplicationInfo(it, 0)
+                    }
+                } catch(e: Exception) {
+                    null
                 }
             }
         appName = (if (applicationInfo != null) {
