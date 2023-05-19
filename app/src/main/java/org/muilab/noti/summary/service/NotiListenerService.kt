@@ -95,9 +95,14 @@ class NotiListenerService: NotificationListenerService() {
         val alarmService: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmService.set(AlarmManager.ELAPSED_REALTIME, System.currentTimeMillis() + 10000, restartServicePendingIntent)
         if (intentRegistered) {
-            unregisterReceiver(allNotiRequestReceiver)
-            unregisterReceiver(allNotiRequestScheduledReceiver)
-            intentRegistered = false
+            try {
+                unregisterReceiver(allNotiRequestReceiver)
+                unregisterReceiver(allNotiRequestScheduledReceiver)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                intentRegistered = false
+            }
         }
         Log.d(TAG, "onDestroy")
     }
