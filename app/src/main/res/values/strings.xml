@@ -78,4 +78,9 @@
     <string name="source">How did you learn about our app?</string>
     <string name="update_title">APP Update</string>
     <string name="update_text">Please head over to Google Play for our latest fixes.</string>
+    <string name="turn_on_permission">Enable Permission</string>
+    <string name="enable">Enable</string>
+    <string name="turnon_permission_description">To get started, enable notification access for NotiSummary</string>
+    <string name="continue_to_use">Continue</string>
+    <string name="permission_not_yet_enabled">You have not enabled notification access.</string>
 </resources>

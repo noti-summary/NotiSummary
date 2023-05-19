@@ -76,4 +76,9 @@
     <string name="source">您透過什麼管道了解我們的APP？</string>
     <string name="update_title">APP 錯誤修正</string>
     <string name="update_text">請到Google Play商店更新本APP</string>
+    <string name="turn_on_permission">開啟權限</string>
+    <string name="enable">開啟權限</string>
+    <string name="turnon_permission_description">開始使用 APP 前，請先開啟手機通知存取權</string>
+    <string name="continue_to_use">繼續</string>
+    <string name="permission_not_yet_enabled">您尚未開啟通知存取權</string>
 </resources>

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -28,6 +29,7 @@ import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.util.getTimeZone
 import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
+import org.muilab.noti.summary.view.userInit.AskPermissionDialog
 import org.muilab.noti.summary.view.userInit.FilterNotify
 import org.muilab.noti.summary.view.userInit.NetworkCheckDialog
 import org.muilab.noti.summary.view.userInit.PersonalInformationScreen
@@ -51,7 +53,6 @@ class MainActivity : ComponentActivity() {
         FirebaseFirestore.getInstance().firestoreSettings = settings
 
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
-        startService(notiListenerIntent)
 
         val summaryServiceIntent = Intent(this, SummaryService::class.java)
         if (!isServiceRunning(SummaryService::class.java)) {
@@ -81,13 +82,35 @@ class MainActivity : ComponentActivity() {
                             PrivacyPolicyDialog(onAgree = {
                                 with(sharedPref.edit()) {
                                     putBoolean("agreeTerms", true)
-                                    putString("initStatus", "AGREED")
+                                    putString("initStatus", "OPEN_PERMISSION")
                                     apply()
                                 }
-                                initStatus = "AGREED"
+                                initStatus = "OPEN_PERMISSION"
                             })
                         else
                             NetworkCheckDialog(applicationContext)
+                    }
+                    "OPEN_PERMISSION" -> {
+                        AskPermissionDialog (
+                            onAgree = {
+                                if (isNotiListenerEnabled()) {
+                                    with(sharedPref.edit()) {
+                                        putString("initStatus", "AGREED")
+                                        apply()
+                                    }
+                                    initStatus = "AGREED"
+                                } else {
+                                    Toast.makeText(
+                                        this,
+                                        getString(R.string.permission_not_yet_enabled),
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            },
+                            OpenPermission = {
+                                startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                            }
+                        )
                     }
                     "AGREED" -> {
                         PersonalInformationScreen(
@@ -108,14 +131,19 @@ class MainActivity : ComponentActivity() {
                         if (setUserId())
                             initStatus = "SHOW_FILTER_NOTICE"
                     }
-                    "SHOW_FILTER_NOTICE" -> FilterNotify(onAgree = {
-                        with(sharedPref.edit()) {
-                            putString("initStatus", "USER_READY")
-                            apply()
-                        }
-                        initStatus = "USER_READY"
-                    })
+                    "SHOW_FILTER_NOTICE" -> {
+                        if (!isNotiListenerEnabled())
+                            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                        FilterNotify(onAgree = {
+                            with(sharedPref.edit()) {
+                                putString("initStatus", "USER_READY")
+                                apply()
+                            }
+                            initStatus = "USER_READY"
+                        })
+                    }
                     "USER_READY" -> {
+                        startService(notiListenerIntent)
                         MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
                     }
                 }
@@ -126,10 +154,12 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-        if (sharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
+        val stage = sharedPref.getString("initStatus", "NOT_STARTED")
+        if (stage.equals("USER_READY"))
             logUserAction("lifeCycle", "appResume", applicationContext)
-        if (!isNotiListenerEnabled())
+        if (stage.equals("USER_READY") && !isNotiListenerEnabled())
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+
         val allNotiFilter = IntentFilter("edu.mui.noti.summary.RETURN_ALLNOTIS")
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
         val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
