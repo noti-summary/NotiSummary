@@ -74,4 +74,6 @@
     <string name="google_play">Google Play 商店</string>
     <string name="others">其他管道</string>
     <string name="source">您透過什麼管道了解我們的APP？</string>
+    <string name="update_title">APP 錯誤修正</string>
+    <string name="update_text">請到Google Play商店更新本APP</string>
 </resources>

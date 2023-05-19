@@ -1,17 +1,18 @@
 package org.muilab.noti.summary.view.home
 
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
@@ -200,6 +204,52 @@ fun HomeScreen(
             }
         }
         SubmitButton(context, userId, sumViewModel, submitButtonState)
+    }
+
+    val appUpdateManager = AppUpdateManagerFactory.create(context)
+    val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+    var showUpdateDialog by remember { mutableStateOf(0) }
+
+    appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+        if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+            && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
+        ) { showUpdateDialog = if (showUpdateDialog == -1) -1 else 1 }
+    }
+
+    if (showUpdateDialog == 1) {
+        fun openAppInPlayStore(context: Context) {
+            val packageName = context.packageName
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                // Google Play Store app is not installed on the device, open the Play Store website
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            }
+        }
+        AlertDialog(
+            title = { Text(stringResource(R.string.update_title)) },
+            text = { Text(stringResource(R.string.update_text)) },
+            onDismissRequest = { showUpdateDialog = -1 },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        showUpdateDialog = 1
+                        openAppInPlayStore(context)
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                    )
+                }
+            },
+        )
     }
 }
 
