@@ -15,6 +15,7 @@ import org.muilab.noti.summary.model.UserAction
 import org.muilab.noti.summary.model.NotiUnit
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
 data class SummaryNoti(
@@ -218,6 +219,29 @@ inline fun <reified T : Any> T.extractVariables(): Pair<String, String>? {
     return null
 }
 
+fun <T : Any> toMap(obj: T): MutableMap<String, Any?> {
+    return (obj::class as KClass<T>).memberProperties.associate { prop ->
+        prop.name to prop.get(obj)?.let { value ->
+            if (value::class.isData) {
+                toMap(value)
+            } else {
+                value
+            }
+        }
+    }.toMutableMap()
+}
+
+fun getTimeZone(): Float {
+    val timezoneOffsetMillis = TimeZone.getDefault().rawOffset
+    return timezoneOffsetMillis.toFloat() / (1000 * 60 * 60)
+}
+
+fun <T : Any> addTimeZone(data: T): MutableMap<String, Any?> {
+    val document = toMap(data)
+    document["timezone"] = getTimeZone()
+    return document
+}
+
 inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
 
     val db = Firebase.firestore
@@ -226,7 +250,7 @@ inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
 
     db.collection(documentSet)
         .document(documentId)
-        .set(document)
+        .set(addTimeZone(document))
         .addOnSuccessListener {
             Log.d("Data Log", "Upload to set $documentSet with ID $documentId")
         }
@@ -261,7 +285,7 @@ fun uploadUserAction(userActionDao: UserActionDao) {
     val userActions = userActionDao.getAllActions()
     userActions.forEach { userAction ->
         val docRef = db.collection("userAction").document(userAction.primaryKey)
-        batch.set(docRef, userAction)
+        batch.set(docRef, addTimeZone(userAction))
     }
     batch.commit()
         .addOnSuccessListener {
