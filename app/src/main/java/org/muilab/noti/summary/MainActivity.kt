@@ -26,7 +26,7 @@ import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
-import org.muilab.noti.summary.util.getTimeZone
+import org.muilab.noti.summary.util.getDateTime
 import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.view.userInit.AskPermissionDialog
@@ -249,6 +249,7 @@ class MainActivity : ComponentActivity() {
                 val gender = sharedPref.getString("gender", "Unknown").toString()
                 val country = sharedPref.getString("country", "Unknown").toString()
                 val source = sharedPref.getString("source", "Unknown").toString()
+                val initTime = System.currentTimeMillis()
 
                 val db = Firebase.firestore
                 val docRef = db.collection("user").document(userId)
@@ -264,8 +265,8 @@ class MainActivity : ComponentActivity() {
                                     "gender" to gender,
                                     "country" to country,
                                     "source" to source,
-                                    "initTime" to System.currentTimeMillis(),
-                                    "timezone" to getTimeZone()
+                                    "initTime" to initTime,
+                                    "dateTime" to getDateTime(initTime)
                                 )
                                 docRef.set(userInfo).addOnSuccessListener {
                                     Log.d(
