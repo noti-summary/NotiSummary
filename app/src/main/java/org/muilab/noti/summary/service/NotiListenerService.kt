@@ -6,12 +6,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -29,7 +27,6 @@ class NotiListenerService: NotificationListenerService() {
     private var connected: Boolean = false
     private var intentRegistered: Boolean = false
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onListenerConnected() {
         super.onListenerConnected()
         activeNotifications.forEach {
@@ -48,7 +45,6 @@ class NotiListenerService: NotificationListenerService() {
         return super.onBind(intent)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     private val allNotiRequestReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -61,7 +57,6 @@ class NotiListenerService: NotificationListenerService() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     private val allNotiRequestScheduledReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -74,7 +69,6 @@ class NotiListenerService: NotificationListenerService() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "onCreate")
@@ -85,7 +79,6 @@ class NotiListenerService: NotificationListenerService() {
         intentRegistered = true
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onDestroy() {
         val restartServiceIntent = Intent(applicationContext, NotiListenerService::class.java).also {
             it.setPackage(packageName)
@@ -111,12 +104,10 @@ class NotiListenerService: NotificationListenerService() {
         return START_STICKY
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         insertNoti(sbn)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onNotificationRemoved(
         sbn: StatusBarNotification,
         rankingMap: RankingMap?,
@@ -180,8 +171,7 @@ class NotiListenerService: NotificationListenerService() {
             logSummary(applicationContext)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun insertNoti(sbn: StatusBarNotification) {
+    private fun insertNoti(sbn: StatusBarNotification) {
         val notiUnit = NotiUnit(applicationContext, sbn)
         if (notiUnit.title == "null" || notiUnit.content == "null")
             return
@@ -205,7 +195,6 @@ class NotiListenerService: NotificationListenerService() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getNotiUnits(): ArrayList<NotiUnit> = withContext(Dispatchers.IO) {
 
         activeNotifications.forEach {

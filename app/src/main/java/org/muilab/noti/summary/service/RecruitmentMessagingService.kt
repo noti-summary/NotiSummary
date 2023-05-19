@@ -48,14 +48,6 @@ class RecruitmentMessagingService : FirebaseMessagingService() {
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
 
-        val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-        val country = sharedPref.getString("country", "Unknown")
-        val countryCode = country!!.substring(5, 7)
-        if (title.contains("訪談") && countryCode == "TW") {
-            notificationManager.notify(0, notificationBuilder.build())
-        } else if (!title.contains("訪談")) {
-            notificationManager.notify(0, notificationBuilder.build())
-        }
+        notificationManager.notify(0, notificationBuilder.build())
     }
-
 }
