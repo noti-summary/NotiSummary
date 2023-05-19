@@ -166,9 +166,9 @@ class MainActivity : ComponentActivity() {
 
     private fun isNotiListenerEnabled(): Boolean {
         val cn = ComponentName(this, NotiListenerService::class.java)
-        val flat: String =
+        val flat: String? =
             Settings.Secure.getString(this.contentResolver, "enabled_notification_listeners")
-        return cn.flattenToString() in flat
+        return (flat != null) && (cn.flattenToString() in flat)
     }
 
     private val summaryServiceConnection = object : ServiceConnection {
