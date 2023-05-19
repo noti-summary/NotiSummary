@@ -9,7 +9,6 @@ import android.os.Build.VERSION_CODES.TIRAMISU
 import android.os.Parcel
 import android.os.Parcelable
 import android.service.notification.StatusBarNotification
-import androidx.annotation.RequiresApi
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.text.SimpleDateFormat
@@ -50,7 +49,6 @@ data class NotiUnit(
         parcel.readString()!!
     )
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     constructor(context: Context, sbn: StatusBarNotification): this(
         `when` = sbn.notification?.`when` as Long,
         postTime = sbn.postTime,
@@ -115,7 +113,7 @@ data class NotiUnit(
         appName = (if (applicationInfo != null) {
             pm.getApplicationLabel(applicationInfo).toString()
         } else {
-            "Unknown App"
+            pkgName
         })
 
         // time
