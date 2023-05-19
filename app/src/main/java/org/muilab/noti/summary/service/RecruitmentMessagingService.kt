@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.TAG
 
@@ -21,20 +22,24 @@ class RecruitmentMessagingService : FirebaseMessagingService() {
         Log.d(TAG, "From: ${remoteMessage.from}")
         remoteMessage.notification?.let {
             Log.d(TAG, "Message Notification Body: ${it.body}")
-            it.body?.let { body -> sendNotification(body) }
+            it.title?.let { title -> it.body?.let { body -> sendNotification(title, body) } }
         }
     }
 
-    private fun sendNotification(messageBody: String) {
+    private fun sendNotification(title: String, body: String) {
 
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://forms.gle/5pY6BBqpsSfZQ2LJA"))
-        val pendingIntent = PendingIntent.getActivity(this, 0, browserIntent, PendingIntent.FLAG_IMMUTABLE)
+        val intent = if (title.contains("訪談")) {
+            Intent(Intent.ACTION_VIEW, Uri.parse("https://forms.gle/5pY6BBqpsSfZQ2LJA"))
+        } else {
+            Intent(this, MainActivity::class.java)
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val channelId = "Notify"
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.quotation)
-            .setContentTitle(getString(R.string.recruitment))
-            .setContentText(messageBody)
+            .setContentTitle(title)
+            .setContentText(body)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
@@ -46,10 +51,11 @@ class RecruitmentMessagingService : FirebaseMessagingService() {
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
         val country = sharedPref.getString("country", "Unknown")
         val countryCode = country!!.substring(5, 7)
-        if (countryCode == "TW") {
+        if (title.contains("訪談") && countryCode == "TW") {
+            notificationManager.notify(0, notificationBuilder.build())
+        } else if (!title.contains("訪談")) {
             notificationManager.notify(0, notificationBuilder.build())
         }
-
     }
 
 }
