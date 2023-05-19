@@ -5,17 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
 import java.util.*
@@ -23,7 +20,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonalInformationScreen(
-    onContinue: (Int, String, String) -> Unit
+    onContinue: (Int, String, String, String) -> Unit
 ) {
     var birthYear by remember { mutableStateOf("") }
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
@@ -49,6 +46,18 @@ fun PersonalInformationScreen(
     val filteredCountries = remember(countries, query) {
         countries.filter { query.isNotEmpty() && it.contains(query, ignoreCase = true) }
     }
+
+    var source by remember { mutableStateOf("") }
+    val sourceOptions = listOf(
+        stringResource(R.string.related_groups),
+        stringResource(R.string.social_media),
+        stringResource(R.string.google_play),
+        stringResource(R.string.friends_family),
+        stringResource(R.string.others)
+    )
+    var sourceExpanded by remember { mutableStateOf(false) }
+    val sourceInteractionSource = remember { MutableInteractionSource() }
+    val sourcePressed: Boolean by sourceInteractionSource.collectIsPressedAsState()
 
     val customTextFieldColors = TextFieldDefaults.textFieldColors(
         textColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -196,9 +205,48 @@ fun PersonalInformationScreen(
                 }
             }
 
+            ExposedDropdownMenuBox(
+                expanded = sourceExpanded, {}
+            ) {
+
+                OutlinedTextField(
+                    value = source,
+                    onValueChange = { source = it },
+                    label = { Text(stringResource(R.string.source)) },
+                    colors = customTextFieldColors,
+                    readOnly = true,
+                    interactionSource = sourceInteractionSource,
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .clickable(onClick = { sourceExpanded = true }),
+                    trailingIcon = {
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = stringResource(R.string.source))
+                    }
+                )
+
+                LaunchedEffect(sourcePressed){
+                    if (sourcePressed)
+                        sourceExpanded = true
+                }
+
+                ExposedDropdownMenu(
+                    expanded = sourceExpanded,
+                    onDismissRequest = {sourceExpanded = false},
+                ) {
+                    sourceOptions.forEach { s ->
+                        DropdownMenuItem(onClick = {
+                            source = s
+                            sourceExpanded = false
+                        }, text = { Text(s) })
+                    }
+                }
+            }
+
             Button(
-                    enabled = birthYear.isNotEmpty() && gender.isNotEmpty() && country.isNotEmpty(),
-                    onClick = { onContinue(birthYear.toInt(), gender, country) },
+                    enabled = birthYear.isNotEmpty() && gender.isNotEmpty() && country.isNotEmpty() && source.isNotEmpty(),
+                    onClick = { onContinue(birthYear.toInt(), gender, country, source) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 32.dp)

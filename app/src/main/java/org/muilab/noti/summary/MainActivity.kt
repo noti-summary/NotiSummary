@@ -25,6 +25,7 @@ import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
+import org.muilab.noti.summary.util.getTimeZone
 import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.view.userInit.FilterNotify
@@ -90,11 +91,12 @@ class MainActivity : ComponentActivity() {
                     }
                     "AGREED" -> {
                         PersonalInformationScreen(
-                            onContinue = { birthYear, gender, country ->
+                            onContinue = { birthYear, gender, country, source ->
                                 with(sharedPref.edit()) {
                                     putInt("birthYear", birthYear)
                                     putString("gender", gender)
                                     putString("country", country)
+                                    putString("source", source)
                                     putString("initStatus", "USER_INFO_FILLED")
                                     apply()
                                 }
@@ -216,6 +218,7 @@ class MainActivity : ComponentActivity() {
                 val birthYear = sharedPref.getInt("birthYear", 0)
                 val gender = sharedPref.getString("gender", "Unknown").toString()
                 val country = sharedPref.getString("country", "Unknown").toString()
+                val source = sharedPref.getString("source", "Unknown").toString()
 
                 val db = Firebase.firestore
                 val docRef = db.collection("user").document(userId)
@@ -229,7 +232,10 @@ class MainActivity : ComponentActivity() {
                                     "credit" to maxCredit,
                                     "birthYear" to birthYear,
                                     "gender" to gender,
-                                    "country" to country
+                                    "country" to country,
+                                    "source" to source,
+                                    "initTime" to System.currentTimeMillis(),
+                                    "timezone" to getTimeZone()
                                 )
                                 docRef.set(userInfo).addOnSuccessListener {
                                     Log.d(

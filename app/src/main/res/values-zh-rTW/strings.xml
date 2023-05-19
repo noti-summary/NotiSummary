@@ -68,4 +68,10 @@
     <string name="everyWeekday">平日</string>
     <string name="save">儲存</string>
     <string name="create_api_key">產生您的 OpenAI API 金鑰</string>
+    <string name="related_groups">ChatGPT / 生成式 AI 相關社團或論壇</string>
+    <string name="social_media">社群媒體 (臉書、IG等)</string>
+    <string name="friends_family">親友推薦</string>
+    <string name="google_play">Google Play 商店</string>
+    <string name="others">其他管道</string>
+    <string name="source">您透過什麼管道了解我們的APP？</string>
 </resources>

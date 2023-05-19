@@ -70,4 +70,10 @@
     <string name="save">save</string>
     <string name="share_ux_interested" translatable="false">我有興趣</string>
     <string name="create_api_key">Create your OpenAI API key</string>
+    <string name="related_groups">ChatGPT or generative AI related forums</string>
+    <string name="social_media">Social Media (e.g. Facebook, Twitter)</string>
+    <string name="friends_family">Friends or Family</string>
+    <string name="google_play">Google Play</string>
+    <string name="others">Others</string>
+    <string name="source">How did you learn about our app?</string>
 </resources>
