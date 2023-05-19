@@ -221,7 +221,8 @@ class SummaryService : Service(), LifecycleOwner {
                             Log.i("ServerResponse", responseBody)
                             responseStr =
                                 if (responseBody.contains("You didn't provide an API key") ||
-                                    responseBody.contains("Incorrect API key provided")
+                                    responseBody.contains("Incorrect API key provided") ||
+                                    responseBody.contains("invalid_api_key")
                                 ) {
                                     logUserAction("genSummary", "KeyError", applicationContext)
                                     getString(SummaryResponse.APIKEY_ERROR.message)
