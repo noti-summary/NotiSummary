@@ -238,7 +238,14 @@ fun getTimeZone(): Float {
 
 fun <T : Any> addTimeZone(data: T): MutableMap<String, Any?> {
     val document = toMap(data)
-    document["timezone"] = getTimeZone()
+    if ("time" in document) {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        document["dateTime"] = dateFormat.format(Date(document["time"] as Long))
+    }
+    if ("timestamp" in document) {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        document["dateTime"] = dateFormat.format(Date(document["timestamp"] as Long))
+    }
     return document
 }
 
