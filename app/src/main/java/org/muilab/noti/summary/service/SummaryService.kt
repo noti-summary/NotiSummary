@@ -31,6 +31,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.database.room.DrawerDatabase
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.*
@@ -83,12 +84,36 @@ class SummaryService : Service(), LifecycleOwner {
         return sb.toString()
     }
 
+    fun getActiveNotifications(activeKeys: ArrayList<Pair<String, String>>): ArrayList<NotiUnit> {
+
+        var activeNotifications = arrayListOf<NotiUnit>()
+        val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
+        val drawerDao = drawerDatabase.drawerDao()
+
+        activeKeys.forEach { (pkgName, sbnKey) ->
+            val pkgNotis = drawerDao.getBySbnKey(pkgName, sbnKey)
+                .sortedWith(
+                    compareByDescending<NotiUnit> { it.groupKey }
+                        .thenBy { it.sortKey }
+                        .thenBy { it.`when` }
+                )
+            activeNotifications.addAll(pkgNotis)
+        }
+        activeNotifications = activeNotifications
+            .distinctBy { it.appName to it.time to it.title to it.content }
+            .toCollection(ArrayList())
+        activeNotifications.forEachIndexed { idx, notiUnit -> notiUnit.index = idx }
+
+        return activeNotifications
+    }
+
     suspend fun sendToServer(
-        activeNotifications: ArrayList<NotiUnit>,
+        activeKeys: ArrayList<Pair<String, String>>,
         isScheduled: Boolean
     ): String {
         return withContext(Dispatchers.IO) {
 
+            val activeNotifications = getActiveNotifications(activeKeys)
             val appFilterMap = getAppFilter()
             val summarizedNotifications = activeNotifications.filter {
                 noti -> appFilterMap[noti.pkgName] == true
@@ -402,10 +427,10 @@ class SummaryService : Service(), LifecycleOwner {
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED") {
-                val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
-                if (activeNotifications != null) {
+                val activeKeys = intent.getSerializableExtra("activeKeys") as? ArrayList<Pair<String, String>>
+                if (activeKeys != null) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        sendToServer(activeNotifications, true)
+                        sendToServer(activeKeys, true)
                     }
                 }
             }

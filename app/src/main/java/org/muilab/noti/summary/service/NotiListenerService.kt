@@ -16,7 +16,6 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.muilab.noti.summary.database.room.DrawerDatabase
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.util.TAG
@@ -47,24 +46,20 @@ class NotiListenerService: NotificationListenerService() {
 
     private val allNotiRequestReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
-                    val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
-                    broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
-                    sendBroadcast(broadcastIntent)
-                }
+            if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
+                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
+                broadcastIntent.putExtra("activeKeys", getActiveKeys())
+                sendBroadcast(broadcastIntent)
             }
         }
     }
 
     private val allNotiRequestScheduledReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
-                    val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
-                    broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
-                    sendBroadcast(broadcastIntent)
-                }
+            if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
+                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
+                broadcastIntent.putExtra("activeKeys", getActiveKeys())
+                sendBroadcast(broadcastIntent)
             }
         }
     }
@@ -147,9 +142,6 @@ class NotiListenerService: NotificationListenerService() {
         CoroutineScope(Dispatchers.IO).launch {
             val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
             val drawerDao = drawerDatabase.drawerDao()
-            Log.d("NotiDelete", notiUnit.sbnKey)
-            Log.d("NotiDelete", notiUnit.groupKey)
-            Log.d("NotiDelete", notiUnit.sortKey)
             drawerDao.deleteByPackageSortKey(
                 notiUnit.pkgName,
                 notiUnit.sbnKey,
@@ -195,45 +187,17 @@ class NotiListenerService: NotificationListenerService() {
         }
     }
 
-    suspend fun getNotiUnits(): ArrayList<NotiUnit> = withContext(Dispatchers.IO) {
+    fun getActiveKeys(): ArrayList<Pair<String, String>> {
 
-        activeNotifications.forEach {
-            insertNoti(it)
-        }
-
-        var notiUnits = arrayListOf<NotiUnit>()
-        val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
-        val drawerDao = drawerDatabase.drawerDao()
-
+        activeNotifications.forEach { insertNoti(it) }
         val sbnKeys = activeNotifications
             .map {
                 val notiUnit = NotiUnit(applicationContext, it)
                 notiUnit.pkgName to notiUnit.sbnKey
             }
             .distinct()
-        sbnKeys.forEach { (pkgName, sbnKey) ->
-            val pkgNotis = drawerDao.getBySbnKey(pkgName, sbnKey)
-                .sortedWith(
-                    compareByDescending<NotiUnit> { it.groupKey }
-                        .thenBy { it.sortKey }
-                        .thenBy { it.`when` }
-                )
-            notiUnits.addAll(pkgNotis)
-        }
-        notiUnits = notiUnits
-            .distinctBy { it.appName to it.time to it.title to it.content }
             .toCollection(ArrayList())
 
-        notiUnits.forEachIndexed { idx, notiUnit ->
-            notiUnit.index = idx
-            Log.d("NotiDrawer", notiUnit.sbnKey)
-            Log.d("NotiDrawer", notiUnit.groupKey)
-            Log.d("NotiDrawer", notiUnit.sortKey)
-            Log.d("NotiDrawer", notiUnit.pkgName)
-            Log.d("NotiDrawer", notiUnit.`when`.toString())
-            Log.d("NotiDrawer", notiUnit.title)
-            Log.d("NotiDrawer", notiUnit.content)
-        }
-        notiUnits
+        return sbnKeys
     }
 }
