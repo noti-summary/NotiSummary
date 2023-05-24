@@ -55,7 +55,6 @@ class SummaryService : Service(), LifecycleOwner {
     private lateinit var promptPref: SharedPreferences
     private lateinit var apiPref: SharedPreferences
     private var statusText = ""
-    private var notiInProcess = arrayListOf<NotiUnit>()
 
     private fun getPostContent(activeNotifications: ArrayList<NotiUnit>): String {
 
@@ -87,9 +86,11 @@ class SummaryService : Service(), LifecycleOwner {
 
             val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
             val appFilterMap = getAppFilter(applicationContext)
-            val summarizedNotifications = databaseNotifications.filter {
-                noti -> appFilterMap[noti.pkgName] == true
-            }.sortedBy { it.index }.toCollection(ArrayList())
+            val summarizedNotifications = getNotiDrawer(
+                applicationContext,
+                databaseNotifications,
+                appFilterMap
+            )
             uploadNotifications(
                 applicationContext,
                 databaseNotifications,
@@ -98,12 +99,11 @@ class SummaryService : Service(), LifecycleOwner {
                 appFilterMap
             )
 
-            notiInProcess = summarizedNotifications
             updateStatusText(getString(SummaryResponse.GENERATING.message))
 
             var responseStr = ""
 
-            if (notiInProcess.isNotEmpty()) {
+            if (summarizedNotifications.isNotEmpty()) {
 
                 val client = OkHttpClient.Builder()
                     .connectTimeout(300, TimeUnit.SECONDS)
@@ -171,9 +171,6 @@ class SummaryService : Service(), LifecycleOwner {
                                 putLong("submitTime", submitTime)
                                 putBoolean("isScheduled", isScheduled)
                                 putString("prompt", prompt)
-
-                                val notiDrawerJson = Gson().toJson(summarizedNotifications)
-                                putString("notiDrawer", notiDrawerJson)
 
                                 val notiData = summarizedNotifications.map {
                                     SummaryNoti(it)
@@ -289,11 +286,9 @@ class SummaryService : Service(), LifecycleOwner {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
         summaryPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
         promptPref = getSharedPreferences("PromptPref", Context.MODE_PRIVATE)
         apiPref = getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
-
         return START_STICKY
     }
 
@@ -319,12 +314,6 @@ class SummaryService : Service(), LifecycleOwner {
 
     fun getStatusText(): String {
         return statusText
-    }
-
-    fun getNotiInProcess(): ArrayList<NotiUnit> {
-        return notiInProcess
-            .sortedBy { it.index }
-            .toCollection(ArrayList())
     }
 
     private fun updateStatusText(newStatus: String) {

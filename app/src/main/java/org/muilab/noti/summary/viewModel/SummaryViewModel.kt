@@ -46,20 +46,19 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         this.summaryService = summaryService
         if (summaryService.getStatusText() != context.getString(SummaryResponse.GENERATING.message)) {
             updateFromSharedPref()
-            resetNotiDrawer()
         } else
             updateStatusText()
     }
 
-    private fun resetNotiDrawer() {
-        val notiDrawerJson = sharedPreferences.getString("notiDrawer", "")
-        if (notiDrawerJson!!.isNotEmpty()) {
-            val notiDrawerType = object : TypeToken<List<NotiUnit>>() {}.type
-            _notifications.value = Gson()
-                .fromJson<List<NotiUnit>>(notiDrawerJson, notiDrawerType)
-                .sortedBy { it.index }
-        } else
+    fun resetNotiDrawer() {
+        val json = sharedPreferences.getString("notiDrawer", "").toString()
+        if (json.isEmpty())
             _notifications.value = listOf()
+        else {
+            val notiDrawerType = object : TypeToken<ArrayList<NotiUnit>>() {}.type
+            val notiDrawer = Gson().fromJson<ArrayList<NotiUnit>>(json, notiDrawerType)
+            _notifications.value = notiDrawer
+        }
     }
 
     fun getSummaryText() {
@@ -73,14 +72,8 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
 
         Log.d("SummaryViewModel", "updateStatusText")
         val newStatus = summaryService.getStatusText()
-        val activeNotifications = summaryService.getNotiInProcess()
-        if (newStatus.isNotEmpty()) {
+        if (newStatus.isNotEmpty())
             _result.postValue(newStatus)
-            if (newStatus == context.getString(SummaryResponse.GENERATING.message))
-                _notifications.postValue(activeNotifications)
-            else
-                resetNotiDrawer()
-        }
     }
 
     fun updateSummaryText(activeKeys: ArrayList<Pair<String, String>>, isScheduled: Boolean) {

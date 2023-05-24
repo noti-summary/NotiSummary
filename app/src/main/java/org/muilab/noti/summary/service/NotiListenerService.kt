@@ -21,6 +21,7 @@ import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.util.getAppFilter
 import org.muilab.noti.summary.util.getDatabaseNotifications
+import org.muilab.noti.summary.util.getNotiDrawer
 import org.muilab.noti.summary.util.logSummary
 import org.muilab.noti.summary.util.uploadNotifications
 
@@ -128,12 +129,16 @@ class NotiListenerService: NotificationListenerService() {
                 getAppFilter(applicationContext)
             )
             CoroutineScope(Dispatchers.IO).launch {
+                val activeKeys = getActiveKeys()
+                val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+                val appFilter = getAppFilter(applicationContext)
+                getNotiDrawer(applicationContext, databaseNotifications, appFilter)
                 uploadNotifications(
                     applicationContext,
-                    getDatabaseNotifications(applicationContext, getActiveKeys()),
+                    databaseNotifications,
                     "dbNoti",
                     "REASON_POSTED",
-                    getAppFilter(applicationContext)
+                    appFilter
                 )
             }
         }
@@ -206,12 +211,16 @@ class NotiListenerService: NotificationListenerService() {
             getAppFilter(applicationContext)
         )
         CoroutineScope(Dispatchers.IO).launch {
+            val activeKeys = getActiveKeys()
+            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+            val appFilter = getAppFilter(applicationContext)
+            getNotiDrawer(applicationContext, databaseNotifications, appFilter)
             uploadNotifications(
                 applicationContext,
-                getDatabaseNotifications(applicationContext, getActiveKeys()),
+                databaseNotifications,
                 "dbNoti",
                 reasonStr,
-                getAppFilter(applicationContext)
+                appFilter
             )
         }
     }

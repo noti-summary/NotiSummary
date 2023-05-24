@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.runtime.mutableStateMapOf
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import org.muilab.noti.summary.database.room.DrawerDatabase
 import org.muilab.noti.summary.model.NotiUnit
@@ -59,19 +60,35 @@ fun getAppFilter(context: Context): Map<String, Boolean> {
     packagesWithLauncher.remove("org.muilab.noti.summary")
     packagesWithLauncher.add("android")
 
-    val appFilterMap = mutableStateMapOf<String, Boolean>()
+    val appFilter = mutableStateMapOf<String, Boolean>()
     // Initialize all package names with true as the default state
     packages.forEach { packageInfo ->
         if (packageInfo.packageName in packagesWithLauncher) {
-            appFilterMap[packageInfo.packageName] = true
+            appFilter[packageInfo.packageName] = true
         }
     }
 
     appFilterPref.all.forEach { (packageName, state) ->
         if (state is Boolean) {
-            appFilterMap[packageName] = state
+            appFilter[packageName] = state
         }
     }
 
-    return appFilterMap
+    return appFilter
+}
+
+fun getNotiDrawer(context: Context, databaseNotifications: ArrayList<NotiUnit>, appFilter: Map<String, Boolean>): ArrayList<NotiUnit> {
+
+    val notiDrawer = databaseNotifications.filter {
+            noti -> appFilter[noti.pkgName] == true
+    }.sortedBy { it.index }.toCollection(ArrayList())
+
+    val notiDrawerJson = Gson().toJson(notiDrawer)
+    val sharedPreferences = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    with (sharedPreferences.edit()) {
+        putString("notiDrawer", notiDrawerJson)
+        apply()
+    }
+
+    return notiDrawer
 }
