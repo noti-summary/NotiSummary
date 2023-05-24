@@ -263,7 +263,6 @@ inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
 }
 
 fun logUserAction(type: String, actionName: String, context: Context, metadata: String = "") {
-
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
     val time = System.currentTimeMillis()
@@ -299,5 +298,34 @@ fun uploadUserAction(userActionDao: UserActionDao) {
         }
         .addOnFailureListener {
             Log.d("UserAction", "Failed to upload to Firestore")
+        }
+}
+
+fun uploadNotifications(context: Context, notiUnits: ArrayList<NotiUnit>, drawerType: String, reason: String, filter: Map<String, Boolean>) {
+
+    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+    val userId = sharedPref.getString("user_id", "000").toString()
+    val summaryNotis = notiUnits.map { SummaryNoti(it) }
+    val timestamp = System.currentTimeMillis()
+    val dateTime = getDateTime(timestamp)
+    val documentId = "${userId}_${timestamp}"
+    val document = hashMapOf(
+        "userId" to userId,
+        "timestamp" to timestamp,
+        "dateTime" to dateTime,
+        "reason" to reason,
+        "filter" to filter,
+        "summaryNotis" to summaryNotis
+    )
+
+    val db = Firebase.firestore
+    db.collection(drawerType)
+        .document(documentId)
+        .set(document)
+        .addOnSuccessListener {
+            Log.d("Data Log", "Upload to set $drawerType with ID $documentId")
+        }
+        .addOnFailureListener { e ->
+            Log.w("Data Log", "Error adding context to Firestore", e)
         }
 }

@@ -84,17 +84,11 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateSummaryText(activeKeys: ArrayList<Pair<String, String>>, isScheduled: Boolean) {
-        if (activeKeys.isNotEmpty()) {
-            _result.postValue(context.getString(SummaryResponse.GENERATING.message))
-            Log.d("sendToServer", "Trigger NotScheduled")
-            viewModelScope.launch {
-                val responseMessage = summaryService.sendToServer(activeKeys, isScheduled)
-                _result.postValue(responseMessage)
-                resetNotiDrawer()
-            }
-        } else {
-            _result.postValue(context.getString(SummaryResponse.NO_NOTIFICATION.message))
-            _notifications.postValue(listOf())
+        _result.postValue(context.getString(SummaryResponse.GENERATING.message))
+        viewModelScope.launch {
+            val responseMessage = summaryService.sendToServer(activeKeys, isScheduled)
+            _result.postValue(responseMessage)
+            resetNotiDrawer()
         }
     }
 }

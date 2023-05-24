@@ -5,12 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.*
-import android.content.pm.PackageManager
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.*
@@ -31,7 +28,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.database.room.DrawerDatabase
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.*
@@ -58,7 +54,6 @@ class SummaryService : Service(), LifecycleOwner {
     private lateinit var summaryPref: SharedPreferences
     private lateinit var promptPref: SharedPreferences
     private lateinit var apiPref: SharedPreferences
-    private lateinit var appFilterPref: SharedPreferences
     private var statusText = ""
     private var notiInProcess = arrayListOf<NotiUnit>()
 
@@ -84,40 +79,24 @@ class SummaryService : Service(), LifecycleOwner {
         return sb.toString()
     }
 
-    fun getActiveNotifications(activeKeys: ArrayList<Pair<String, String>>): ArrayList<NotiUnit> {
-
-        var activeNotifications = arrayListOf<NotiUnit>()
-        val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
-        val drawerDao = drawerDatabase.drawerDao()
-
-        activeKeys.forEach { (pkgName, sbnKey) ->
-            val pkgNotis = drawerDao.getBySbnKey(pkgName, sbnKey)
-                .sortedWith(
-                    compareByDescending<NotiUnit> { it.groupKey }
-                        .thenBy { it.sortKey }
-                        .thenBy { it.`when` }
-                )
-            activeNotifications.addAll(pkgNotis)
-        }
-        activeNotifications = activeNotifications
-            .distinctBy { it.appName to it.time to it.title to it.content }
-            .toCollection(ArrayList())
-        activeNotifications.forEachIndexed { idx, notiUnit -> notiUnit.index = idx }
-
-        return activeNotifications
-    }
-
     suspend fun sendToServer(
         activeKeys: ArrayList<Pair<String, String>>,
         isScheduled: Boolean
     ): String {
         return withContext(Dispatchers.IO) {
 
-            val activeNotifications = getActiveNotifications(activeKeys)
-            val appFilterMap = getAppFilter()
-            val summarizedNotifications = activeNotifications.filter {
+            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+            val appFilterMap = getAppFilter(applicationContext)
+            val summarizedNotifications = databaseNotifications.filter {
                 noti -> appFilterMap[noti.pkgName] == true
             }.sortedBy { it.index }.toCollection(ArrayList())
+            uploadNotifications(
+                applicationContext,
+                databaseNotifications,
+                "dbNoti",
+                "REASON_GEN_SUMMARY",
+                appFilterMap
+            )
 
             notiInProcess = summarizedNotifications
             updateStatusText(getString(SummaryResponse.GENERATING.message))
@@ -314,7 +293,6 @@ class SummaryService : Service(), LifecycleOwner {
         summaryPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
         promptPref = getSharedPreferences("PromptPref", Context.MODE_PRIVATE)
         apiPref = getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
-        appFilterPref = getSharedPreferences("app_filter", Context.MODE_PRIVATE)
 
         return START_STICKY
     }
@@ -337,47 +315,6 @@ class SummaryService : Service(), LifecycleOwner {
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         unregisterReceiver(allNotiReturnReceiver)
         super.onDestroy()
-    }
-
-    private fun getAppFilter(): Map<String, Boolean> {
-
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        val packages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
-        } else {
-            packageManager.getInstalledApplications(0)
-        }
-
-        val launcherActivities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.queryIntentActivities(mainIntent, PackageManager.ResolveInfoFlags.of(0))
-        } else {
-            packageManager.queryIntentActivities(mainIntent, 0)
-        }
-
-        val packagesWithLauncher = mutableListOf<String>()
-        for (activity in launcherActivities) {
-            packagesWithLauncher.add(activity.activityInfo.packageName)
-        }
-        packagesWithLauncher.remove("org.muilab.noti.summary")
-        packagesWithLauncher.add("android")
-
-        val appFilterMap = mutableStateMapOf<String, Boolean>()
-        // Initialize all package names with true as the default state
-        packages.forEach { packageInfo ->
-            if (packageInfo.packageName in packagesWithLauncher) {
-                appFilterMap[packageInfo.packageName] = true
-            }
-        }
-
-        appFilterPref.all.forEach { (packageName, state) ->
-            if (state is Boolean) {
-                appFilterMap[packageName] = state
-            }
-        }
-
-        return appFilterMap
     }
 
     fun getStatusText(): String {

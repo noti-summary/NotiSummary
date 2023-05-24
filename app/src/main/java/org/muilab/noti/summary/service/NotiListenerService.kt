@@ -19,7 +19,10 @@ import kotlinx.coroutines.launch
 import org.muilab.noti.summary.database.room.DrawerDatabase
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.util.getAppFilter
+import org.muilab.noti.summary.util.getDatabaseNotifications
 import org.muilab.noti.summary.util.logSummary
+import org.muilab.noti.summary.util.uploadNotifications
 
 class NotiListenerService: NotificationListenerService() {
 
@@ -28,8 +31,9 @@ class NotiListenerService: NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        activeNotifications.forEach {
-            insertNoti(it)
+        activeNotifications.forEach { sbn ->
+            if (!sbn.isOngoing)
+                insertNoti(sbn)
         }
         Log.i(TAG, "Connected!")
         connected = true
@@ -50,6 +54,13 @@ class NotiListenerService: NotificationListenerService() {
                 val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
                 broadcastIntent.putExtra("activeKeys", getActiveKeys())
                 sendBroadcast(broadcastIntent)
+                uploadNotifications(
+                    applicationContext,
+                    getActiveNotiUnits(),
+                    "systemNoti",
+                    "REASON_GEN_SUMMARY",
+                    getAppFilter(applicationContext)
+                )
             }
         }
     }
@@ -60,6 +71,13 @@ class NotiListenerService: NotificationListenerService() {
                 val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
                 broadcastIntent.putExtra("activeKeys", getActiveKeys())
                 sendBroadcast(broadcastIntent)
+                uploadNotifications(
+                    applicationContext,
+                    getActiveNotiUnits(),
+                    "systemNoti",
+                    "REASON_GEN_SUMMARY",
+                    getAppFilter(applicationContext)
+                )
             }
         }
     }
@@ -100,7 +118,25 @@ class NotiListenerService: NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        insertNoti(sbn)
+        if (!sbn.isOngoing) {
+            insertNoti(sbn)
+            uploadNotifications(
+                applicationContext,
+                getActiveNotiUnits(),
+                "systemNoti",
+                "REASON_POSTED",
+                getAppFilter(applicationContext)
+            )
+            CoroutineScope(Dispatchers.IO).launch {
+                uploadNotifications(
+                    applicationContext,
+                    getDatabaseNotifications(applicationContext, getActiveKeys()),
+                    "dbNoti",
+                    "REASON_POSTED",
+                    getAppFilter(applicationContext)
+                )
+            }
+        }
     }
 
     override fun onNotificationRemoved(
@@ -161,6 +197,23 @@ class NotiListenerService: NotificationListenerService() {
 
         if (summarySharedPref.getLong("submitTime", 0) != 0L)
             logSummary(applicationContext)
+
+        uploadNotifications(
+            applicationContext,
+            getActiveNotiUnits(),
+            "systemNoti",
+            reasonStr,
+            getAppFilter(applicationContext)
+        )
+        CoroutineScope(Dispatchers.IO).launch {
+            uploadNotifications(
+                applicationContext,
+                getDatabaseNotifications(applicationContext, getActiveKeys()),
+                "dbNoti",
+                reasonStr,
+                getAppFilter(applicationContext)
+            )
+        }
     }
 
     private fun insertNoti(sbn: StatusBarNotification) {
@@ -189,7 +242,10 @@ class NotiListenerService: NotificationListenerService() {
 
     fun getActiveKeys(): ArrayList<Pair<String, String>> {
 
-        activeNotifications.forEach { insertNoti(it) }
+        activeNotifications.forEach { sbn ->
+            if (!sbn.isOngoing)
+                insertNoti(sbn)
+        }
         val sbnKeys = activeNotifications
             .map {
                 val notiUnit = NotiUnit(applicationContext, it)
@@ -199,5 +255,11 @@ class NotiListenerService: NotificationListenerService() {
             .toCollection(ArrayList())
 
         return sbnKeys
+    }
+
+    fun getActiveNotiUnits(): ArrayList<NotiUnit> {
+        return activeNotifications
+            .map { NotiUnit(applicationContext, it) }
+            .toCollection(ArrayList())
     }
 }
