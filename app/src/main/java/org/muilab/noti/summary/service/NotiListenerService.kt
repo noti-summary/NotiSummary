@@ -117,6 +117,14 @@ class NotiListenerService: NotificationListenerService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (connected) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val activeKeys = getActiveKeys()
+                val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+                val appFilter = getAppFilter(applicationContext)
+                getNotiDrawer(applicationContext, databaseNotifications, appFilter)
+            }
+        }
         return START_STICKY
     }
 
