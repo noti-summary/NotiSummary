@@ -56,6 +56,7 @@ fun NotiDrawer(context: Context, sumViewModel: SummaryViewModel) {
     var showContent by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
+        sumViewModel.resetNotiDrawer()
         showAppName = notiFilterPrefs.getBoolean(context.getString(R.string.application_name), true)
         showTime = notiFilterPrefs.getBoolean(context.getString(R.string.time), true)
         showTitle = notiFilterPrefs.getBoolean(context.getString(R.string.title), true)

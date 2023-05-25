@@ -16,11 +16,14 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.muilab.noti.summary.database.room.DrawerDatabase
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.util.getAppFilter
+import org.muilab.noti.summary.util.getDatabaseNotifications
+import org.muilab.noti.summary.util.getNotiDrawer
 import org.muilab.noti.summary.util.logSummary
+import org.muilab.noti.summary.util.uploadNotifications
 
 class NotiListenerService: NotificationListenerService() {
 
@@ -29,8 +32,11 @@ class NotiListenerService: NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        activeNotifications.forEach {
-            insertNoti(it)
+        CoroutineScope(Dispatchers.IO).launch {
+            val activeKeys = getActiveKeys()
+            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+            val appFilter = getAppFilter(applicationContext)
+            getNotiDrawer(applicationContext, databaseNotifications, appFilter)
         }
         Log.i(TAG, "Connected!")
         connected = true
@@ -47,24 +53,34 @@ class NotiListenerService: NotificationListenerService() {
 
     private val allNotiRequestReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
-                    val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
-                    broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
-                    sendBroadcast(broadcastIntent)
-                }
+            if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS") {
+                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS")
+                broadcastIntent.putExtra("activeKeys", getActiveKeys())
+                sendBroadcast(broadcastIntent)
+                uploadNotifications(
+                    applicationContext,
+                    getActiveNotiUnits(),
+                    "systemNoti",
+                    "REASON_GEN_SUMMARY",
+                    getAppFilter(applicationContext)
+                )
             }
         }
     }
 
     private val allNotiRequestScheduledReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            CoroutineScope(Dispatchers.IO).launch {
-                if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
-                    val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
-                    broadcastIntent.putParcelableArrayListExtra("activeNotis", getNotiUnits())
-                    sendBroadcast(broadcastIntent)
-                }
+            if (intent?.action == "edu.mui.noti.summary.REQUEST_ALLNOTIS_SCHEDULED") {
+                val broadcastIntent = Intent("edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED")
+                broadcastIntent.putExtra("activeKeys", getActiveKeys())
+                sendBroadcast(broadcastIntent)
+                uploadNotifications(
+                    applicationContext,
+                    getActiveNotiUnits(),
+                    "systemNoti",
+                    "REASON_GEN_SUMMARY",
+                    getAppFilter(applicationContext)
+                )
             }
         }
     }
@@ -101,11 +117,41 @@ class NotiListenerService: NotificationListenerService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (connected) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val activeKeys = getActiveKeys()
+                val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+                val appFilter = getAppFilter(applicationContext)
+                getNotiDrawer(applicationContext, databaseNotifications, appFilter)
+            }
+        }
         return START_STICKY
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        insertNoti(sbn)
+        if (!sbn.isOngoing) {
+            insertNoti(sbn)
+            uploadNotifications(
+                applicationContext,
+                getActiveNotiUnits(),
+                "systemNoti",
+                "REASON_POSTED",
+                getAppFilter(applicationContext)
+            )
+            CoroutineScope(Dispatchers.IO).launch {
+                val activeKeys = getActiveKeys()
+                val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+                val appFilter = getAppFilter(applicationContext)
+                getNotiDrawer(applicationContext, databaseNotifications, appFilter)
+                uploadNotifications(
+                    applicationContext,
+                    databaseNotifications,
+                    "dbNoti",
+                    "REASON_POSTED",
+                    appFilter
+                )
+            }
+        }
     }
 
     override fun onNotificationRemoved(
@@ -147,9 +193,6 @@ class NotiListenerService: NotificationListenerService() {
         CoroutineScope(Dispatchers.IO).launch {
             val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
             val drawerDao = drawerDatabase.drawerDao()
-            Log.d("NotiDelete", notiUnit.sbnKey)
-            Log.d("NotiDelete", notiUnit.groupKey)
-            Log.d("NotiDelete", notiUnit.sortKey)
             drawerDao.deleteByPackageSortKey(
                 notiUnit.pkgName,
                 notiUnit.sbnKey,
@@ -169,6 +212,27 @@ class NotiListenerService: NotificationListenerService() {
 
         if (summarySharedPref.getLong("submitTime", 0) != 0L)
             logSummary(applicationContext)
+
+        uploadNotifications(
+            applicationContext,
+            getActiveNotiUnits(),
+            "systemNoti",
+            reasonStr,
+            getAppFilter(applicationContext)
+        )
+        CoroutineScope(Dispatchers.IO).launch {
+            val activeKeys = getActiveKeys()
+            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+            val appFilter = getAppFilter(applicationContext)
+            getNotiDrawer(applicationContext, databaseNotifications, appFilter)
+            uploadNotifications(
+                applicationContext,
+                databaseNotifications,
+                "dbNoti",
+                reasonStr,
+                appFilter
+            )
+        }
     }
 
     private fun insertNoti(sbn: StatusBarNotification) {
@@ -195,45 +259,33 @@ class NotiListenerService: NotificationListenerService() {
         }
     }
 
-    suspend fun getNotiUnits(): ArrayList<NotiUnit> = withContext(Dispatchers.IO) {
+    fun getActiveKeys(): ArrayList<Pair<String, String>> {
 
-        activeNotifications.forEach {
-            insertNoti(it)
+        activeNotifications.forEach { sbn ->
+            if (!sbn.isOngoing)
+                insertNoti(sbn)
         }
-
-        var notiUnits = arrayListOf<NotiUnit>()
-        val drawerDatabase = DrawerDatabase.getInstance(applicationContext)
-        val drawerDao = drawerDatabase.drawerDao()
-
         val sbnKeys = activeNotifications
             .map {
                 val notiUnit = NotiUnit(applicationContext, it)
                 notiUnit.pkgName to notiUnit.sbnKey
             }
             .distinct()
-        sbnKeys.forEach { (pkgName, sbnKey) ->
-            val pkgNotis = drawerDao.getBySbnKey(pkgName, sbnKey)
-                .sortedWith(
-                    compareByDescending<NotiUnit> { it.groupKey }
-                        .thenBy { it.sortKey }
-                        .thenBy { it.`when` }
-                )
-            notiUnits.addAll(pkgNotis)
-        }
-        notiUnits = notiUnits
-            .distinctBy { it.appName to it.time to it.title to it.content }
             .toCollection(ArrayList())
 
-        notiUnits.forEachIndexed { idx, notiUnit ->
-            notiUnit.index = idx
-            Log.d("NotiDrawer", notiUnit.sbnKey)
-            Log.d("NotiDrawer", notiUnit.groupKey)
-            Log.d("NotiDrawer", notiUnit.sortKey)
-            Log.d("NotiDrawer", notiUnit.pkgName)
-            Log.d("NotiDrawer", notiUnit.`when`.toString())
-            Log.d("NotiDrawer", notiUnit.title)
-            Log.d("NotiDrawer", notiUnit.content)
+        val activeKeysJson = Gson().toJson(sbnKeys)
+        val summaryPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+        with (summaryPref.edit()) {
+            putString("activeKeys", activeKeysJson)
+            apply()
         }
-        notiUnits
+
+        return sbnKeys
+    }
+
+    fun getActiveNotiUnits(): ArrayList<NotiUnit> {
+        return activeNotifications
+            .map { NotiUnit(applicationContext, it) }
+            .toCollection(ArrayList())
     }
 }

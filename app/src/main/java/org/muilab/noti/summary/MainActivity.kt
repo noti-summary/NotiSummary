@@ -23,17 +23,12 @@ import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
-import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.util.getDateTime
 import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
-import org.muilab.noti.summary.view.userInit.AskPermissionDialog
-import org.muilab.noti.summary.view.userInit.FilterNotify
-import org.muilab.noti.summary.view.userInit.NetworkCheckDialog
-import org.muilab.noti.summary.view.userInit.PersonalInformationScreen
-import org.muilab.noti.summary.view.userInit.PrivacyPolicyDialog
+import org.muilab.noti.summary.view.userInit.*
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
@@ -164,6 +159,7 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
         val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
         registerReceiver(newStatusReceiver, newStatusFilter)
+        sumViewModel.updateNotiDrawer()
         sumViewModel.updateStatusText()
     }
 
@@ -218,9 +214,9 @@ class MainActivity : ComponentActivity() {
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS") {
-                val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
-                if (activeNotifications != null) {
-                    sumViewModel.updateSummaryText(activeNotifications, false)
+                val activeKeys = intent.getSerializableExtra("activeKeys") as? ArrayList<Pair<String, String>>
+                if (activeKeys != null) {
+                    sumViewModel.updateSummaryText(activeKeys, false)
                 }
             }
         }

@@ -5,12 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.*
-import android.content.pm.PackageManager
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.*
@@ -57,9 +54,7 @@ class SummaryService : Service(), LifecycleOwner {
     private lateinit var summaryPref: SharedPreferences
     private lateinit var promptPref: SharedPreferences
     private lateinit var apiPref: SharedPreferences
-    private lateinit var appFilterPref: SharedPreferences
     private var statusText = ""
-    private var notiInProcess = arrayListOf<NotiUnit>()
 
     private fun getPostContent(activeNotifications: ArrayList<NotiUnit>): String {
 
@@ -84,22 +79,31 @@ class SummaryService : Service(), LifecycleOwner {
     }
 
     suspend fun sendToServer(
-        activeNotifications: ArrayList<NotiUnit>,
+        activeKeys: ArrayList<Pair<String, String>>,
         isScheduled: Boolean
     ): String {
         return withContext(Dispatchers.IO) {
 
-            val appFilterMap = getAppFilter()
-            val summarizedNotifications = activeNotifications.filter {
-                noti -> appFilterMap[noti.pkgName] == true
-            }.sortedBy { it.index }.toCollection(ArrayList())
+            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+            val appFilterMap = getAppFilter(applicationContext)
+            val summarizedNotifications = getNotiDrawer(
+                applicationContext,
+                databaseNotifications,
+                appFilterMap
+            )
+            uploadNotifications(
+                applicationContext,
+                databaseNotifications,
+                "dbNoti",
+                "REASON_GEN_SUMMARY",
+                appFilterMap
+            )
 
-            notiInProcess = summarizedNotifications
             updateStatusText(getString(SummaryResponse.GENERATING.message))
 
             var responseStr = ""
 
-            if (notiInProcess.isNotEmpty()) {
+            if (summarizedNotifications.isNotEmpty()) {
 
                 val client = OkHttpClient.Builder()
                     .connectTimeout(300, TimeUnit.SECONDS)
@@ -167,9 +171,6 @@ class SummaryService : Service(), LifecycleOwner {
                                 putLong("submitTime", submitTime)
                                 putBoolean("isScheduled", isScheduled)
                                 putString("prompt", prompt)
-
-                                val notiDrawerJson = Gson().toJson(summarizedNotifications)
-                                putString("notiDrawer", notiDrawerJson)
 
                                 val notiData = summarizedNotifications.map {
                                     SummaryNoti(it)
@@ -285,12 +286,9 @@ class SummaryService : Service(), LifecycleOwner {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
         summaryPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
         promptPref = getSharedPreferences("PromptPref", Context.MODE_PRIVATE)
         apiPref = getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
-        appFilterPref = getSharedPreferences("app_filter", Context.MODE_PRIVATE)
-
         return START_STICKY
     }
 
@@ -314,55 +312,8 @@ class SummaryService : Service(), LifecycleOwner {
         super.onDestroy()
     }
 
-    private fun getAppFilter(): Map<String, Boolean> {
-
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-
-        val packages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
-        } else {
-            packageManager.getInstalledApplications(0)
-        }
-
-        val launcherActivities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.queryIntentActivities(mainIntent, PackageManager.ResolveInfoFlags.of(0))
-        } else {
-            packageManager.queryIntentActivities(mainIntent, 0)
-        }
-
-        val packagesWithLauncher = mutableListOf<String>()
-        for (activity in launcherActivities) {
-            packagesWithLauncher.add(activity.activityInfo.packageName)
-        }
-        packagesWithLauncher.remove("org.muilab.noti.summary")
-        packagesWithLauncher.add("android")
-
-        val appFilterMap = mutableStateMapOf<String, Boolean>()
-        // Initialize all package names with true as the default state
-        packages.forEach { packageInfo ->
-            if (packageInfo.packageName in packagesWithLauncher) {
-                appFilterMap[packageInfo.packageName] = true
-            }
-        }
-
-        appFilterPref.all.forEach { (packageName, state) ->
-            if (state is Boolean) {
-                appFilterMap[packageName] = state
-            }
-        }
-
-        return appFilterMap
-    }
-
     fun getStatusText(): String {
         return statusText
-    }
-
-    fun getNotiInProcess(): ArrayList<NotiUnit> {
-        return notiInProcess
-            .sortedBy { it.index }
-            .toCollection(ArrayList())
     }
 
     private fun updateStatusText(newStatus: String) {
@@ -402,10 +353,10 @@ class SummaryService : Service(), LifecycleOwner {
     private val allNotiReturnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.RETURN_ALLNOTIS_SCHEDULED") {
-                val activeNotifications = intent.getParcelableArrayListExtra<NotiUnit>("activeNotis")
-                if (activeNotifications != null) {
+                val activeKeys = intent.getSerializableExtra("activeKeys") as? ArrayList<Pair<String, String>>
+                if (activeKeys != null) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        sendToServer(activeNotifications, true)
+                        sendToServer(activeKeys, true)
                     }
                 }
             }
