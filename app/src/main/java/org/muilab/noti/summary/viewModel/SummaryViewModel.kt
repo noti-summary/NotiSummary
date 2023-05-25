@@ -68,14 +68,17 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateNotiDrawer() {
         val activeKeyJson = sharedPreferences.getString("activeKeys", "").toString()
-        val activeKeyType = object : TypeToken<ArrayList<Pair<String, String>>>() {}.type
-        val activeKeys = Gson().fromJson<ArrayList<Pair<String, String>>>(activeKeyJson, activeKeyType)
-        CoroutineScope(Dispatchers.IO).launch {
-            val databaseNotifications = getDatabaseNotifications(context, activeKeys)
-            val appFilter = getAppFilter(context)
-            getNotiDrawer(context, databaseNotifications, appFilter)
+        if (activeKeyJson.isNotEmpty()) {
+            val activeKeyType = object : TypeToken<ArrayList<Pair<String, String>>>() {}.type
+            val activeKeys =
+                Gson().fromJson<ArrayList<Pair<String, String>>>(activeKeyJson, activeKeyType)
+            CoroutineScope(Dispatchers.IO).launch {
+                val databaseNotifications = getDatabaseNotifications(context, activeKeys)
+                val appFilter = getAppFilter(context)
+                getNotiDrawer(context, databaseNotifications, appFilter)
+            }
+            resetNotiDrawer()
         }
-        resetNotiDrawer()
     }
 
     fun getSummaryText() {
