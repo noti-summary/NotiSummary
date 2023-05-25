@@ -32,9 +32,11 @@ class NotiListenerService: NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        activeNotifications.forEach { sbn ->
-            if (!sbn.isOngoing)
-                insertNoti(sbn)
+        CoroutineScope(Dispatchers.IO).launch {
+            val activeKeys = getActiveKeys()
+            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
+            val appFilter = getAppFilter(applicationContext)
+            getNotiDrawer(applicationContext, databaseNotifications, appFilter)
         }
         Log.i(TAG, "Connected!")
         connected = true
