@@ -9,9 +9,14 @@ import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
+import org.muilab.noti.summary.util.getAppFilter
+import org.muilab.noti.summary.util.getDatabaseNotifications
+import org.muilab.noti.summary.util.getNotiDrawer
 import org.muilab.noti.summary.view.home.SummaryResponse
 
 class SummaryViewModel(application: Application) : AndroidViewModel(application) {
@@ -59,6 +64,18 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             val notiDrawer = Gson().fromJson<ArrayList<NotiUnit>>(json, notiDrawerType)
             _notifications.value = notiDrawer
         }
+    }
+
+    fun updateNotiDrawer() {
+        val activeKeyJson = sharedPreferences.getString("activeKeys", "").toString()
+        val activeKeyType = object : TypeToken<ArrayList<Pair<String, String>>>() {}.type
+        val activeKeys = Gson().fromJson<ArrayList<Pair<String, String>>>(activeKeyJson, activeKeyType)
+        CoroutineScope(Dispatchers.IO).launch {
+            val databaseNotifications = getDatabaseNotifications(context, activeKeys)
+            val appFilter = getAppFilter(context)
+            getNotiDrawer(context, databaseNotifications, appFilter)
+        }
+        resetNotiDrawer()
     }
 
     fun getSummaryText() {

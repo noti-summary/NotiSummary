@@ -273,6 +273,13 @@ class NotiListenerService: NotificationListenerService() {
             .distinct()
             .toCollection(ArrayList())
 
+        val activeKeysJson = Gson().toJson(sbnKeys)
+        val summaryPref = getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+        with (summaryPref.edit()) {
+            putString("activeKeys", activeKeysJson)
+            apply()
+        }
+
         return sbnKeys
     }
 

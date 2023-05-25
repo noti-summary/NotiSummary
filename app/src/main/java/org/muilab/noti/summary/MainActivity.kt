@@ -159,6 +159,7 @@ class MainActivity : ComponentActivity() {
         registerReceiver(allNotiReturnReceiver, allNotiFilter)
         val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
         registerReceiver(newStatusReceiver, newStatusFilter)
+        sumViewModel.updateNotiDrawer()
         sumViewModel.updateStatusText()
     }
 
