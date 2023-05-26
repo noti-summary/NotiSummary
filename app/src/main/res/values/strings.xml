@@ -77,16 +77,16 @@
     <string name="others">Others</string>
     <string name="source">How did you learn about our app?</string>
     <string name="update_title">APP Update</string>
-    <string name="update_text">Please head over to Google Play for our latest fixes.</string>
+    <string name="update_text">Please head over to Google Play Store for the latest fixes.</string>
     <string name="turn_on_permission">Enable Permission</string>
     <string name="enable">Enable</string>
     <string name="turnon_permission_description">To get started, enable notification access for NotiSummary</string>
     <string name="continue_to_use">Continue</string>
     <string name="permission_not_yet_enabled">You have not enabled notification access.</string>
-    <string name="prompt_description">To obtain a more customized summary, we encourage you to give ChatGPT clear instructions on how you want your notifications summarized by creating your own prompts.</string>
-    <string name="scheduler_description">Set up scheduled summaries in the app\'s settings to automatically generate summaries at specific times. You can enable or disable push notifications for scheduled summaries by toggling the ”Open Push Notifications” button.</string>
-    <string name="app_filter_description">In the app\'s settings, you can select which app\'s notifications you want to include in the summary.</string>
-    <string name="noti_filter_description">In the app\'s settings, you can select which notification details you want to include in the summary.</string>
-    <string name="api_key_description">We provide 50 summarization quotas per day, but you can choose to use your own OpenAI API key by adding your key in this page to have unlimited access.</string>
+    <string name="prompt_description">You can click the button in the corner to add a prompt, providing clear instructions to let ChatGPT know how to summarize notifications for you.</string>
+    <string name="scheduler_description">You can click the button in the corner to add a new summary schedule, allowing the APP to automatically generate summaries at specified times. You can also select "Open Push Notification" to have the APP notify you when a summary is generated.</string>
+    <string name="app_filter_description">You can select the applications to be included in the notification summary here.</string>
+    <string name="noti_filter_description">You can choose the notification details to be included in the summary here.</string>
+    <string name="api_key_description">You can perform a certain number of free summaries every day, but if you use your own OpenAI API key, there are no such restrictions. If you wish to use your own API key, you can add it by clicking the button in the corner.</string>
     <string name="empty" translatable="false" />
 </resources>

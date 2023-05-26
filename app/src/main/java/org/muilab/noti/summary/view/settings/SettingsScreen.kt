@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -100,7 +101,11 @@ fun SettingTopBar(
         TopAppBar(
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(currentScreen.titleId))
+                    Text(
+                        stringResource(currentScreen.titleId),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Spacer(modifier = Modifier.size(5.dp))
                     IconButton(
                         modifier = Modifier
@@ -135,7 +140,7 @@ fun SettingTopBar(
     }
     if (showDialog.value) {
         AlertDialog(
-            title = { Text(stringResource(currentScreen.titleId)) },
+            title = { },
             text = { Text(stringResource(currentScreen.description)) },
             onDismissRequest = { showDialog.value = false },
             confirmButton = {
