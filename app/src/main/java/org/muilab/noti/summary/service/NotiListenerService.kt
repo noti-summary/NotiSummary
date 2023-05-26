@@ -38,6 +38,8 @@ class NotiListenerService: NotificationListenerService() {
             val appFilter = getAppFilter(applicationContext)
             getNotiDrawer(applicationContext, databaseNotifications, appFilter)
         }
+        val updateIntent = Intent("edu.mui.noti.summary.UPDATE_STATUS")
+        sendBroadcast(updateIntent)
         Log.i(TAG, "Connected!")
         connected = true
     }

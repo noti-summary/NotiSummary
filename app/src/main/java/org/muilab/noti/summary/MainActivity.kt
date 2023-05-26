@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
         val newStatusFilter = IntentFilter("edu.mui.noti.summary.UPDATE_STATUS")
         registerReceiver(newStatusReceiver, newStatusFilter)
         sumViewModel.updateNotiDrawer()
-        sumViewModel.updateStatusText()
+        sumViewModel.updateStatus()
     }
 
     override fun onPause() {
@@ -225,7 +225,7 @@ class MainActivity : ComponentActivity() {
     private val newStatusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "edu.mui.noti.summary.UPDATE_STATUS") {
-                sumViewModel.updateStatusText()
+                sumViewModel.updateStatus()
             }
         }
     }
