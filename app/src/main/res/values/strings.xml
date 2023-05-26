@@ -84,4 +84,9 @@
     <string name="continue_to_use">Continue</string>
     <string name="permission_not_yet_enabled">You have not enabled notification access.</string>
     <string name="prompt_description">To obtain a more customized summary, we encourage you to give ChatGPT clear instructions on how you want your notifications summarized by creating your own prompts.</string>
+    <string name="scheduler_description">Set up scheduled summaries in the app\'s settings to automatically generate summaries at specific times. You can enable or disable push notifications for scheduled summaries by toggling the ”Open Push Notifications” button.</string>
+    <string name="app_filter_description">In the app\'s settings, you can select which app\'s notifications you want to include in the summary.</string>
+    <string name="noti_filter_description">In the app\'s settings, you can select which notification details you want to include in the summary.</string>
+    <string name="api_key_description">We provide 50 summarization quotas per day, but you can choose to use your own OpenAI API key by adding your key in this page to have unlimited access.</string>
+    <string name="empty" translatable="false" />
 </resources>

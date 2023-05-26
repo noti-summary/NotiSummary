@@ -2,13 +2,21 @@ package org.muilab.noti.summary.view.settings
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,17 +34,17 @@ import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 
 
-enum class SettingScreenItem(var titleId: Int, var iconId: Int) {
-    Start(R.string.main_setting, R.drawable.settings),
-    SettingPrompt(R.string.prompt, R.drawable.setting_sms),
-    SettingScheduler(R.string.scheduled_summary, R.drawable.schedule),
-    SettingAppFilter(R.string.app_covered, R.drawable.play_store),
-    SettingNotiFilter(R.string.noti_info_covered, R.drawable.mail),
-    SettingAPI(R.string.openai_api_key, R.drawable.setting_key),
-    Feedback(R.string.feedback, R.drawable.feedback),
-    About(R.string.about, R.drawable.about),
-    Privacy(R.string.privacy_policy, R.drawable.privacy_policy),
-    Recruitment(R.string.recruitment, R.drawable.participant),
+enum class SettingScreenItem(var titleId: Int, var iconId: Int, var description: Int) {
+    Start(R.string.main_setting, R.drawable.settings, R.string.empty),
+    SettingPrompt(R.string.prompt, R.drawable.setting_sms, R.string.prompt_description),
+    SettingScheduler(R.string.scheduled_summary, R.drawable.schedule, R.string.scheduler_description),
+    SettingAppFilter(R.string.app_covered, R.drawable.play_store, R.string.app_filter_description),
+    SettingNotiFilter(R.string.noti_info_covered, R.drawable.mail, R.string.noti_filter_description),
+    SettingAPI(R.string.openai_api_key, R.drawable.setting_key, R.string.api_key_description),
+    Feedback(R.string.feedback, R.drawable.feedback, R.string.empty),
+    About(R.string.about, R.drawable.about, R.string.empty),
+    Privacy(R.string.privacy_policy, R.drawable.privacy_policy, R.string.empty),
+    Recruitment(R.string.recruitment, R.drawable.participant, R.string.empty),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -87,9 +95,23 @@ fun SettingTopBar(
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val showDialog = remember { mutableStateOf(false) }
     if (currentScreen != SettingScreenItem.Start) {
         TopAppBar(
-            title = { Text(stringResource(currentScreen.titleId)) },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(currentScreen.titleId))
+                    Spacer(modifier = Modifier.size(5.dp))
+                    IconButton(
+                        modifier = Modifier
+                            .size(25.dp)
+                            .padding(3.dp),
+                        onClick = { showDialog.value = currentScreen.description != R.string.empty }
+                    ) {
+                        Icon(Icons.Rounded.Info, contentDescription = "Settings Info")
+                    }
+                }
+            },
             modifier = modifier,
             navigationIcon = {
                 if (canNavigateBack) {
@@ -100,7 +122,7 @@ fun SettingTopBar(
                         )
                     }
                 }
-            }
+            },
         )
     } else {
         Text(
@@ -109,6 +131,25 @@ fun SettingTopBar(
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(16.dp)
+        )
+    }
+    if (showDialog.value) {
+        AlertDialog(
+            title = { Text(stringResource(currentScreen.titleId)) },
+            text = { Text(stringResource(currentScreen.description)) },
+            onDismissRequest = { showDialog.value = false },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                    )
+                }
+            },
         )
     }
 }
