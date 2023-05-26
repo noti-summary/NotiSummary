@@ -83,4 +83,5 @@
     <string name="turnon_permission_description">To get started, enable notification access for NotiSummary</string>
     <string name="continue_to_use">Continue</string>
     <string name="permission_not_yet_enabled">You have not enabled notification access.</string>
+    <string name="prompt_description">To obtain a more customized summary, we encourage you to give ChatGPT clear instructions on how you want your notifications summarized by creating your own prompts.</string>
 </resources>

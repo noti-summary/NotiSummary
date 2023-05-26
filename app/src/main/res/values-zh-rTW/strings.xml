@@ -74,11 +74,12 @@
     <string name="google_play">Google Play 商店</string>
     <string name="others">其他管道</string>
     <string name="source">您透過什麼管道了解我們的APP？</string>
-    <string name="update_title">APP 錯誤修正</string>
-    <string name="update_text">請到Google Play商店更新本APP</string>
+    <string name="update_title">新版 APP 已推出</string>
+    <string name="update_text">請到 Google Play 商店更新本APP</string>
     <string name="turn_on_permission">開啟權限</string>
     <string name="enable">開啟權限</string>
     <string name="turnon_permission_description">開始使用 APP 前，請先開啟手機通知存取權</string>
     <string name="continue_to_use">繼續</string>
     <string name="permission_not_yet_enabled">您尚未開啟通知存取權</string>
+    <string name="prompt_description">為了產生更為個人化的通知摘要，您可以自行設定提示句，提出明確指示讓 ChatGPT 知道應該如何幫你摘要通知。</string>
 </resources>

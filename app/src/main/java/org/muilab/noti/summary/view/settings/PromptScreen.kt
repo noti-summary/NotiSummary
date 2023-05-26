@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -50,16 +51,13 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
 
     val clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
 
+    val showInfoDialog = remember { mutableStateOf(false) }
+
     LazyColumn(modifier = Modifier.fillMaxHeight()) {
         itemsIndexed(listOf(defaultPrompt) + allPromptSentence.value) { index, item ->
             if (index == 0) {
                 Text(
                     stringResource(R.string.default_prompt),
-                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
-                )
-            } else if (index == 1) {
-                Text(
-                    stringResource(R.string.custom_prompt),
                     modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
                 )
             }
@@ -83,12 +81,16 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                 shape = MaterialTheme.shapes.medium,
             ) {
                 Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        modifier = Modifier.weight(1f).padding(5.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         text = item,
                         color =
                         if (item == selectedOption.value) {
@@ -99,7 +101,9 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                     )
 
                     IconButton(
-                        modifier = Modifier.size(42.dp).padding(3.dp),
+                        modifier = Modifier
+                            .size(42.dp)
+                            .padding(3.dp),
                         onClick = {
                             val clip = ClipData.newPlainText("copy prompt text", item)
                             clipboardManager.setPrimaryClip(clip)
@@ -114,9 +118,11 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                         )
                     }
 
-                    if (item != defaultPrompt) {
+                    if (index != 0) {
                         IconButton(
-                            modifier = Modifier.size(42.dp).padding(3.dp),
+                            modifier = Modifier
+                                .size(42.dp)
+                                .padding(3.dp),
                             onClick = {
                                 currentEditPrompt.value = item
                                 currentEditPromptOriginalValue = item
@@ -127,7 +133,9 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                         }
 
                         IconButton(
-                            modifier = Modifier.size(42.dp).padding(3.dp),
+                            modifier = Modifier
+                                .size(42.dp)
+                                .padding(3.dp),
                             onClick = {
                                 promptViewModel.deletePrompt(item)
                             }
@@ -136,6 +144,30 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
                         }
                     }
                 }
+            }
+            if (index == 0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.custom_prompt),
+                        modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+                    )
+                    Spacer(modifier = Modifier.size(10.dp))
+                    IconButton(
+                        modifier = Modifier
+                            .size(25.dp)
+                            .padding(3.dp),
+                        onClick = { showInfoDialog.value = true }
+                    ) {
+                        Icon(Icons.Rounded.Info, contentDescription = "Custom Prompt Info")
+                    }
+                }
+                /*
+                Text(
+                    stringResource(R.string.prompt_description),
+                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                 */
             }
         }
     }
@@ -155,6 +187,26 @@ fun PromptHistory(context: Context, promptViewModel: PromptViewModel) {
     if (showDialog.value) {
         PromptEditor(showDialog, currentEditPrompt, confirmAction)
     }
+
+    if (showInfoDialog.value) {
+        AlertDialog(
+            title = { Text(stringResource(R.string.custom_prompt)) },
+            text = { Text(stringResource(R.string.prompt_description)) },
+            onDismissRequest = { showInfoDialog.value = false },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { showInfoDialog.value = false }
+                ) {
+                    Text(
+                        text = stringResource(R.string.ok),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 30.dp, end = 30.dp)
+                    )
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -164,7 +216,9 @@ fun AddButton(context: Context, promptViewModel: PromptViewModel) {
     val inputPrompt = remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
@@ -209,14 +263,19 @@ fun PromptEditor(
     NoPaddingAlertDialog(
         title = {
             Image(
-                modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 30.dp, bottom = 20.dp)
+                    .height(70.dp),
                 painter = painterResource(id = R.drawable.prompt),
                 contentDescription = "prompt_icon",
             )
         },
         text = {
             OutlinedTextField(
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp)
+                    .fillMaxWidth(),
                 singleLine = true,
                 value = defaultPromptInTextBox.value,
                 onValueChange = {
