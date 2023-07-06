@@ -305,7 +305,7 @@ fun uploadNotifications(context: Context, notiUnits: ArrayList<NotiUnit>, drawer
 
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
     val userId = sharedPref.getString("user_id", "000").toString()
-    val summaryNotis = notiUnits.map { SummaryNoti(it) }
+    val summaryNotis = notiUnits.filter { it.pkgName in filter.keys }.map { SummaryNoti(it) }
     val timestamp = System.currentTimeMillis()
     val dateTime = getDateTime(timestamp)
     val documentId = "${userId}_${timestamp}"
