@@ -77,6 +77,7 @@ fun SchedulerScreen(context: Context, scheduleViewModel: ScheduleViewModel) {
                             apply()
                         }
                     }
+                    logUserAction("filter", "pushNotification", context, metadata = if (newState) "on" else "off")
                 }
             )
         }
