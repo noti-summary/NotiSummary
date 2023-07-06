@@ -47,7 +47,7 @@ data class Summary(
     val notiScope: Map<String, Boolean>,
     val notifications: List<SummaryNoti>,
     val summaryLength: Map<String, Int>,
-    val removedNotis: Map<String, String>
+    val removedNotis: Map<String, Pair<String, Long>>
 ) {
     val dateTime: String
     init {
@@ -157,8 +157,8 @@ fun logSummary(context: Context) {
     val summaryLength = Gson().fromJson<Map<String, Int>>(summaryLengthJson, summaryLengthType)
 
     val removedNotisJson = summarySharedPref.getString("removedNotis", "{}")
-    val removedNotisType = object : TypeToken<MutableMap<String, String>>() {}.type
-    val removedNotis = Gson().fromJson<MutableMap<String, String>>(removedNotisJson, removedNotisType)
+    val removedNotisType = object : TypeToken<MutableMap<String, Pair<String, Long>>>() {}.type
+    val removedNotis = Gson().fromJson<MutableMap<String, Pair<String, Long>>>(removedNotisJson, removedNotisType)
 
     val rating = summarySharedPref.getInt("rating", 0)
 
