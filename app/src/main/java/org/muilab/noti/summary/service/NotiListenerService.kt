@@ -131,7 +131,7 @@ class NotiListenerService: NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        if (!sbn.isOngoing) {
+        if (!sbn.isOngoing && sbn.packageName != packageName) {
             insertNoti(sbn)
             uploadNotifications(
                 applicationContext,
@@ -188,6 +188,9 @@ class NotiListenerService: NotificationListenerService() {
                 else -> "UNKNOWN_REASON"
             }
         }
+
+        if (sbn.isOngoing || sbn.packageName == packageName)
+            return
 
         val notiUnit = NotiUnit(applicationContext, sbn)
         val reasonStr = getNotificationReasonString(reason)
@@ -288,6 +291,7 @@ class NotiListenerService: NotificationListenerService() {
     fun getActiveNotiUnits(): ArrayList<NotiUnit> {
         return activeNotifications
             .map { NotiUnit(applicationContext, it) }
+            .filter { it.pkgName != packageName }
             .toCollection(ArrayList())
     }
 }
