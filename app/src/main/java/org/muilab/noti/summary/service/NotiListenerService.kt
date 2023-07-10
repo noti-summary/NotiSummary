@@ -211,7 +211,8 @@ class NotiListenerService: NotificationListenerService() {
         val prevRemovedNotisJson = summarySharedPref.getString("removedNotis", "{}")
         val removedNotisType = object : TypeToken<MutableMap<String, String>>() {}.type
         val removedNotis = Gson().fromJson<MutableMap<String, String>>(prevRemovedNotisJson, removedNotisType)
-        removedNotis[notiKey] = reasonStr
+        if (notiKey !in removedNotis.keys)
+            removedNotis[notiKey] = "${reasonStr}_${System.currentTimeMillis()}"
         val newRemovedNotisJson = Gson().toJson(removedNotis)
         summarySharedPref.edit().putString("removedNotis", newRemovedNotisJson).apply()
 
