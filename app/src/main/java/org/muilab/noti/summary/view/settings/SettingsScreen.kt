@@ -73,7 +73,8 @@ fun SettingsScreen(
                 navigateUp = {
                     logUserAction("switchScreen", "Settings", context, metadata = "back")
                     navController.navigateUp()
-                }
+                },
+                context = context
             )
         }
     ) { innerPadding ->
@@ -94,7 +95,8 @@ fun SettingTopBar(
     currentScreen: SettingScreenItem,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    context: Context
 ) {
     val showDialog = remember { mutableStateOf(false) }
     if (currentScreen != SettingScreenItem.Start) {
@@ -130,13 +132,24 @@ fun SettingTopBar(
             },
         )
     } else {
-        Text(
-            text = stringResource(R.string.settings),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-        )
+        val userSharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+        val userId = userSharedPref.getString("user_id", "000").toString()
+        Row {
+            Text(
+                text = stringResource(R.string.settings),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(16.dp)
+            )
+            Spacer(modifier = Modifier.weight(1F))
+            Text(
+                text = "${stringResource(R.string.device_id)}\n${userId}",
+                textAlign = TextAlign.End,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(16.dp).align(Alignment.CenterVertically)
+            )
+        }
     }
     if (showDialog.value) {
         AlertDialog(
