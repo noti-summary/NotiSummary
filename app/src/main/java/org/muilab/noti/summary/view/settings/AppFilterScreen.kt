@@ -173,5 +173,5 @@ fun LogAppFilters(context: Context, appFilterMap: Map<String, Boolean>) {
     val userId = sharedPref.getString("user_id", "000").toString()
     val timestamp = System.currentTimeMillis()
     val appScope = AppScope(userId, timestamp, appFilterMap)
-    uploadData("appScope", appScope)
+    uploadData("ITV_appScope", appScope)
 }

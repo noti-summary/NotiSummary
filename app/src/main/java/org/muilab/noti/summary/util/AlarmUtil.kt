@@ -87,5 +87,5 @@ fun logAlarm(context: Context, action: String, scheduleTime: String, dayOfWeek: 
     val userId = sharedPref.getString("user_id", "000").toString()
     val timestamp = System.currentTimeMillis()
     val scheduler = Scheduler(userId, timestamp, action, scheduleTime, dayOfWeek)
-    uploadData("scheduler", scheduler)
+    uploadData("ITV_scheduler", scheduler)
 }

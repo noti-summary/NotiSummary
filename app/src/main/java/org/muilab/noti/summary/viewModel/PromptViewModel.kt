@@ -80,6 +80,6 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
         val userId = sharedPref.getString("user_id", "000").toString()
         val timestamp = System.currentTimeMillis()
         val promptAction = PromptAction(userId, timestamp, action, history, newPrompt)
-        uploadData("promptAction", promptAction)
+        uploadData("ITV_promptAction", promptAction)
     }
 }

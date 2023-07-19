@@ -173,7 +173,7 @@ fun logSummary(context: Context) {
         summaryLength,
         removedNotis
     )
-    uploadData("summary", summary)
+    uploadData("ITV_summary", summary)
 }
 
 fun saveSummary(context: Context, summary: Summary) {
@@ -286,7 +286,7 @@ fun uploadUserAction(userActionDao: UserActionDao) {
 
     val userActions = userActionDao.getAllActions()
     userActions.forEach { userAction ->
-        val docRef = db.collection("userAction").document(userAction.primaryKey)
+        val docRef = db.collection("ITV_userAction").document(userAction.primaryKey)
         batch.set(docRef, addTimeZone(userAction))
     }
     batch.commit()

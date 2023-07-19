@@ -256,7 +256,7 @@ fun HomeScreen(
 @Composable
 fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
 
-    val documentRef = Firebase.firestore.collection("user").document(userId)
+    val documentRef = Firebase.firestore.collection("ITV_user").document(userId)
     val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
     var displayText by remember { mutableStateOf("${context.getString(R.string.daily_quota)}：- / $maxCredit") }
 
@@ -301,7 +301,7 @@ fun SubmitButton(
             onClick = {
                 if (submitButtonState != SSButtonState.LOADING) {
                     val db = Firebase.firestore
-                    val docRef = db.collection("user").document(userId)
+                    val docRef = db.collection("ITV_user").document(userId)
                     docRef.get()
                         .addOnSuccessListener { document ->
                             if (document != null) {

@@ -62,7 +62,7 @@ class NotiListenerService: NotificationListenerService() {
                 uploadNotifications(
                     applicationContext,
                     getActiveNotiUnits(),
-                    "systemNoti",
+                    "ITV_systemNoti",
                     "REASON_GEN_SUMMARY",
                     getAppFilter(applicationContext)
                 )
@@ -79,7 +79,7 @@ class NotiListenerService: NotificationListenerService() {
                 uploadNotifications(
                     applicationContext,
                     getActiveNotiUnits(),
-                    "systemNoti",
+                    "ITV_systemNoti",
                     "REASON_GEN_SUMMARY",
                     getAppFilter(applicationContext)
                 )
@@ -136,7 +136,7 @@ class NotiListenerService: NotificationListenerService() {
             uploadNotifications(
                 applicationContext,
                 getActiveNotiUnits(),
-                "systemNoti",
+                "ITV_systemNoti",
                 "REASON_POSTED",
                 getAppFilter(applicationContext)
             )
@@ -148,7 +148,7 @@ class NotiListenerService: NotificationListenerService() {
                 uploadNotifications(
                     applicationContext,
                     databaseNotifications,
-                    "dbNoti",
+                    "ITV_dbNoti",
                     "REASON_POSTED",
                     appFilter
                 )
@@ -222,7 +222,7 @@ class NotiListenerService: NotificationListenerService() {
         uploadNotifications(
             applicationContext,
             getActiveNotiUnits(),
-            "systemNoti",
+            "ITV_systemNoti",
             reasonStr,
             getAppFilter(applicationContext)
         )
@@ -234,7 +234,7 @@ class NotiListenerService: NotificationListenerService() {
             uploadNotifications(
                 applicationContext,
                 databaseNotifications,
-                "dbNoti",
+                "ITV_dbNoti",
                 reasonStr,
                 appFilter
             )

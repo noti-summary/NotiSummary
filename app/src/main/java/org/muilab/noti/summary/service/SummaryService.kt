@@ -94,7 +94,7 @@ class SummaryService : Service(), LifecycleOwner {
             uploadNotifications(
                 applicationContext,
                 databaseNotifications,
-                "dbNoti",
+                "ITV_dbNoti",
                 "REASON_GEN_SUMMARY",
                 appFilterMap
             )
@@ -268,7 +268,7 @@ class SummaryService : Service(), LifecycleOwner {
         val userId = sharedPref.getString("user_id", "000").toString()
 
         val db = Firebase.firestore
-        val docRef = db.collection("user").document(userId)
+        val docRef = db.collection("ITV_user").document(userId)
         docRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 val res = document.toObject<UserCredit>()!!

@@ -248,7 +248,7 @@ class MainActivity : ComponentActivity() {
                 val initTime = System.currentTimeMillis()
 
                 val db = Firebase.firestore
-                val docRef = db.collection("user").document(userId)
+                val docRef = db.collection("ITV_user").document(userId)
 
                 docRef.get()
                     .addOnSuccessListener { document ->
