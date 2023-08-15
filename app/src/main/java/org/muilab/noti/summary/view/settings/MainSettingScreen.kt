@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import org.muilab.noti.summary.R
@@ -33,6 +34,8 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
     val uriHandler = LocalUriHandler.current
 
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+    val userId = sharedPref.getString("user_id", "000").toString()
+
     val country = sharedPref.getString("country", "Unknown")
     val countryCode = country!!.substring(5, 7)
 
@@ -119,6 +122,13 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
                                 )
                             }
                         }
+                    if (item.name == SettingScreenItem.Recruitment.name) {
+                        Text(
+                            text = "${stringResource(R.string.device_id)}: ${userId}",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
                 }
             }
         }

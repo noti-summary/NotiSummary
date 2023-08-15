@@ -132,8 +132,6 @@ fun SettingTopBar(
             },
         )
     } else {
-        val userSharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-        val userId = userSharedPref.getString("user_id", "000").toString()
         Row {
             Text(
                 text = stringResource(R.string.settings),
@@ -141,13 +139,6 @@ fun SettingTopBar(
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(16.dp)
-            )
-            Spacer(modifier = Modifier.weight(1F))
-            Text(
-                text = "${stringResource(R.string.device_id)}\n${userId}",
-                textAlign = TextAlign.End,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(16.dp).align(Alignment.CenterVertically)
             )
         }
     }
