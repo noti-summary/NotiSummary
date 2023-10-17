@@ -23,7 +23,7 @@
     <string name="no_noti_msg">您的手機目前沒有通知</string>
     <string name="network_err_msg">無法連線，請確認您的網路設定</string>
     <string name="default_key">預設 API 金鑰</string>
-    <string name="system_key">系統金鑰</string>
+    <string name="key_not_provided">未提供金鑰</string>
     <string name="user_key">使用者 API 金鑰</string>
     <string name="server_err_msg">伺服器發生錯誤，請稍後再試</string>
     <string name="timeout_msg">伺服器忙碌中，請稍後再試</string>

@@ -5,7 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
@@ -21,7 +20,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LifecycleOwner
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
@@ -32,9 +30,6 @@ import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButtonMaterial3
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.database.firestore.FirestoreDocument
-import org.muilab.noti.summary.database.firestore.documentStateOf
-import org.muilab.noti.summary.maxCredit
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.util.logUserAction
@@ -44,7 +39,6 @@ import org.muilab.noti.summary.viewModel.SummaryViewModel
 @Composable
 fun HomeScreen(
     context: Context,
-    lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
     promptViewModel: PromptViewModel
 ) {
@@ -178,7 +172,6 @@ fun HomeScreen(
                         )
                         if (summaryCardState.value) {
                             Spacer(modifier = Modifier.padding(16.dp))
-                            Credit(context, lifecycleOwner, userId)
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         if (!summaryCardState.value)
@@ -249,33 +242,6 @@ fun HomeScreen(
                     )
                 }
             },
-        )
-    }
-}
-
-@Composable
-fun Credit(context: Context, lifecycleOwner: LifecycleOwner, userId: String) {
-
-    val documentRef = Firebase.firestore.collection("user").document(userId)
-    val (result) = remember { documentStateOf(documentRef, lifecycleOwner) }
-    var displayText by remember { mutableStateOf("${context.getString(R.string.daily_quota)}：- / $maxCredit") }
-
-    val sharedPref = context.getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
-    val userAPIKey = sharedPref.getString("userAPIKey", stringResource(R.string.system_key))!!
-
-    if (userAPIKey == stringResource(R.string.system_key)) {
-        if (result is FirestoreDocument.Snapshot) {
-            displayText = if (result.snapshot.exists()) {
-                val res = result.snapshot.toObject<UserCredit>()!!
-                "${context.getString(R.string.daily_quota)}：${res.credit} / $maxCredit"
-            } else {
-                stringResource(SummaryResponse.NETWORK_ERROR.message)
-            }
-        }
-
-        Text(
-            text = displayText,
-            style = MaterialTheme.typography.labelMedium,
         )
     }
 }

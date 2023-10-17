@@ -102,8 +102,11 @@ class SummaryService : Service(), LifecycleOwner {
             updateStatusText(getString(SummaryResponse.GENERATING.message))
 
             var responseStr = ""
+            val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.key_not_provided))!!
 
-            if (summarizedNotifications.isNotEmpty()) {
+            Log.d(TAG, userAPIKey)
+
+            if (summarizedNotifications.isNotEmpty() && userAPIKey != getString(R.string.key_not_provided)) {
 
                 val client = OkHttpClient.Builder()
                     .connectTimeout(300, TimeUnit.SECONDS)
@@ -119,13 +122,7 @@ class SummaryService : Service(), LifecycleOwner {
                     val key: String
                 )
 
-                val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.system_key))!!
-
-                val requestURL = if (userAPIKey == getString(R.string.system_key)) {
-                    serverURL
-                } else {
-                    "$serverURL/key"
-                }
+                val requestURL = "$serverURL/key"
 
                 val postContent = getPostContent(summarizedNotifications)
                 val prompt = promptPref.getString(
@@ -134,12 +131,7 @@ class SummaryService : Service(), LifecycleOwner {
                 ) as String
                 Log.d("sendToServer", "current prompt: $prompt")
 
-                @Suppress("IMPLICIT_CAST_TO_ANY")
-                val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
-                    GPTRequest(prompt, postContent)
-                } else {
-                    GPTRequestWithKey(prompt, postContent, userAPIKey)
-                }
+                val gptRequest = GPTRequestWithKey(prompt, postContent, userAPIKey)
 
                 val postBody = Gson().toJson(gptRequest)
 
@@ -162,8 +154,6 @@ class SummaryService : Service(), LifecycleOwner {
                         )
                         if (summary != null) {
 
-                            if (userAPIKey == getString(R.string.system_key))
-                                subtractCredit()
                             logUserAction("genSummary", "Success", applicationContext)
 
                             with(summaryPref.edit()) {

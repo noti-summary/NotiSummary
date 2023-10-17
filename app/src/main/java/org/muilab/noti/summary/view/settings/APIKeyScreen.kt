@@ -43,7 +43,6 @@ fun APIKeyScreen(context: Context, apiKeyViewModel: APIKeyViewModel) {
 fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val selectedOption = apiKeyViewModel.apiKey.observeAsState()
     val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
-    val defaultAPIKey = stringResource(R.string.system_key)
     val uriHandler = LocalUriHandler.current
 
     val annotatedLinkString: AnnotatedString = buildAnnotatedString {
@@ -65,78 +64,10 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
         )
     }
 
-    LazyColumn(modifier = Modifier.fillMaxHeight()) {
-        itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
-            if (index == 0) {
-                Text(
-                    stringResource(R.string.default_key),
-                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
-                )
-            } else if (index == 1) {
-                Text(
-                    stringResource(R.string.user_key),
-                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
-                )
-            }
-            Card(
-                modifier = Modifier
-                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        apiKeyViewModel.chooseAPI(item)
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor =
-                    if (item == selectedOption.value) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.inverseOnSurface
-                    }
-                ),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f).padding(5.dp),
-                        text = if (item != defaultAPIKey) {
-                            "sk-**********" + item.takeLast(4)
-                        } else {
-                            defaultAPIKey
-                        },
-                        color =
-                        if (item == selectedOption.value) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSecondaryContainer
-                        }
-                    )
-
-                    if (item != defaultAPIKey) {
-                        IconButton(
-                            modifier = Modifier.size(42.dp).padding(3.dp),
-                            onClick = { apiKeyViewModel.deleteAPI(item) }
-                        ) {
-                            Icon(Icons.Rounded.Delete, contentDescription = "delete api")
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Box(
-        contentAlignment = Alignment.CenterEnd,
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Column {
         ClickableText(
             annotatedLinkString,
-            modifier = Modifier.padding(end = 15.dp, top = 10.dp, bottom = 10.dp),
+            modifier = Modifier.padding(15.dp, 10.dp),
             onClick = {
                 annotatedLinkString
                     .getStringAnnotations("URL", it, it)
@@ -145,6 +76,55 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                     }
             }
         )
+        LazyColumn(modifier = Modifier.fillMaxHeight()) {
+            itemsIndexed(allAPIKey.value) { index, item ->
+                Card(
+                    modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            apiKeyViewModel.chooseAPI(item)
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor =
+                        if (item == selectedOption.value) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.inverseOnSurface
+                        }
+                    ),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f).padding(5.dp),
+                            text = "sk-**********" + item.takeLast(4),
+                            color =
+                            if (item == selectedOption.value) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            }
+                        )
+
+                        if (allAPIKey.value.size > 1) {
+                            IconButton(
+                                modifier = Modifier.size(42.dp).padding(3.dp),
+                                onClick = { apiKeyViewModel.deleteAPI(item) }
+                            ) {
+                                Icon(Icons.Rounded.Delete, contentDescription = "delete api")
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
