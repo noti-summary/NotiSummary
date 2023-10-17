@@ -5,8 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -23,15 +21,10 @@ import androidx.compose.ui.unit.dp
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.UpdateAvailability
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.ktx.Firebase
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButtonMaterial3
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.model.UserCredit
-import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
@@ -43,7 +36,7 @@ fun HomeScreen(
 ) {
 
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-    val userId = sharedPref.getString("user_id", "000").toString()
+    sharedPref.getString("user_id", "000").toString()
 
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
 
@@ -187,7 +180,7 @@ fun HomeScreen(
                 SummaryCard(context, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
-        SubmitButton(context, userId, sumViewModel, submitButtonState)
+        SubmitButton(sumViewModel, submitButtonState)
     }
 
     val appUpdateManager = AppUpdateManagerFactory.create(context)
@@ -239,8 +232,6 @@ fun HomeScreen(
 
 @Composable
 fun SubmitButton(
-    context: Context,
-    userId: String,
     sumViewModel: SummaryViewModel,
     submitButtonState: SSButtonState
 ) {
@@ -256,30 +247,8 @@ fun SubmitButton(
             width = 300.dp,
             height = 50.dp,
             onClick = {
-                if (submitButtonState != SSButtonState.LOADING) {
-                    val db = Firebase.firestore
-                    val docRef = db.collection("user").document(userId)
-                    docRef.get()
-                        .addOnSuccessListener { document ->
-                            if (document != null) {
-                                if (document.exists()) {
-                                    val res = document.toObject<UserCredit>()!!
-                                    if (res.credit > 0) {
-                                        sumViewModel.getSummaryText()
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            context.getString(R.string.reached_limit),
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
-                                }
-                            }
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.d(TAG, "get failed with ", exception)
-                        }
-                }
+                if (submitButtonState != SSButtonState.LOADING)
+                    sumViewModel.getSummaryText()
             },
             assetColor = MaterialTheme.colorScheme.onPrimary,
             text = stringResource(R.string.generate_summary),
