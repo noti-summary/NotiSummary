@@ -12,13 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.home.HomeScreen
 import org.muilab.noti.summary.view.settings.SettingsScreen
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
@@ -36,7 +34,6 @@ sealed class BottomNavItem(var title: String, var icon: ImageVector, var screen_
 @Composable
 fun MainScreenView(
     context: Context,
-    lifecycleOwner: LifecycleOwner,
     sumViewModel: SummaryViewModel,
     promptViewModel: PromptViewModel,
     apiKeyViewModel: APIKeyViewModel,
@@ -44,7 +41,7 @@ fun MainScreenView(
 ) {
     val navController = rememberNavController()
     Scaffold(
-        bottomBar = { AppBottomNavigation(context, navController = navController) }
+        bottomBar = { AppBottomNavigation(navController = navController) }
     ) { innerPadding ->
         // Apply the padding globally to the whole navController
         Box(modifier = Modifier.padding(innerPadding)) {
@@ -61,7 +58,7 @@ fun MainScreenView(
 }
 
 @Composable
-fun AppBottomNavigation(context: Context, navController: NavController) {
+fun AppBottomNavigation(navController: NavController) {
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Settings
@@ -82,7 +79,6 @@ fun AppBottomNavigation(context: Context, navController: NavController) {
                 onClick = {
                     if (currentScreen != item.title) {
                         currentScreen = item.title
-                        logUserAction("switchScreen", currentScreen, context)
                     }
                     navController.popBackStack()
                     navController.navigate(item.screen_route) {

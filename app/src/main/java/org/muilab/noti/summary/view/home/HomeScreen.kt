@@ -32,7 +32,6 @@ import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgres
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.UserCredit
 import org.muilab.noti.summary.util.TAG
-import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
@@ -98,10 +97,6 @@ fun HomeScreen(
                             drawerCardState.value = if (!summaryCardState.value) {
                                 drawerCardState.value
                             } else {
-                                if (!drawerCardState.value)
-                                    logUserAction("cardExpand", "both", context)
-                                else
-                                    logUserAction("cardExpand", "summary", context)
                                 !drawerCardState.value
                             }
                         }) {
@@ -151,10 +146,6 @@ fun HomeScreen(
                             summaryCardState.value = if (!drawerCardState.value) {
                                 summaryCardState.value
                             } else {
-                                if (!summaryCardState.value)
-                                    logUserAction("cardExpand", "both", context)
-                                else
-                                    logUserAction("cardExpand", "drawer", context)
                                 !summaryCardState.value
                             }
                         }
@@ -274,7 +265,6 @@ fun SubmitButton(
                                 if (document.exists()) {
                                     val res = document.toObject<UserCredit>()!!
                                     if (res.credit > 0) {
-                                        logUserAction("genSummary", "Submit", context)
                                         sumViewModel.getSummaryText()
                                     } else {
                                         Toast.makeText(
@@ -282,7 +272,6 @@ fun SubmitButton(
                                             context.getString(R.string.reached_limit),
                                             Toast.LENGTH_LONG
                                         ).show()
-                                        logUserAction("genSummary", "NoQuota", context)
                                     }
                                 }
                             }

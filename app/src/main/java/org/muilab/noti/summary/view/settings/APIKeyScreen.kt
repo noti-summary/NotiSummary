@@ -1,6 +1,5 @@
 package org.muilab.noti.summary.view.settings
 
-import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -27,15 +26,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 
 @Composable
-fun APIKeyScreen(context: Context, apiKeyViewModel: APIKeyViewModel) {
+fun APIKeyScreen(apiKeyViewModel: APIKeyViewModel) {
     MaterialTheme {
         APIKeyList(apiKeyViewModel)
-        AddKeyButton(context, apiKeyViewModel)
+        AddKeyButton(apiKeyViewModel)
     }
 }
 
@@ -129,7 +127,7 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
 }
 
 @Composable
-fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
+fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
     val inputKey = remember { mutableStateOf("") }
@@ -141,7 +139,6 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
         FloatingActionButton(
             onClick = {
                 showDialog.value = true
-                logUserAction("keyDialog", "launch", context)
             },
         ) {
             Icon(Icons.Filled.Add, "add new key")
@@ -151,7 +148,6 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
     val confirmAction = {
         if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
             apiKeyViewModel.addAPI(inputKey.value)
-            logUserAction("keyDialog", "confirm", context)
             inputKey.value = ""
             showDialog.value = false
         }
@@ -159,7 +155,6 @@ fun AddKeyButton(context: Context, apiKeyViewModel: APIKeyViewModel) {
 
     val dismissAction = {
         inputKey.value = ""
-        logUserAction("keyDialog", "dismiss", context)
     }
 
     if (showDialog.value) {

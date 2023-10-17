@@ -1,19 +1,25 @@
 package org.muilab.noti.summary.service
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.*
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.ktx.Firebase
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import com.google.gson.Gson
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
@@ -29,12 +35,22 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.model.NotiUnit
-import org.muilab.noti.summary.model.UserCredit
-import org.muilab.noti.summary.util.*
+import org.muilab.noti.summary.util.TAG
+import org.muilab.noti.summary.util.getAppFilter
+import org.muilab.noti.summary.util.getDatabaseNotifications
+import org.muilab.noti.summary.util.getNotiDrawer
 import org.muilab.noti.summary.view.home.SummaryResponse
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.isNotEmpty
+import kotlin.collections.joinToString
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.collections.shuffle
 
 class SummaryService : Service(), LifecycleOwner {
 
@@ -91,13 +107,6 @@ class SummaryService : Service(), LifecycleOwner {
                 databaseNotifications,
                 appFilterMap
             )
-            uploadNotifications(
-                applicationContext,
-                databaseNotifications,
-                "dbNoti",
-                "REASON_GEN_SUMMARY",
-                appFilterMap
-            )
 
             updateStatusText(getString(SummaryResponse.GENERATING.message))
 
@@ -115,7 +124,6 @@ class SummaryService : Service(), LifecycleOwner {
                     .callTimeout(300, TimeUnit.SECONDS)
                     .build()
 
-                data class GPTRequest(val prompt: String, val content: String)
                 data class GPTRequestWithKey(
                     val prompt: String,
                     val content: String,
@@ -141,7 +149,7 @@ class SummaryService : Service(), LifecycleOwner {
                     .build()
 
                 try {
-                    val submitTime = System.currentTimeMillis()
+                    System.currentTimeMillis()
                     val response = client.newCall(request).execute()
                     if (response.isSuccessful) {
                         val responseText =
@@ -152,60 +160,7 @@ class SummaryService : Service(), LifecycleOwner {
                             ConversionType.S2TWP,
                             applicationContext
                         )
-                        if (summary != null) {
-
-                            logUserAction("genSummary", "Success", applicationContext)
-
-                            with(summaryPref.edit()) {
-                                putString("resultValue", summary)
-                                putLong("submitTime", submitTime)
-                                putBoolean("isScheduled", isScheduled)
-                                putString("prompt", prompt)
-
-                                val notiData = summarizedNotifications.map {
-                                    SummaryNoti(it)
-                                }
-                                val notiDataJson = Gson().toJson(notiData)
-                                putString("notiData", notiDataJson)
-
-                                val notiFilterPrefs =
-                                    getSharedPreferences("noti_filter", Context.MODE_PRIVATE)
-
-                                val notiScope = mutableMapOf<String, Boolean>()
-                                notiScope["appName"] = notiFilterPrefs.getBoolean(
-                                    getString(R.string.application_name),
-                                    true
-                                )
-                                notiScope["time"] = notiFilterPrefs.getBoolean(
-                                    getString(R.string.time),
-                                    true
-                                )
-                                notiScope["title"] = notiFilterPrefs.getBoolean(
-                                    getString(R.string.title),
-                                    true
-                                )
-                                notiScope["content"] = notiFilterPrefs.getBoolean(
-                                    getString(R.string.content),
-                                    true
-                                )
-                                val notiScopeJson = Gson().toJson(notiScope)
-                                putString("notiScope", notiScopeJson)
-
-                                val summaryLength = getWordCount(summary)
-                                val summaryLengthJson = Gson().toJson(summaryLength)
-                                putString("summaryLength", summaryLengthJson)
-
-                                putString("removedNotis", "{}")
-                                putInt("rating", 0)
-
-                                apply()
-                            }
-                            logSummary(applicationContext)
-                            responseStr = summary
-                        } else {
-                            logUserAction("genSummary", "ServerError", applicationContext)
-                            responseStr = getString(SummaryResponse.SERVER_ERROR.message)
-                        }
+                        responseStr = summary ?: getString(SummaryResponse.SERVER_ERROR.message)
                     } else {
                         response.body?.let {
                             val responseBody = it.string()
@@ -215,32 +170,25 @@ class SummaryService : Service(), LifecycleOwner {
                                     responseBody.contains("Incorrect API key provided") ||
                                     responseBody.contains("invalid_api_key")
                                 ) {
-                                    logUserAction("genSummary", "KeyError", applicationContext)
                                     getString(SummaryResponse.APIKEY_ERROR.message)
                                 } else if (responseBody.contains("exceeded your current quota")) {
-                                    logUserAction("genSummary", "NoQuota", applicationContext)
                                     getString(SummaryResponse.QUOTA_ERROR.message)
                                 } else {
-                                    logUserAction("genSummary", "ServerError", applicationContext)
                                     getString(SummaryResponse.SERVER_ERROR.message)
                                 }
                         } ?: let {
-                            logUserAction("genSummary", "ServerError", applicationContext)
                             responseStr = getString(SummaryResponse.SERVER_ERROR.message)
                         }
                     }
                     response.close()
                 } catch (e: InterruptedIOException) {
                     Log.i("InterruptedIOException", e.toString())
-                    logUserAction("genSummary", "ServerTimeout", applicationContext)
                     responseStr = getString(SummaryResponse.TIMEOUT_ERROR.message)
                 } catch (e: IOException) {
                     Log.i("IOException", e.toString())
-                    logUserAction("genSummary", "NetworkError", applicationContext)
                     responseStr = getString(SummaryResponse.NETWORK_ERROR.message)
                 } catch (e: Exception) {
                     Log.i("Exception in sendToServer", e.toString())
-                    logUserAction("genSummary", "ServerError", applicationContext)
                     responseStr = getString(SummaryResponse.SERVER_ERROR.message)
                 }
             } else {
@@ -250,20 +198,6 @@ class SummaryService : Service(), LifecycleOwner {
             if (isScheduled)
                 notifySummary(responseStr)
             responseStr // return value
-        }
-    }
-
-    private fun subtractCredit() {
-        val sharedPref = getSharedPreferences("user", Context.MODE_PRIVATE)
-        val userId = sharedPref.getString("user_id", "000").toString()
-
-        val db = Firebase.firestore
-        val docRef = db.collection("user").document(userId)
-        docRef.get().addOnSuccessListener { document ->
-            if (document != null) {
-                val res = document.toObject<UserCredit>()!!
-                docRef.update("credit", res.credit - 1)
-            }
         }
     }
 
@@ -337,6 +271,20 @@ class SummaryService : Service(), LifecycleOwner {
         notificationManager.createNotificationChannel(channel)
 
         val notificationManagerCompat = NotificationManagerCompat.from(applicationContext)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
         notificationManagerCompat.notify(0, builder.build())
     }
 
