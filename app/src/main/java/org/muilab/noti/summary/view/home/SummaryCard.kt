@@ -31,7 +31,8 @@ enum class SummaryResponse(val message: Int) {
     SERVER_ERROR(R.string.server_err_msg),
     TIMEOUT_ERROR(R.string.timeout_msg),
     APIKEY_ERROR(R.string.key_msg),
-    QUOTA_ERROR(R.string.quota_msg)
+    QUOTA_ERROR(R.string.quota_msg),
+    UNKNOWN_ERROR(R.string.unknown_err_msg),
 }
 
 @Composable
@@ -86,7 +87,7 @@ fun SummaryCard(
                             result != stringResource(SummaryResponse.GENERATING.message) &&
                             result != stringResource(SummaryResponse.NO_NOTIFICATION.message) &&
                             result != stringResource(SummaryResponse.NETWORK_ERROR.message) &&
-                            result != stringResource(SummaryResponse.SERVER_ERROR.message) &&
+                            result != stringResource(SummaryResponse.UNKNOWN_ERROR.message) &&
                             result != stringResource(SummaryResponse.TIMEOUT_ERROR.message) &&
                             result != stringResource(SummaryResponse.APIKEY_ERROR.message) &&
                             result != stringResource(SummaryResponse.QUOTA_ERROR.message)
@@ -103,7 +104,7 @@ fun SummaryCard(
                 setSubmitButtonState(SSButtonState.LOADING)
             } else if (result == stringResource(SummaryResponse.NO_NOTIFICATION.message) ||
                        result == stringResource(SummaryResponse.NETWORK_ERROR.message) ||
-                       result == stringResource(SummaryResponse.SERVER_ERROR.message) ||
+                       result == stringResource(SummaryResponse.UNKNOWN_ERROR.message) ||
                        result == stringResource(SummaryResponse.TIMEOUT_ERROR.message) ||
                        result == stringResource(SummaryResponse.APIKEY_ERROR.message) ||
                        result == stringResource(SummaryResponse.QUOTA_ERROR.message)

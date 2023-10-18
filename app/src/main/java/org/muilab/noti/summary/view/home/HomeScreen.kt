@@ -156,6 +156,14 @@ fun HomeScreen(
                         )
                         if (summaryCardState.value) {
                             Spacer(modifier = Modifier.padding(16.dp))
+                            val apiSharedPref = context.getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
+                            val userAPIKey = apiSharedPref.getString("userAPIKey", stringResource(R.string.key_not_provided))
+                            val displayAPIKey = "sk-**********${userAPIKey?.takeLast(4)}"
+                            val displayText = "${stringResource(R.string.using_ur_apikey)}\n$displayAPIKey"
+                            Text(
+                                text = displayText,
+                                style = MaterialTheme.typography.labelMedium,
+                            )
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         if (!summaryCardState.value)

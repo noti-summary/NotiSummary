@@ -4,13 +4,17 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings.System.getString
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.*
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.util.getAppFilter
@@ -98,8 +102,14 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     fun updateSummaryText(activeKeys: ArrayList<Pair<String, String>>, isScheduled: Boolean) {
         _result.postValue(context.getString(SummaryResponse.GENERATING.message))
         viewModelScope.launch {
-            val responseMessage = summaryService.sendToServer(activeKeys, isScheduled)
-            _result.postValue(responseMessage)
+            try {
+                withTimeout(600000) {
+                    val responseMessage = summaryService.sendToServer(activeKeys, isScheduled)
+                    _result.postValue(responseMessage)
+                }
+            } catch (e: TimeoutCancellationException) {
+                _result.postValue(context.getString(SummaryResponse.TIMEOUT_ERROR.message))
+            }
             resetNotiDrawer()
         }
     }

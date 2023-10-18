@@ -26,6 +26,7 @@
     <string name="gen_msg">Generating summary, please wait…</string>
     <string name="no_noti_msg">There are no notifications on your phone at the moment.</string>
     <string name="network_err_msg">Unable to connect, please check your network settings.</string>
+    <string name="unknown_err_msg">Unknown error, please try again later.</string>
     <string name="server_err_msg">Server error, please try again later.</string>
     <string name="timeout_msg">The server is busy, please try again later.</string>
     <string name="key_msg">Please check if your API key is valid.</string>
@@ -88,5 +89,8 @@
     <string name="app_filter_description">You can select the applications to be included in the notification summary here.</string>
     <string name="noti_filter_description">You can choose the notification details to be included in the summary here.</string>
     <string name="api_key_description">You can perform a certain number of free summaries every day, but if you use your own OpenAI API key, there are no such restrictions. If you wish to use your own API key, you can add it by clicking the button in the corner.</string>
+    <string name="prompt_opening">The following are my smartphone notifications.</string>
+    <string name="prompt_subsummary1">These are summaries of subsets of my notifications, generated with the prompt "</string>
+    <string name="prompt_subsummary2">". Please integrate them in policy of the original prompt."</string>
     <string name="empty" translatable="false" />
 </resources>

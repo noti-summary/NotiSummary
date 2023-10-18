@@ -20,6 +20,7 @@ import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
+import org.muilab.noti.summary.util.isNetworkConnected
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.view.userInit.*
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
                             }
                             startActivity(intent)
                         }
-                        if (isNetworkConnected())
+                        if (isNetworkConnected(applicationContext))
                             PrivacyPolicyDialog(onAgree = {
                                 with(sharedPref.edit()) {
                                     putBoolean("agreeTerms", true)
@@ -214,19 +215,6 @@ class MainActivity : ComponentActivity() {
             if (intent?.action == "edu.mui.noti.summary.UPDATE_STATUS") {
                 sumViewModel.updateStatus()
             }
-        }
-    }
-
-    private fun isNetworkConnected(): Boolean {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkCapabilities = connectivityManager.activeNetwork ?: return false
-        val activeNetwork = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
-
-        return when {
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-            else -> false
         }
     }
 
