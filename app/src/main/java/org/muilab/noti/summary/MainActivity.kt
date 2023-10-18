@@ -42,15 +42,11 @@ import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
-import org.muilab.noti.summary.util.isNetworkConnected
 import org.muilab.noti.summary.view.MainScreenView
 import org.muilab.noti.summary.view.settings.APICreationLink
 import org.muilab.noti.summary.view.settings.APIKeyEditor
 import org.muilab.noti.summary.view.userInit.AskPermissionDialog
 import org.muilab.noti.summary.view.userInit.FilterNotify
-import org.muilab.noti.summary.view.userInit.NetworkCheckDialog
-import org.muilab.noti.summary.view.userInit.PersonalInformationScreen
-import org.muilab.noti.summary.view.userInit.PrivacyPolicyDialog
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
@@ -88,27 +84,14 @@ class MainActivity : ComponentActivity() {
                             }
                             startActivity(intent)
                         }
-                        if (isNetworkConnected(applicationContext))
-                            PrivacyPolicyDialog(onAgree = {
-                                with(sharedPref.edit()) {
-                                    putBoolean("agreeTerms", true)
-                                    putString("initStatus", "OPEN_PERMISSION")
-                                    apply()
-                                }
-                                initStatus = "OPEN_PERMISSION"
-                            })
-                        else
-                            NetworkCheckDialog(applicationContext)
-                    }
-                    "OPEN_PERMISSION" -> {
                         AskPermissionDialog (
                             onAgree = {
                                 if (isNotiListenerEnabled()) {
                                     with(sharedPref.edit()) {
-                                        putString("initStatus", "AGREED")
+                                        putString("initStatus", "SHOW_FILTER_NOTICE")
                                         apply()
                                     }
-                                    initStatus = "AGREED"
+                                    initStatus = "SHOW_FILTER_NOTICE"
                                 } else {
                                     Toast.makeText(
                                         this,
@@ -121,24 +104,6 @@ class MainActivity : ComponentActivity() {
                                 startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                             }
                         )
-                    }
-                    "AGREED" -> {
-                        PersonalInformationScreen(
-                            onContinue = { birthYear, gender, country, source ->
-                                with(sharedPref.edit()) {
-                                    putInt("birthYear", birthYear)
-                                    putString("gender", gender)
-                                    putString("country", country)
-                                    putString("source", source)
-                                    putString("initStatus", "USER_INFO_FILLED")
-                                    apply()
-                                }
-                                initStatus = "USER_INFO_FILLED"
-                            }
-                        )
-                    }
-                    "USER_INFO_FILLED" -> {
-                        initStatus = "SHOW_FILTER_NOTICE"
                     }
                     "SHOW_FILTER_NOTICE" -> {
                         if (!isNotiListenerEnabled())
