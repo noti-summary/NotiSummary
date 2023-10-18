@@ -7,16 +7,42 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.install.model.AppUpdateType
@@ -35,14 +61,12 @@ fun HomeScreen(
     promptViewModel: PromptViewModel
 ) {
 
-    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-    sharedPref.getString("user_id", "000").toString()
-
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
 
     val drawerCardState = remember { mutableStateOf(true) }
     val summaryCardState = remember { mutableStateOf(true) }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val minorHeight = (
         with(LocalDensity.current) {MaterialTheme.typography.bodyLarge.lineHeight.toDp()}
         + 32.dp + 50.dp + 110.dp
@@ -188,7 +212,15 @@ fun HomeScreen(
                 SummaryCard(context, sumViewModel, promptViewModel, submitButtonState, setSubmitButtonState)
             }
         }
-        SubmitButton(sumViewModel, submitButtonState)
+        Row (
+            Modifier.fillMaxWidth().padding(top = 0.dp, bottom = 30.dp, start = 16.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            SubmitButton(screenWidth - 212.dp, sumViewModel, submitButtonState)
+            Spacer(Modifier.size(50.dp))
+            ModelToggle(context)
+        }
     }
 
     val appUpdateManager = AppUpdateManagerFactory.create(context)
@@ -240,19 +272,16 @@ fun HomeScreen(
 
 @Composable
 fun SubmitButton(
+    width: Dp,
     sumViewModel: SummaryViewModel,
     submitButtonState: SSButtonState
 ) {
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 30.dp),
-        contentAlignment = Alignment.BottomCenter
-    ) {
+    Box (Modifier.width(width), contentAlignment = Alignment.BottomCenter) {
+
         SSJetPackComposeProgressButtonMaterial3(
-            type = SSButtonType.CIRCLE,
-            width = 300.dp,
+            type = SSButtonType.CLOCK,
+            width = 180.dp,
             height = 50.dp,
             onClick = {
                 if (submitButtonState != SSButtonState.LOADING)
@@ -263,4 +292,30 @@ fun SubmitButton(
             buttonState = submitButtonState
         )
     }
+}
+
+@Composable
+fun ModelToggle(context: Context) {
+
+    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
+    val modelChoice = remember { mutableStateOf(sharedPref.getBoolean("model", false)) }
+
+    Switch(
+        modifier = Modifier.width(50.dp),
+        checked = modelChoice.value,
+        onCheckedChange = {
+            modelChoice.value = !modelChoice.value
+            with (sharedPref.edit()) {
+                putBoolean("model", modelChoice.value)
+                apply()
+            }
+        },
+    )
+    Spacer(Modifier.size(10.dp))
+    Text (
+        text = "${stringResource(R.string.using)}\n" +
+                if (modelChoice.value) { "GPT-4" } else { "GPT-3.5" },
+        modifier = Modifier.width(70.dp),
+        textAlign = TextAlign.Center,
+    )
 }

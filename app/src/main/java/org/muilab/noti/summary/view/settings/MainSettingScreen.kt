@@ -34,11 +34,6 @@ import org.muilab.noti.summary.R
 fun MainSettingScreen(context: Context, navController: NavHostController) {
 
     val uriHandler = LocalUriHandler.current
-
-    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-    val country = sharedPref.getString("country", "Unknown")
-    country!!.substring(5, 7)
-
     val isGroupTop = {item: SettingScreenItem ->
         item in listOf(SettingScreenItem.SettingPrompt, SettingScreenItem.SettingAPI)}
     val isGroupBottom = {item: SettingScreenItem ->

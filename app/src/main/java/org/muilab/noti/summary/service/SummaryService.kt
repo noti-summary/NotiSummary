@@ -52,6 +52,7 @@ import org.muilab.noti.summary.view.home.SummaryResponse
 import java.util.LinkedList
 import java.util.Queue
 import kotlin.collections.set
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -65,8 +66,8 @@ class SummaryService : Service(), LifecycleOwner {
     private lateinit var summaryPref: SharedPreferences
     private lateinit var promptPref: SharedPreferences
     private lateinit var apiPref: SharedPreferences
-    private val NOTI_THRESHOLD = 10000
-    private val SUMMARY_THRESHOLD = 15000
+    private var NOTI_THRESHOLD = 0
+    private var SUMMARY_THRESHOLD = 0
     private var statusText = ""
 
     private fun getPostContent(activeNotifications: ArrayList<NotiUnit>): ArrayList<String> {
@@ -123,6 +124,10 @@ class SummaryService : Service(), LifecycleOwner {
                 )
                 OpenAI(config)
             }
+            val modelChoice = summaryPref.getBoolean("model", false)
+            val model = if (modelChoice) "gpt-4" else "gpt-3.5-turbo-16k"
+            NOTI_THRESHOLD = if (modelChoice) 8000 else 16000
+            SUMMARY_THRESHOLD = if (modelChoice) 12000 else 24000
 
             if (!isNetworkConnected(applicationContext))
                 responseStr = getString(SummaryResponse.NETWORK_ERROR.message)
@@ -139,7 +144,7 @@ class SummaryService : Service(), LifecycleOwner {
                 val subSummaries = mutableListOf<String>()
                 for (chunk in postContent) {
                     val chatCompletionRequest = ChatCompletionRequest(
-                        model = ModelId("gpt-3.5-turbo-16k"),
+                        model = ModelId(model),
                         messages = listOf(
                             ChatMessage(
                                 role = ChatRole.System,
@@ -208,7 +213,7 @@ class SummaryService : Service(), LifecycleOwner {
                         }
 
                         val chatCompletionRequest = ChatCompletionRequest(
-                            model = ModelId("gpt-3.5-turbo-16k"),
+                            model = ModelId(model),
                             messages = listOf(
                                 ChatMessage(
                                     role = ChatRole.User,
@@ -330,11 +335,18 @@ class SummaryService : Service(), LifecycleOwner {
                 if (activeKeys != null) {
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            withTimeout(600000) {
+                            val timeoutThreshold = 600000L
+                            withTimeout(timeoutThreshold) {
                                 sendToServer(activeKeys, true)
                             }
                         } catch (e: TimeoutCancellationException) {
                             updateStatusText(getString(SummaryResponse.TIMEOUT_ERROR.message))
+                        } catch (e: java.util.concurrent.CancellationException) {
+                            updateStatusText(getString(SummaryResponse.TIMEOUT_ERROR.message))
+                        } catch (e: CancellationException) {
+                            updateStatusText(getString(SummaryResponse.TIMEOUT_ERROR.message))
+                        } catch (e: Exception) {
+                            updateStatusText(getString(SummaryResponse.UNKNOWN_ERROR.message))
                         }
                     }
                 }

@@ -208,7 +208,6 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onPause() {
-        this.getSharedPreferences("user", Context.MODE_PRIVATE)
         unregisterReceiver(allNotiReturnReceiver)
         unregisterReceiver(newStatusReceiver)
         super.onPause()

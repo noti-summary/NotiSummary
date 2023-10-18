@@ -93,5 +93,6 @@
     <string name="prompt_subsummary1">These are summaries of subsets of my notifications, generated with the prompt "</string>
     <string name="prompt_subsummary2">". Please integrate them in policy of the original prompt."</string>
     <string name="key_requirement">NotiSummary requires your own OpenAI API key to utilize notification summaries.</string>
+    <string name="using">Using</string>
     <string name="empty" translatable="false" />
 </resources>
