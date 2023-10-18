@@ -62,8 +62,8 @@
     <string name="default_summary_prompt">Summarize these notifications in a brief statement.</string>
     <string name="search_app">Search</string>
     <string name="push_notification">Open Push Notification</string>
-    <string name="privacy_URL">https://hackmd.io/@noti-summary/privacy-policy</string>
-    <string name="feedback_URL">https://forms.gle/3BK34CGo4eNTszE16</string>
+    <string name="feedback_URL" translatable="false">mailto:noti.summary@gmail.com</string>
+    <string name="github_URL" translatable="false">https://github.com/noti-summary/NotiSummary</string>
     <string name="every">"every "</string>
     <string name="everyDay">every day</string>
     <string name="everyWeekend">every weekend</string>

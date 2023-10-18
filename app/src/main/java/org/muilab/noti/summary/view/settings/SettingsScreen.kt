@@ -42,8 +42,6 @@ enum class SettingScreenItem(var titleId: Int, var iconId: Int, var description:
     SettingAPI(R.string.openai_api_key, R.drawable.setting_key, R.string.api_key_description),
     Feedback(R.string.feedback, R.drawable.feedback, R.string.empty),
     About(R.string.about, R.drawable.about, R.string.empty),
-    Privacy(R.string.privacy_policy, R.drawable.privacy_policy, R.string.empty),
-    Recruitment(R.string.recruitment, R.drawable.participant, R.string.empty),
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -189,12 +187,6 @@ fun NavigateSetting(
         }
         composable(SettingScreenItem.About.name) {
             AboutScreen()
-        }
-        composable(SettingScreenItem.Privacy.name) {
-            PrivacyScreen()
-        }
-        composable(SettingScreenItem.Recruitment.name) {
-            RecruitmentScreen()
         }
     }
 }
