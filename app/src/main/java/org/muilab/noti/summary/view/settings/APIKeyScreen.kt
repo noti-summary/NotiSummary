@@ -1,5 +1,6 @@
 package org.muilab.noti.summary.view.settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -7,8 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,6 +18,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -38,9 +38,8 @@ fun APIKeyScreen(apiKeyViewModel: APIKeyViewModel) {
 }
 
 @Composable
-fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
-    val selectedOption = apiKeyViewModel.apiKey.observeAsState()
-    val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
+fun APICreationLink() {
+
     val uriHandler = LocalUriHandler.current
 
     val annotatedLinkString: AnnotatedString = buildAnnotatedString {
@@ -61,21 +60,28 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
             end = endIndex
         )
     }
+    ClickableText(
+        annotatedLinkString,
+        modifier = Modifier.padding(15.dp, 10.dp),
+        onClick = {
+            annotatedLinkString
+                .getStringAnnotations("URL", it, it)
+                .firstOrNull()?.let { stringAnnotation ->
+                    uriHandler.openUri(stringAnnotation.item)
+                }
+        }
+    )
+}
+
+@Composable
+fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
+    val selectedOption = apiKeyViewModel.apiKey.observeAsState()
+    val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
 
     Column {
-        ClickableText(
-            annotatedLinkString,
-            modifier = Modifier.padding(15.dp, 10.dp),
-            onClick = {
-                annotatedLinkString
-                    .getStringAnnotations("URL", it, it)
-                    .firstOrNull()?.let { stringAnnotation ->
-                        uriHandler.openUri(stringAnnotation.item)
-                    }
-            }
-        )
+        APICreationLink()
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
-            itemsIndexed(allAPIKey.value) { index, item ->
+            itemsIndexed(allAPIKey.value) { _, item ->
                 Card(
                     modifier = Modifier
                         .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
@@ -96,12 +102,17 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                     shape = MaterialTheme.shapes.medium,
                 ) {
                     Row(
-                        modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            modifier = Modifier.weight(1f).padding(5.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             text = "sk-**********" + item.takeLast(4),
                             color =
                             if (item == selectedOption.value) {
@@ -113,7 +124,9 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
 
                         if (allAPIKey.value.size > 1) {
                             IconButton(
-                                modifier = Modifier.size(42.dp).padding(3.dp),
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .padding(3.dp),
                                 onClick = { apiKeyViewModel.deleteAPI(item) }
                             ) {
                                 Icon(Icons.Rounded.Delete, contentDescription = "delete api")
@@ -133,7 +146,9 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
     val inputKey = remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 20.dp, end = 20.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         FloatingActionButton(
@@ -158,7 +173,17 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
     }
 
     if (showDialog.value) {
-        APIKeyEditor(showDialog, inputKey, confirmAction, dismissAction)
+        val titleContent: @Composable () -> Unit = {
+            Image(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 30.dp, bottom = 20.dp)
+                    .height(70.dp),
+                painter = painterResource(id = R.drawable.key),
+                contentDescription = "key_icon",
+            )
+        }
+        APIKeyEditor(showDialog, inputKey, titleContent, confirmAction, dismissAction)
     }
 }
 
@@ -167,20 +192,17 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 fun APIKeyEditor(
     showDialog: MutableState<Boolean>,
     defaultPromptInTextBox: MutableState<String>,
+    title: @Composable () -> Unit,
     confirmAction: () -> Unit,
     dismissAction: () -> Unit = {},
 ) {
     NoPaddingAlertDialog(
-        title = {
-            Image(
-                modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 20.dp).height(70.dp),
-                painter = painterResource(id = R.drawable.key),
-                contentDescription = "key_icon",
-            )
-        },
+        title = title,
         text = {
             OutlinedTextField(
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp)
+                    .fillMaxWidth(),
                 singleLine = true,
                 value = defaultPromptInTextBox.value,
                 onValueChange = { defaultPromptInTextBox.value = it },

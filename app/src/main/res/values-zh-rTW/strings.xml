@@ -86,8 +86,9 @@
     <string name="scheduler_description">您可以點擊右下角按鈕新增摘要排程，使 APP 在指定時間自動生成摘要。您也可以點選「開啟通知提醒」，讓 APP 在產生摘要時通知您。</string>
     <string name="app_filter_description">您可以在這裡選擇要納入通知摘要的應用程式。</string>
     <string name="noti_filter_description">您可以在這裡選擇要納入摘要的通知資訊。</string>
+    <string name="api_key_description">您每天可以進行一定次數的免費摘要，但您若使用自己的 OpenAI API 金鑰，則沒有這個限制。若您要使用自己的 API 金鑰，可以點擊右下角按鈕進行新增。</string>
     <string name="prompt_opening">以下是我的手機通知：</string>
     <string name="prompt_subsummary1">這些文字個別是我部份手機通知的摘要，產生這些摘要的指令為「</string>
     <string name="prompt_subsummary2">」。請在這個指示下整合這些摘要。</string>
-    <string name="api_key_description">您每天可以進行一定次數的免費摘要，但您若使用自己的 OpenAI API 金鑰，則沒有這個限制。若您要使用自己的 API 金鑰，可以點擊右下角按鈕進行新增。</string>
+    <string name="key_requirement">這個APP需要您使用自己的OpenAI金鑰。</string>
 </resources>

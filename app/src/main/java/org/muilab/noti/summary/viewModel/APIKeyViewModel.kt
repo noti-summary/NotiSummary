@@ -56,8 +56,8 @@ class APIKeyViewModel(application: Application, apiKeyDatabase: APIKeyDatabase) 
         if (allAPIKey.value?.size!! > 1) {
             scope.launch {
                 apiKeyDao.deleteByAPIKey(apiKey)
+                chooseAPI(apiKeyDao.getAllAPIStatic()[0])
             }
-            allAPIKey.value?.get(0)?.let { chooseAPI(it) }
         }
     }
 }

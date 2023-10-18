@@ -1,9 +1,12 @@
 package org.muilab.noti.summary
 
 import android.app.ActivityManager
-import android.content.*
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
@@ -12,8 +15,27 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.database.room.ScheduleDatabase
@@ -22,7 +44,13 @@ import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
 import org.muilab.noti.summary.util.isNetworkConnected
 import org.muilab.noti.summary.view.MainScreenView
-import org.muilab.noti.summary.view.userInit.*
+import org.muilab.noti.summary.view.settings.APICreationLink
+import org.muilab.noti.summary.view.settings.APIKeyEditor
+import org.muilab.noti.summary.view.userInit.AskPermissionDialog
+import org.muilab.noti.summary.view.userInit.FilterNotify
+import org.muilab.noti.summary.view.userInit.NetworkCheckDialog
+import org.muilab.noti.summary.view.userInit.PersonalInformationScreen
+import org.muilab.noti.summary.view.userInit.PrivacyPolicyDialog
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
@@ -124,6 +152,67 @@ class MainActivity : ComponentActivity() {
                         })
                     }
                     "USER_READY" -> {
+                        val showDialog = remember { mutableStateOf(true) }
+                        val selectedOption = apiViewModel.apiKey.value
+                        if (selectedOption?.startsWith("sk-") == true) {
+                            with(sharedPref.edit()) {
+                                putString("initStatus", "USER_PROVIDED_KEY")
+                                apply()
+                            }
+                            initStatus = "USER_PROVIDED_KEY"
+                        } else {
+
+                            LaunchedEffect(true) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val allAPIKey = apiKeyDatabase.apiKeyDao().getAllAPIStatic()
+                                    if (allAPIKey.isNotEmpty()) {
+                                        showDialog.value = false
+                                        apiViewModel.chooseAPI(allAPIKey[0])
+                                        with(sharedPref.edit()) {
+                                            putString("initStatus", "USER_PROVIDED_KEY")
+                                            apply()
+                                        }
+                                        initStatus = "USER_PROVIDED_KEY"
+                                    }
+                                }
+                            }
+
+                            val inputKey = remember { mutableStateOf("") }
+                            val titleContent: @Composable () -> Unit = {
+                                Column {
+                                    Image(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 30.dp, bottom = 20.dp)
+                                            .height(70.dp),
+                                        painter = painterResource(id = R.drawable.key),
+                                        contentDescription = "key_icon",
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.key_requirement),
+                                        modifier = Modifier.padding(15.dp, 0.dp),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    APICreationLink()
+                                }
+                            }
+                            val confirmAction = {
+                                if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
+                                    apiViewModel.addAPI(inputKey.value)
+                                    inputKey.value = ""
+                                    showDialog.value = false
+                                    with(sharedPref.edit()) {
+                                        putString("initStatus", "USER_PROVIDED_KEY")
+                                        apply()
+                                    }
+                                    initStatus = "USER_PROVIDED_KEY"
+                                }
+                            }
+                            if (showDialog.value)
+                                APIKeyEditor(showDialog, inputKey, titleContent, confirmAction)
+                        }
+                    }
+                    "USER_PROVIDED_KEY" -> {
                         startService(notiListenerIntent)
                         MainScreenView(
                             this,
