@@ -1,9 +1,12 @@
 package org.muilab.noti.summary
 
 import android.app.ActivityManager
-import android.content.*
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
@@ -12,40 +15,48 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.installations.FirebaseInstallations
-import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.database.room.ScheduleDatabase
 import org.muilab.noti.summary.service.NotiListenerService
 import org.muilab.noti.summary.service.SummaryService
 import org.muilab.noti.summary.ui.theme.NotiappTheme
-import org.muilab.noti.summary.util.getDateTime
-import org.muilab.noti.summary.util.logUserAction
 import org.muilab.noti.summary.view.MainScreenView
-import org.muilab.noti.summary.view.userInit.*
+import org.muilab.noti.summary.view.settings.APICreationLink
+import org.muilab.noti.summary.view.settings.APIKeyEditor
+import org.muilab.noti.summary.view.userInit.AskPermissionDialog
+import org.muilab.noti.summary.view.userInit.FilterNotify
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 import org.muilab.noti.summary.viewModel.PromptViewModel
 import org.muilab.noti.summary.viewModel.ScheduleViewModel
 import org.muilab.noti.summary.viewModel.SummaryViewModel
 
 
-const val maxCredit: Int = 50
-
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val settings = FirebaseFirestoreSettings.Builder()
-            .setPersistenceEnabled(true)
-            .build()
-        FirebaseFirestore.getInstance().firestoreSettings = settings
 
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
 
@@ -73,27 +84,14 @@ class MainActivity : ComponentActivity() {
                             }
                             startActivity(intent)
                         }
-                        if (isNetworkConnected())
-                            PrivacyPolicyDialog(onAgree = {
-                                with(sharedPref.edit()) {
-                                    putBoolean("agreeTerms", true)
-                                    putString("initStatus", "OPEN_PERMISSION")
-                                    apply()
-                                }
-                                initStatus = "OPEN_PERMISSION"
-                            })
-                        else
-                            NetworkCheckDialog(applicationContext)
-                    }
-                    "OPEN_PERMISSION" -> {
                         AskPermissionDialog (
                             onAgree = {
                                 if (isNotiListenerEnabled()) {
                                     with(sharedPref.edit()) {
-                                        putString("initStatus", "AGREED")
+                                        putString("initStatus", "SHOW_FILTER_NOTICE")
                                         apply()
                                     }
-                                    initStatus = "AGREED"
+                                    initStatus = "SHOW_FILTER_NOTICE"
                                 } else {
                                     Toast.makeText(
                                         this,
@@ -107,25 +105,6 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
-                    "AGREED" -> {
-                        PersonalInformationScreen(
-                            onContinue = { birthYear, gender, country, source ->
-                                with(sharedPref.edit()) {
-                                    putInt("birthYear", birthYear)
-                                    putString("gender", gender)
-                                    putString("country", country)
-                                    putString("source", source)
-                                    putString("initStatus", "USER_INFO_FILLED")
-                                    apply()
-                                }
-                                initStatus = "USER_INFO_FILLED"
-                            }
-                        )
-                    }
-                    "USER_INFO_FILLED" -> {
-                        if (setUserId())
-                            initStatus = "SHOW_FILTER_NOTICE"
-                    }
                     "SHOW_FILTER_NOTICE" -> {
                         if (!isNotiListenerEnabled())
                             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
@@ -138,8 +117,75 @@ class MainActivity : ComponentActivity() {
                         })
                     }
                     "USER_READY" -> {
+                        val showDialog = remember { mutableStateOf(true) }
+                        val selectedOption = apiViewModel.apiKey.value
+                        if (selectedOption?.startsWith("sk-") == true) {
+                            with(sharedPref.edit()) {
+                                putString("initStatus", "USER_PROVIDED_KEY")
+                                apply()
+                            }
+                            initStatus = "USER_PROVIDED_KEY"
+                        } else {
+
+                            LaunchedEffect(true) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    val allAPIKey = apiKeyDatabase.apiKeyDao().getAllAPIStatic()
+                                    if (allAPIKey.isNotEmpty()) {
+                                        showDialog.value = false
+                                        apiViewModel.chooseAPI(allAPIKey[0])
+                                        with(sharedPref.edit()) {
+                                            putString("initStatus", "USER_PROVIDED_KEY")
+                                            apply()
+                                        }
+                                        initStatus = "USER_PROVIDED_KEY"
+                                    }
+                                }
+                            }
+
+                            val inputKey = remember { mutableStateOf("") }
+                            val titleContent: @Composable () -> Unit = {
+                                Column {
+                                    Image(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 30.dp, bottom = 20.dp)
+                                            .height(70.dp),
+                                        painter = painterResource(id = R.drawable.key),
+                                        contentDescription = "key_icon",
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.key_requirement),
+                                        modifier = Modifier.padding(15.dp, 0.dp),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    APICreationLink()
+                                }
+                            }
+                            val confirmAction = {
+                                if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
+                                    apiViewModel.addAPI(inputKey.value)
+                                    inputKey.value = ""
+                                    showDialog.value = false
+                                    with(sharedPref.edit()) {
+                                        putString("initStatus", "USER_PROVIDED_KEY")
+                                        apply()
+                                    }
+                                    initStatus = "USER_PROVIDED_KEY"
+                                }
+                            }
+                            if (showDialog.value)
+                                APIKeyEditor(showDialog, inputKey, titleContent, confirmAction)
+                        }
+                    }
+                    "USER_PROVIDED_KEY" -> {
                         startService(notiListenerIntent)
-                        MainScreenView(this, this, sumViewModel, promptViewModel, apiViewModel, scheduleViewModel)
+                        MainScreenView(
+                            this,
+                            sumViewModel,
+                            promptViewModel,
+                            apiViewModel,
+                            scheduleViewModel
+                        )
                     }
                 }
             }
@@ -150,8 +196,6 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
         val stage = sharedPref.getString("initStatus", "NOT_STARTED")
-        if (stage.equals("USER_READY"))
-            logUserAction("lifeCycle", "appResume", applicationContext)
         if (stage.equals("USER_READY") && !isNotiListenerEnabled())
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
 
@@ -164,9 +208,6 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onPause() {
-        val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-        if (sharedPref.getString("initStatus", "NOT_STARTED").equals("USER_READY"))
-            logUserAction("lifeCycle", "appPause", applicationContext)
         unregisterReceiver(allNotiReturnReceiver)
         unregisterReceiver(newStatusReceiver)
         super.onPause()
@@ -227,83 +268,6 @@ class MainActivity : ComponentActivity() {
             if (intent?.action == "edu.mui.noti.summary.UPDATE_STATUS") {
                 sumViewModel.updateStatus()
             }
-        }
-    }
-
-    @Composable
-    private fun setUserId(): Boolean {
-
-        var initSuccess by remember { mutableStateOf(0) }
-
-        FirebaseInstallations.getInstance().id.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val userId: String = task.result
-                Log.v("userId", userId)
-
-                val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-                val birthYear = sharedPref.getInt("birthYear", 0)
-                val gender = sharedPref.getString("gender", "Unknown").toString()
-                val country = sharedPref.getString("country", "Unknown").toString()
-                val source = sharedPref.getString("source", "Unknown").toString()
-                val initTime = System.currentTimeMillis()
-
-                val db = Firebase.firestore
-                val docRef = db.collection("user").document(userId)
-
-                docRef.get()
-                    .addOnSuccessListener { document ->
-                        if (document != null) {
-                            if (!document.exists()) {
-                                val userInfo = hashMapOf<String, Any>(
-                                    "userId" to userId,
-                                    "credit" to maxCredit,
-                                    "birthYear" to birthYear,
-                                    "gender" to gender,
-                                    "country" to country,
-                                    "source" to source,
-                                    "initTime" to initTime,
-                                    "dateTime" to getDateTime(initTime)
-                                )
-                                docRef.set(userInfo).addOnSuccessListener {
-                                    Log.d(
-                                        "Installations",
-                                        userInfo.toString()
-                                    )
-                                    with(sharedPref.edit()) {
-                                        putString("user_id", userId)
-                                        putString("initStatus", "SHOW_FILTER_NOTICE")
-                                        apply()
-                                    }
-                                    initSuccess = 1
-                                }
-                            }
-                        } else
-                            initSuccess = -1
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.d("Installations", "get failed with ", exception)
-                        initSuccess = -1
-                    }
-            } else {
-                Log.e("Installations", "Unable to get Installation ID")
-                initSuccess = -1
-            }
-        }
-        if (initSuccess == -1)
-            NetworkCheckDialog(applicationContext)
-        return initSuccess == 1
-    }
-
-    private fun isNetworkConnected(): Boolean {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkCapabilities = connectivityManager.activeNetwork ?: return false
-        val activeNetwork = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
-
-        return when {
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-            else -> false
         }
     }
 
